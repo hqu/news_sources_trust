@@ -37,11 +37,11 @@ h1{font-size:25px;font-weight:700;margin:0 0 5px}
 .a-outcome .disc>summary{font-size:11.4px;padding:6px 9px}
 .a-outcome .disc .inner{padding:6px 9px 7px}
 .a-outcome .ogrid{grid-template-columns:1fr;gap:0}
-.a-outcome input[type=checkbox]{margin-top:2px;transform:scale(.88);transform-origin:left center}
+.a-outcome input[type=checkbox],.a-outcome input[type=radio]{margin-top:2px;transform:scale(.88);transform-origin:left center}
 .panel{border:1px solid var(--hair);border-radius:11px;padding:15px 16px}
 .panel+.panel{margin-top:16px}
 label.row{display:flex;gap:8px;align-items:flex-start;padding:3.5px 0;cursor:pointer;font-size:13px}
-input[type=checkbox]{margin:3px 0 0;accent-color:var(--obs);flex:none}
+input[type=checkbox],input[type=radio]{margin:3px 0 0;accent-color:var(--obs);flex:none}
 .meta{color:var(--mid);font-size:11.2px;margin-left:auto;padding-left:8px;white-space:nowrap}
 
 /* ---- news-source tree ---- */
@@ -131,7 +131,7 @@ tr.sep td{border-bottom:1px solid var(--faint);padding:0;height:0}
     <div class="a-outcome">
       <div class="panel">
         <div class="track" style="margin-bottom:2px">Outcome</div>
-        <p class="legend">Grey % = share <b>holding</b> this view</p>
+        <p class="legend">One at a time. Grey % = share <b>holding</b> this view</p>
         <div id="primary"></div>
         <div id="discs"></div>
       </div>
@@ -162,7 +162,11 @@ const PRIMARY=["science"];
 const DISCLOSE=[["Other science and health institutions",["cdc","fda","doctors","pharma"]],
                 ["Named individuals",["fauci","rfk","musk"]]];
 const ALSO=[["Conspiracy beliefs",["consp1","consp2","consp3","consp4"]],
-            ["Election denial",["denial"]]];
+            ["Election denial",["denial"]],
+            ["Misinformation claims (all false)",["gmo","machines","cia","turbines","soros"]]];
+// True statements, kept apart from the false ones: they test whether a source predicts
+// believing things in general or believing things that are untrue.
+const DISCLOSE2=[["Factual claims, for contrast (all true)",["roe","queen"]]];
 
 const COLDEFS=[
  ["Term","the variable whose coefficient that row reports. The upper block holds the news sources — a regime, or an individual channel, coded 1 if the respondent reported getting political news from it in the previous 24 hours and 0 otherwise. Below the rule sit the control variables, which are in every model and are not shown in the plot. A source greyed and marked <i>not shown</i> was in the fitted model but is currently unchecked in the left column, so it is adjusted for without being drawn."],
@@ -200,10 +204,34 @@ function boot(d){try{DATA=d;init();}catch(e){fail("Error building the view: "+e.
 
 const O=k=>DATA.outcomes.find(o=>o.key===k);
 const REG=()=>DATA.meta.regimes;
+const PLATS=()=>DATA.meta.platforms||[];
 const chanOf=k=>{for(const r of REG()){const c=r.channels.find(c=>c.key===k); if(c)return c;} return null;};
+const platOf=k=>PLATS().find(p=>p.key===k)||null;
 const isRegime=k=>REG().some(r=>r.key===k);
-const labelOf=k=>isRegime(k)?REG().find(r=>r.key===k).label:(chanOf(k)?chanOf(k).label:k);
-const estOf=(o,k)=>((isRegime(k)?o.regime:o.channel)||{estimates:[]}).estimates.find(e=>e.key===k);
+const isPlat=k=>!!platOf(k);
+const labelOf=k=>GROUPONLY[k]?GROUPONLY[k]
+                : isRegime(k)?REG().find(r=>r.key===k).label
+                : isPlat(k)?platOf(k).label
+                : (chanOf(k)?chanOf(k).label:k);
+// three separate fitted models: 15-wave regime, 15-wave channel, 6-wave platform
+const blockFor=(o,k)=>isRegime(k)?o.regime:(isPlat(k)?o.platform:o.channel);
+const estOf=(o,k)=>((blockFor(o,k))||{estimates:[]}).estimates.find(e=>e.key===k);
+// every selectable node, grouped by regime so a channel never floats away from its parent
+function orderedNodes(){
+  const out=[];
+  REG().forEach(r=>{
+    out.push({key:r.key,level:"regime",parent:null});
+    r.channels.forEach(c=>{if(r.channels.length>1) out.push({key:c.key,level:"channel",parent:r.key});});
+    PLATS().filter(p=>p.parent===r.key).forEach(p=>out.push({key:p.key,level:"platform",parent:r.key}));
+  });
+  // regimes with platform detail but no 24-hour item of their own (Crowdsourced)
+  const orphanParents=[...new Set(PLATS().map(p=>p.parent))].filter(pk=>!REG().some(r=>r.key===pk));
+  orphanParents.forEach(pk=>{
+    out.push({key:pk,level:"grouponly",parent:null});
+    PLATS().filter(p=>p.parent===pk).forEach(p=>out.push({key:p.key,level:"platform",parent:pk}));
+  });
+  return out;}
+const GROUPONLY={CRW:"Crowdsourced"};
 function defaultsFor(keys){const s=new Set();
   keys.forEach(k=>{const o=O(k); if(o) o.default_on.forEach(x=>s.add(x));}); return s;}
 
@@ -222,7 +250,7 @@ function init(){
     const g=document.createElement("div"); g.className="ogrid";
     av.forEach(k=>g.appendChild(outRow(k))); discs.appendChild(g);
   });
-  DISCLOSE.forEach(([name,keys])=>{
+  DISCLOSE.concat(DISCLOSE2).forEach(([name,keys])=>{
     const av=keys.filter(k=>O(k)); if(!av.length)return;
     const d=document.createElement("details"); d.className="disc";
     d.innerHTML=`<summary>${name} <span class="meta" style="margin-left:0">${av.length}</span></summary>`;
@@ -230,10 +258,10 @@ function init(){
     av.forEach(k=>inner.appendChild(outRow(k))); d.appendChild(inner); discs.appendChild(d);
   });
   document.getElementById("primary").parentNode.addEventListener("change",e=>{
-    if(e.target.type!=="checkbox"||!e.target.dataset.out)return;
-    const k=e.target.value;
-    if(e.target.checked){selOut.push(k);defaultsFor([k]).forEach(x=>selPred.add(x));}
-    else selOut=selOut.filter(x=>x!==k);
+    if(e.target.type!=="radio"||!e.target.dataset.out)return;
+    // one outcome at a time; its most adverse sources come on automatically
+    selOut=[e.target.value];
+    selPred=defaultsFor(selOut);
     renderTree();draw();});
 
   document.getElementById("allPred").onclick=()=>{
@@ -262,7 +290,7 @@ function outRow(k){const o=O(k);
   const pct=o.regime.prevalence;
   const tip=`${pct.toFixed(1)}% of respondents ${codingOf(o)} — the base rate of this outcome, `
            +`before any model. n = ${o.regime.n.toLocaleString()}.`;
-  l.innerHTML=`<input type="checkbox" data-out="1" value="${k}"><span>${o.label}</span>
+  l.innerHTML=`<input type="radio" name="outcome" data-out="1" value="${k}"><span>${o.label}</span>
                <span class="meta" title="${tip}">${pct.toFixed(0)}%</span>`;
   l.title=tip;
   return l;}
@@ -270,30 +298,36 @@ function outRow(k){const o=O(k);
 // ---------- news-source tree ----------
 function renderTree(){
   const host=document.getElementById("tree"); host.innerHTML="";
-  REG().forEach(r=>{
+  const parents=[...REG().map(r=>r.key), ...Object.keys(GROUPONLY)
+                  .filter(k=>PLATS().some(p=>p.parent===k))];
+  parents.forEach(pk=>{
+    const r=REG().find(x=>x.key===pk);
+    const kidsList=[]
+      .concat(r&&r.channels.length>1?r.channels.map(c=>({key:c.key,label:c.label,six:false})):[])
+      .concat(PLATS().filter(p=>p.parent===pk).map(p=>({key:p.key,label:p.label,six:true})));
+    const solo=r&&r.channels.length===1&&!kidsList.length;
+    const hasKids=kidsList.length>0;
+    const open=openNodes.has(pk);
+    const e=(r&&selOut.length)?estOf(O(selOut[0]),pk):null;
     const node=document.createElement("div"); node.className="node";
-    // A regime with one channel has nothing to expand into: the regime IS the channel.
-    // Name the channel inline instead of offering a twisty that reveals a restatement.
-    const solo=r.channels.length===1;
-    const hasKids=r.channels.length>1;
-    const open=openNodes.has(r.key);
-    const e=selOut.length?estOf(O(selOut[0]),r.key):null;
     const soloTag=solo?` <span class="ch">(${r.channels[0].label})</span>`:"";
+    const box=r?`<input type="checkbox" data-pred="1" value="${pk}" ${selPred.has(pk)?"checked":""}>`
+               :`<span style="width:13px;flex:none"></span>`;
     node.innerHTML=
       `<div class="nrow">
-         <span class="tw ${hasKids?"":"leaf"} ${open?"open":""}" data-tw="${r.key}">▶</span>
-         <label><input type="checkbox" data-pred="1" value="${r.key}" ${selPred.has(r.key)?"checked":""}>
-           <span>${r.label}${soloTag}</span></label>
+         <span class="tw ${hasKids?"":"leaf"} ${open?"open":""}" data-tw="${pk}">▶</span>
+         <label>${box}<span>${labelOf(pk)}${soloTag}${
+            r?"":' <span class="ch">(6-wave battery only)</span>'}</span></label>
          <span class="meta" title="${e?e.pct_occupying.toFixed(1)+"% of respondents reported getting political news from this source in the previous 24 hours. This is a property of the source, not of the outcome, so it does not change when you change the outcome.":""}">${e?e.pct_occupying.toFixed(0)+"%":""}</span>
        </div>
-       ${hasKids?`<div class="kids ${open?"open":""}" data-kids="${r.key}"></div>`:""}`;
+       ${hasKids?`<div class="kids ${open?"open":""}" data-kids="${pk}"></div>`:""}`;
     if(hasKids){
       const kids=node.querySelector(".kids");
-      r.channels.forEach(c=>{
+      kidsList.forEach(c=>{
         const ce=selOut.length?estOf(O(selOut[0]),c.key):null;
         const l=document.createElement("label"); l.className="row";
         l.innerHTML=`<input type="checkbox" data-pred="1" value="${c.key}" ${selPred.has(c.key)?"checked":""}>
-                     <span>${c.label}</span>
+                     <span>${c.label}${c.six?' <span class="ch">6w</span>':''}</span>
                      <span class="meta" title="${ce?ce.pct_occupying.toFixed(1)+"% of respondents used this channel in the previous 24 hours.":""}">${ce?ce.pct_occupying.toFixed(0)+"%":""}</span>`;
         kids.appendChild(l);
       });
@@ -321,7 +355,8 @@ function draw(){
   if(!selOut.length||!selPred.size){
     plots.innerHTML='<div class="empty">Choose at least one outcome and one news source.</div>';
     document.getElementById("footnote").textContent="";return;}
-  const rows=[...selPred].filter(k=>selOut.some(ok=>estOf(O(ok),k)));
+  const rows=orderedNodes().map(n=>n.key)
+                .filter(k=>selPred.has(k) && selOut.some(ok=>estOf(O(ok),k)));
   if(!rows.length){plots.innerHTML='<div class="empty">None of the selected sources is fielded for these outcomes.</div>';return;}
   let lo=1,hi=1;
   selOut.forEach(ok=>rows.forEach(k=>{const e=estOf(O(ok),k); if(e){lo=Math.min(lo,e.lo);hi=Math.max(hi,e.hi);}}));
@@ -344,7 +379,7 @@ function draw(){
       const sig=!(e.lo<1&&e.hi>1), col=!sig?PAL.mid:(e.odds_ratio<1?PAL.obs:PAL.priv);
       svg+=`<line x1="${OX+sx(e.lo)}" y1="${y}" x2="${OX+sx(e.hi)}" y2="${y}" stroke="${col}" stroke-width="1.4"/>
             <circle cx="${OX+sx(e.odds_ratio)}" cy="${y}" r="${sig?4.2:3.4}" fill="${sig?col:PAL.bg}" stroke="${col}" stroke-width="1.4"/>`;
-      if(e.restricted) svg+=`<text x="${OX+sx(e.hi)+5}" y="${y+3.5}" fill="${PAL.faint}" font-size="9.5">6w</text>`;
+      if(e.restricted||isPlat(rk)) svg+=`<text x="${OX+sx(e.hi)+5}" y="${y+3.5}" fill="${PAL.faint}" font-size="9.5">6w</text>`;
     });
     d.innerHTML=`<h3>${o.label}</h3><p class="pmeta">${o.regime.prevalence.toFixed(1)}% ${
       o.direction==="trust"?"trusting":"believing"}</p>${svg}</svg>`;
@@ -354,10 +389,11 @@ function draw(){
   // ---- multivariate regression, one block per selected outcome
   selOut.forEach(ok=>{
     const o=O(ok);
-    const lvls=[["regime",rows.filter(isRegime)],["channel",rows.filter(k=>!isRegime(k))]]
-                 .filter(([,ks])=>ks.length);
+    const lvls=[["regime",rows.filter(isRegime)],
+                ["channel",rows.filter(k=>!isRegime(k)&&!isPlat(k))],
+                ["platform",rows.filter(isPlat)]].filter(([,ks])=>ks.length);
     lvls.forEach(([lv,ks])=>{
-      const blk=lv==="regime"?o.regime:o.channel; if(!blk)return;
+      const blk=lv==="regime"?o.regime:(lv==="platform"?o.platform:o.channel); if(!blk)return;
       const all=blk.estimates.filter(e=>!e.restricted);
       const div=document.createElement("div"); div.style.marginBottom="22px";
       const outcomeWord=o.direction==="trust"?"trusts":"believes";
