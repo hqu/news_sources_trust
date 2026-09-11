@@ -35,11 +35,18 @@ REGIMES = ["JS","PB","SRCH","AICH","VLP","PVT","INT","DEC"]
 # Platform-level detail, from the pol_news2 battery. Fielded in six waves only
 # (W23, 26, 27, 28, 35, 35.1), so these are estimated in their own model and must
 # never be read alongside the 15-wave regime estimates as if they were nested.
+# SLOT NUMBERS, NOT QUESTIONNAIRE ORDER. The questionnaire text lists this block in
+# DISPLAY order, which changes between waves; the microdata use stable Qualtrics choice IDs,
+# which do not. Harmonising on the questionnaire label puts "None of the above" (slot 11)
+# into the Very Large Platform roll-up. Authoritative map, with three independent
+# confirmations: paper3/data/chip50/pol_news2_data_slot_map.csv, and OUTLINE §"open
+# problems" point 8. Slot 11 (None of the above) and slot 12 (Truth Social, unassigned in
+# regime_taxonomy_v2) are deliberately excluded.
 PLAT = {"pol_news2_1":("Facebook","VLP"), "pol_news2_2":("Twitter / X","VLP"),
         "pol_news2_3":("YouTube","VLP"),  "pol_news2_5":("Instagram","VLP"),
-        "pol_news2_6":("Snapchat","VLP"), "pol_news2_11":("TikTok","VLP"),
+        "pol_news2_6":("Snapchat","VLP"), "pol_news2_10":("TikTok","VLP"),
         "pol_news2_4":("Reddit","CRW"),   "pol_news2_7":("Wikipedia","CRW"),
-        "pol_news2_8":("Facebook Messenger","PVT"), "pol_news2_10":("WhatsApp","PVT")}
+        "pol_news2_8":("Facebook Messenger","PVT"), "pol_news2_9":("WhatsApp","PVT")}
 REGIME_LABEL = {"JS":"Journalistic Standard","PB":"Partisan Broadcast","VLP":"Very Large Platform",
                 "DEC":"Decentralized","PVT":"Private Messaging","INT":"Interpersonal Ties",
                 "SRCH":"Search Engine","AICH":"AI Chat"}
