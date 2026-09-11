@@ -6,8 +6,17 @@
 <title>How far a belief has spread changes which news source predicts it — CHIP50</title>
 <style>
 :root{--ink:#16181d;--mid:#71777f;--faint:#ccd1d6;--hair:#e6e9ec;--bg:#fff;--wash:#f4f7f9;
-      --dec:#c1272d;--pvt:#6b4c9a;--vlp:#2f6f8f;--js:#3f8265;--pb:#b07a2a;--srch:#7c828a;
-      --int:#8a6a8a;--aich:#2f8fa0}
+      /* Eight categories on white, so the palette is Okabe-Ito derived: distinguishable under
+         deuteranopia and protanopia, and separated in value as well as hue. Decentralized keeps
+         the most salient colour because it is the result the page is about. */
+      --dec:#c1272d;   /* crimson      */
+      --pvt:#6a3d9a;   /* deep purple  */
+      --vlp:#0072b2;   /* strong blue  */
+      --js:#009e73;    /* bluish green */
+      --pb:#e08214;    /* orange       */
+      --srch:#4d4f55;  /* dark slate   */
+      --int:#cc79a7;   /* pink         */
+      --aich:#56b4e9}  /* sky blue     */
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);
   font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;font-size:14px;line-height:1.5}
@@ -112,11 +121,12 @@ logistic models adjusted for party, education, age, income, gender and wave. Eve
       <div class="pane" data-step="0"><div class="card">
         <div class="step">Start here</div>
         <h3>Eighteen outcomes, eight ways of getting political news.</h3>
-        <p>Each dot is one regime's association with one outcome. Height is the odds ratio; above the
-        line means the regime predicts the adverse direction — believing a false or conspiratorial
-        claim, or distrusting an institution.</p>
-        <p>Horizontal position is <b>how much of the population is already in that adverse state</b>.
-        That axis turns out to matter more than the topic.</p>
+        <p>Each dot is one regime's association with one outcome. Its position across is the odds
+        ratio; to the <b>right</b> of the heavy line means the regime predicts the adverse direction —
+        believing a false or conspiratorial claim, or distrusting an institution.</p>
+        <p>How far <b>up</b> a dot sits is how much of the population is already in that adverse state.
+        Reading the chart bottom to top is watching a belief spread, and that axis turns out to matter
+        more than the topic does.</p>
       </div></div>
 
       <div class="pane" data-step="1"><div class="card">
@@ -373,9 +383,13 @@ function bindTip(node,html){
 const fmt=(x,d=2)=>isFinite(x)?x.toFixed(d):"—";
 
 /* ============================ the scatter ============================ */
+/* Prevalence runs up the Y axis and the odds ratio across the X axis, so each outcome is a
+   ROW at its own height and effect size is read left-to-right, as in a forest plot. The
+   fitted line for a regime therefore LEANS: left as you go up if the association weakens as
+   a claim spreads, right if it strengthens. */
 function drawScatter(host,state,opts={}){
-  const W=host.clientWidth||760, H=opts.height||Math.max(320,Math.min(520,host.clientHeight||420));
-  const M={t:14,r:16,b:42,l:52};
+  const W=host.clientWidth||760, H=opts.height||Math.max(320,Math.min(560,host.clientHeight||440));
+  const M={t:16,r:18,b:42,l:46};
   const C=cells(state), rows=summarise(state);
   host.innerHTML="";
   const svg=el("svg",{width:W,height:H,viewBox:`0 0 ${W} ${H}`});
@@ -384,46 +398,62 @@ function drawScatter(host,state,opts={}){
       {x:W/2,y:H/2,"text-anchor":"middle",fill:"var(--mid)","font-size":13})); return; }
 
   const iw=W-M.l-M.r, ih=H-M.t-M.b;
-  let ylo=Math.min(...C.map(c=>c.lo)), yhi=Math.max(...C.map(c=>c.hi));
-  ylo=Math.min(ylo,0.78); yhi=Math.max(yhi,1.28);
-  const X=v=>M.l+iw*(v/100), Y=v=>M.t+ih*(1-(Math.log(v)-Math.log(ylo))/(Math.log(yhi)-Math.log(ylo)));
+  let xlo=Math.min(...C.map(c=>c.lo)), xhi=Math.max(...C.map(c=>c.hi));
+  xlo=Math.min(xlo,0.78); xhi=Math.max(xhi,1.28);
+  const X=v=>M.l+iw*((Math.log(v)-Math.log(xlo))/(Math.log(xhi)-Math.log(xlo)));
+  const Y=v=>M.t+ih*(1-v/100);
 
-  /* grid */
+  /* horizontal grid: % of the population in the adverse state */
   [0,25,50,75,100].forEach(v=>{
-    svg.appendChild(el("line",{x1:X(v),x2:X(v),y1:M.t,y2:M.t+ih,stroke:"var(--hair)"}));
-    svg.appendChild(txt(v+"%",{x:X(v),y:M.t+ih+16,"text-anchor":"middle",fill:"var(--mid)","font-size":10.5}));
+    svg.appendChild(el("line",{x1:M.l,x2:M.l+iw,y1:Y(v),y2:Y(v),stroke:"var(--hair)"}));
+    svg.appendChild(txt(v+"%",{x:M.l-8,y:Y(v)+3.5,"text-anchor":"end",fill:"var(--mid)","font-size":10.5}));
   });
-  [0.7,0.8,0.9,1.0,1.2,1.4,1.6,1.8,2.0].filter(v=>v>=ylo&&v<=yhi).forEach(v=>{
+  /* vertical grid: the odds-ratio scale, with 1 drawn heavy */
+  [0.6,0.7,0.8,0.9,1.0,1.2,1.4,1.6,1.8,2.0,2.4].filter(v=>v>=xlo&&v<=xhi).forEach(v=>{
     const one=Math.abs(v-1)<1e-9;
-    svg.appendChild(el("line",{x1:M.l,x2:M.l+iw,y1:Y(v),y2:Y(v),
+    svg.appendChild(el("line",{x1:X(v),x2:X(v),y1:M.t,y2:M.t+ih,
       stroke:one?"var(--ink)":"var(--hair)","stroke-width":one?1.4:1}));
-    svg.appendChild(txt(v.toFixed(1),{x:M.l-8,y:Y(v)+3.5,"text-anchor":"end",
+    svg.appendChild(txt(v.toFixed(1),{x:X(v),y:M.t+ih+16,"text-anchor":"middle",
       fill:one?"var(--ink)":"var(--mid)","font-size":10.5,"font-weight":one?600:400}));
   });
-  svg.appendChild(txt("% of the population in the adverse state",
-    {x:M.l+iw/2,y:H-6,"text-anchor":"middle",fill:"var(--mid)","font-size":11}));
-  svg.appendChild(txt("adverse odds ratio",{x:12,y:M.t+ih/2,"text-anchor":"middle",
-    fill:"var(--mid)","font-size":11,transform:`rotate(-90 12 ${M.t+ih/2})`}));
+  svg.appendChild(txt("adverse odds ratio  →",{x:M.l+iw,y:H-7,"text-anchor":"end",
+    fill:"var(--mid)","font-size":11}));
+  svg.appendChild(txt("% of the population in the adverse state  ↑",{x:13,y:M.t+ih/2,
+    "text-anchor":"middle",fill:"var(--mid)","font-size":11,transform:`rotate(-90 13 ${M.t+ih/2})`}));
 
   const emph=opts.emphasis||null;
   const dim = rg => emph && !emph.includes(rg);
 
-  /* fitted lines */
-  for(const r of rows){
-    if(!r.slope||!isFinite(r.slope.m)) continue;
-    const x1=Math.max(0,state.lo), x2=Math.min(100,state.hi);
-    const p1=Math.exp(r.slope.m*x1+r.slope.b), p2=Math.exp(r.slope.m*x2+r.slope.b);
-    svg.appendChild(el("line",{x1:X(x1),x2:X(x2),y1:Y(Math.max(ylo,Math.min(yhi,p1))),
-      y2:Y(Math.max(ylo,Math.min(yhi,p2))),stroke:RC[r.regime],
-      "stroke-width":dim(r.regime)?1.2:2.6,opacity:dim(r.regime)?.16:.85}));
+  /* fitted lines first, so the points sit on top and win the hover */
+  if(!opts.noLines){
+    for(const r of rows){
+      if(!r.slope||!isFinite(r.slope.m)) continue;
+      const p1=Math.max(0,state.lo), p2=Math.min(100,state.hi);
+      const o1=Math.exp(r.slope.m*p1+r.slope.b), o2=Math.exp(r.slope.m*p2+r.slope.b);
+      const cl=v=>Math.max(xlo,Math.min(xhi,v));
+      const x1=X(cl(o1)), y1=Y(p1), x2=X(cl(o2)), y2=Y(p2);
+      const faded=dim(r.regime);
+      svg.appendChild(el("line",{x1,y1,x2,y2,stroke:RC[r.regime],
+        "stroke-width":faded?.7:1.15,opacity:faded?.2:.62,"stroke-linecap":"round"}));
+      /* a wide transparent line so the hover target is reachable */
+      const hit=el("line",{x1,y1,x2,y2,stroke:"transparent","stroke-width":14,
+        "pointer-events":"stroke",cursor:"crosshair"});
+      const lean = r.slope.m<0 ? "leans LEFT going up — the association weakens as the claim spreads"
+                               : "leans RIGHT going up — the association strengthens as the claim spreads";
+      bindTip(hit,`<b>${RLAB[r.regime]}</b> — fitted line<br>
+        r = <b>${fmt(r.r,3)}</b> over ${r.kfit} outcome${r.kfit===1?"":"s"}<br>
+        odds ratio ${fmt(o1)} at ${p1}% → ${fmt(o2)} at ${p2}%<br>
+        <span style="opacity:.8">${lean}</span>`);
+      svg.appendChild(hit);
+    }
   }
   /* points */
   for(const c of C){
-    const o=dim(c.regime)?.13:(opts.faint?.5:.95), col=RC[c.regime];
+    const o=dim(c.regime)?.13:(opts.faint?.55:.95), col=RC[c.regime];
     const g=el("g",{opacity:o});
-    g.appendChild(el("line",{x1:X(c.o.adverse),x2:X(c.o.adverse),
-      y1:Y(Math.min(yhi,c.hi)),y2:Y(Math.max(ylo,c.lo)),stroke:col,"stroke-width":1.1,opacity:.4}));
-    const fam=c.o.fam, cx=X(c.o.adverse), cy=Y(c.or), s=4.2;
+    g.appendChild(el("line",{y1:Y(c.o.adverse),y2:Y(c.o.adverse),
+      x1:X(Math.max(xlo,c.lo)),x2:X(Math.min(xhi,c.hi)),stroke:col,"stroke-width":1.1,opacity:.4}));
+    const fam=c.o.fam, cx=X(c.or), cy=Y(c.o.adverse), s=4.2;
     let mark;
     if(fam==="belief") mark=el("circle",{cx,cy,r:s});
     else if(fam==="establishment") mark=el("rect",{x:cx-s,y:cy-s,width:2*s,height:2*s,rx:1});
@@ -440,20 +470,19 @@ function drawScatter(host,state,opts={}){
   /* annotation */
   if(opts.annotate){
     const a=el("g");
-    a.appendChild(el("rect",{x:M.l+8,y:M.t+6,width:opts.annotate.w||236,height:opts.annotate.h||40,
+    a.appendChild(el("rect",{x:M.l+10,y:M.t+8,width:opts.annotate.w||236,height:opts.annotate.h||40,
       rx:7,fill:"#16181d",opacity:.92}));
     opts.annotate.lines.forEach((s,i)=>a.appendChild(txt(s,
-      {x:M.l+18,y:M.t+24+i*15,fill:"#fff","font-size":11.6,"font-weight":i?400:700})));
+      {x:M.l+20,y:M.t+26+i*15,fill:"#fff","font-size":11.6,"font-weight":i?400:700})));
     svg.appendChild(a);
   }
-  /* legend */
-  const lg=el("g",{transform:`translate(${M.l+iw-172},${M.t+ih-42})`});
+  /* legend, bottom right where the low-prevalence rows leave room */
+  const lg=el("g",{transform:`translate(${M.l+iw-166},${M.t+ih-34})`});
   [["belief","● belief in a claim"],["establishment","■ distrust of an institution"],
    ["challenger","▲ trust in RFK / Musk"]].forEach((d,i)=>
     lg.appendChild(txt(d[1],{x:0,y:i*13,fill:"var(--mid)","font-size":10.2})));
   svg.appendChild(lg);
 }
-
 /* ============================ rank panel ============================ */
 function drawRank(host,state){
   const rows=summarise(state), W=host.clientWidth||290;
@@ -495,13 +524,14 @@ function drawRank(host,state){
 }
 
 /* ============================ quadrant ============================ */
+/* Axes swapped to match the scatter: establishment distrust across, belief up. */
 function drawQuad(host,state){
-  const rows=summarise(state), W=host.clientWidth||290, H=250, M={t:10,r:12,b:30,l:34};
+  const rows=summarise(state), W=host.clientWidth||290, H=250, M={t:10,r:12,b:32,l:36};
   host.innerHTML="";
   const usable=rows.filter(r=>isFinite(r.belief)&&isFinite(r.estab));
   if(usable.length<2){ host.innerHTML='<div class="note">Select outcomes from both families to see this.</div>'; return; }
   const iw=W-M.l-M.r, ih=H-M.t-M.b;
-  const xs=usable.map(r=>r.belief), ys=usable.map(r=>r.estab);
+  const xs=usable.map(r=>r.estab), ys=usable.map(r=>r.belief);
   const xlo=Math.min(.9,...xs)-.03, xhi=Math.max(1.1,...xs)+.03;
   const ylo=Math.min(.9,...ys)-.03, yhi=Math.max(1.1,...ys)+.03;
   const X=v=>M.l+iw*((v-xlo)/(xhi-xlo)), Y=v=>M.t+ih*(1-(v-ylo)/(yhi-ylo));
@@ -510,24 +540,24 @@ function drawQuad(host,state){
     fill:"#c1272d",opacity:.055}));
   svg.appendChild(el("line",{x1:X(1),x2:X(1),y1:M.t,y2:M.t+ih,stroke:"var(--faint)"}));
   svg.appendChild(el("line",{x1:M.l,x2:M.l+iw,y1:Y(1),y2:Y(1),stroke:"var(--faint)"}));
-  svg.appendChild(txt("believes claims →",{x:M.l+iw,y:H-16,"text-anchor":"end",fill:"var(--mid)","font-size":10}));
-  svg.appendChild(txt("distrusts establishment →",{x:14,y:M.t+ih/2,"text-anchor":"middle",
+  svg.appendChild(txt("distrusts establishment →",{x:M.l+iw,y:H-16,"text-anchor":"end",
+    fill:"var(--mid)","font-size":10}));
+  svg.appendChild(txt("believes claims →",{x:14,y:M.t+ih/2,"text-anchor":"middle",
     fill:"var(--mid)","font-size":10,transform:`rotate(-90 14 ${M.t+ih/2})`}));
   svg.appendChild(txt("adverse on both",{x:M.l+iw-4,y:M.t+12,"text-anchor":"end",
     fill:"#c1272d","font-size":9.5,"font-weight":700}));
   for(const r of usable){
     const g=el("g");
-    g.appendChild(el("circle",{cx:X(r.belief),cy:Y(r.estab),r:5.5,fill:RC[r.regime],opacity:.9}));
-    g.appendChild(txt(r.regime,{x:X(r.belief)+8,y:Y(r.estab)+3.5,"font-size":9.8,
+    g.appendChild(el("circle",{cx:X(r.estab),cy:Y(r.belief),r:5.5,fill:RC[r.regime],opacity:.9}));
+    g.appendChild(txt(r.regime,{x:X(r.estab)+8,y:Y(r.belief)+3.5,"font-size":9.8,
       fill:"var(--ink)","font-weight":600}));
-    bindTip(g,`<b>${RLAB[r.regime]}</b><br>belief axis <b>${fmt(r.belief)}</b><br>
-      establishment axis <b>${fmt(r.estab)}</b><br>
+    bindTip(g,`<b>${RLAB[r.regime]}</b><br>establishment axis <b>${fmt(r.estab)}</b><br>
+      belief axis <b>${fmt(r.belief)}</b><br>
       ${r.belief>1&&r.estab>1?"adverse on BOTH families":"adverse on one family at most"}`);
     svg.appendChild(g);
   }
   host.appendChild(svg);
 }
-
 /* ============================ table ============================ */
 function drawTable(state){
   const C=cells(state).sort((a,b)=>a.o.adverse-b.o.adverse||b.or-a.or);
@@ -643,19 +673,19 @@ function render(){
 /* ---- scrollytelling ---- */
 const STEPS=[
   {title:"The full picture", st:o=>({...o,outcomes:new Set(OUT.map(x=>x.key)),lo:0,hi:100}),
-   opts:{faint:true}},
+   opts:{faint:true,noLines:true}},
   {title:"Podcasts lead 15 of 18", st:o=>({...o,outcomes:new Set(OUT.filter(x=>x.fam!=="challenger").map(x=>x.key))}),
    opts:{emphasis:["DEC"],annotate:{lines:["Decentralized (podcasts)","first on 15 of 18 outcomes"],w:210,h:40}}},
   {title:"…but it reverses for the challengers",
    st:o=>({...o,outcomes:new Set(OUT.map(x=>x.key))}),
-   opts:{emphasis:["DEC"],annotate:{lines:["▲ RFK and Musk sit BELOW 1","podcast listeners trust them more"],w:236,h:40}}},
+   opts:{emphasis:["DEC"],annotate:{lines:["▲ RFK and Musk sit LEFT of 1","podcast listeners trust them more"],w:240,h:40}}},
   {title:"Private messaging against Very Large Platform",
    st:o=>({...o,outcomes:new Set(OUT.filter(x=>x.fam==="belief").map(x=>x.key))}),
-   opts:{emphasis:["PVT","VLP"],annotate:{lines:["PVT slopes down, r = −0.855","VLP slopes up, r = +0.953"],w:220,h:40}}},
+   opts:{emphasis:["PVT","VLP"],annotate:{lines:["PVT leans left going up, r = −0.855","VLP leans right, r = +0.953"],w:252,h:40}}},
   {title:"Transmission against milieu",
    st:o=>({...o,outcomes:new Set(OUT.filter(x=>x.fam==="belief").map(x=>x.key))}),
    opts:{emphasis:["PVT","VLP","DEC"],annotate:{lines:["the signs differ across regimes,","so this is not a scale artifact"],w:230,h:40}}},
-  {title:"Your turn", st:o=>({...o,outcomes:new Set(OUT.map(x=>x.key))}), opts:{}}
+  {title:"Your turn", st:o=>({...o,outcomes:new Set(OUT.map(x=>x.key))}), opts:{noLines:true}}
 ];
 let storyStep=-1;
 function showStep(i){
