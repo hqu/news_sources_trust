@@ -73,7 +73,7 @@ input[type=checkbox],input[type=radio]{margin:3px 0 0;accent-color:var(--obs);fl
 .disc .inner{padding:8px 12px 10px}
 .ogrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:0 20px}
 
-.plots{display:flex;gap:22px;overflow-x:auto;padding-bottom:6px}
+.plots{display:flex;gap:22px;padding-bottom:6px}
 .plot{flex:none}
 .plot h3{font-size:13px;margin:0 0 1px;font-weight:600}
 .plot .pmeta{color:var(--mid);font-size:11px;margin:0 0 7px}
@@ -103,6 +103,8 @@ tr.sep td{border-bottom:1px solid var(--faint);padding:0;height:0}
   font:inherit;font-size:11.8px;color:var(--mid);cursor:pointer}
 .tab:hover{background:var(--wash)}
 .tab.on{background:var(--ink);border-color:var(--ink);color:#fff}
+.tab.off{font-style:italic}
+.tab.off.on{background:var(--wash);border-color:var(--faint);color:var(--mid);font-style:normal}
 .tab[disabled]{opacity:.35;cursor:not-allowed}
 .qcols{display:grid;grid-template-columns:repeat(3,1fr);gap:30px}
 @media(max-width:1000px){.qcols{grid-template-columns:1fr}}
@@ -149,10 +151,11 @@ tr.sep td{border-bottom:1px solid var(--faint);padding:0;height:0}
         <div class="tabsets">
           <div class="tabset"><span class="tlab">Party</span><div id="tabsParty"></div></div>
           <div class="tabset"><span class="tlab">Education</span><div id="tabsEdu"></div></div>
-          <p class="note" style="margin-top:8px">Select any combination; each becomes a column.
-            With none selected the plot shows all respondents. Subgroups are separately
-            fitted models, not interactions — the variable defining a subgroup is dropped
-            from the controls inside it.</p>
+          <p class="note" style="margin-top:8px">One filter at a time. Choosing a party clears
+            any education filter and the reverse, because the models are fitted separately for
+            each subgroup and no crossed cell — Republicans with a college degree, say — was
+            estimated. Each subgroup is its own model, not an interaction, and the variable
+            defining it is dropped from the controls inside it.</p>
         </div>
       </div>
     </div>
@@ -195,7 +198,7 @@ tr.sep td{border-bottom:1px solid var(--faint);padding:0;height:0}
 <script>
 const PAL={ink:"#16181d",mid:"#71777f",faint:"#ccd1d6",hair:"#e6e9ec",
            obs:"#2f6f8f",semi:"#4f5f9e",priv:"#6b4c9a",bg:"#fff",wash:"#f4f7f9"};
-let DATA=null, QTEXT=null, selOut=[], selPred=new Set(), openNodes=new Set(), selStrata=[];
+let DATA=null, QTEXT=null, selOut=[], selPred=new Set(), openNodes=new Set(), selStratum="all";
 
 const PRIMARY=["science"];
 const DISCLOSE=[["Other science and health institutions",["cdc","fda","doctors","pharma"]],
@@ -315,17 +318,26 @@ function defaultsFor(keys){
 
 function strata(kind){return (DATA.meta.strata||[]).filter(s=>s.kind===kind);}
 function modelsFor(k){return O(k).models||{};}
-function facets(){                     // which strata to draw, in declaration order
+// Exactly one stratum is ever drawn, so there is only ever one forest plot and no
+// horizontal scroll. Party and education cannot be combined: the models are fitted
+// marginally, so there is no Republican-and-college-degree cell to show.
+function facets(){
   const avail=modelsFor(selOut[0]);
-  const picked=selStrata.filter(k=>avail[k]);
-  return picked.length?picked:["all"];}
+  return [avail[selStratum]?selStratum:"all"];}
 function renderTabs(){
   const avail=modelsFor(selOut[0]);
-  [["party","tabsParty"],["edu","tabsEdu"]].forEach(([kind,id])=>{
+  [["party","tabsParty","No party filter"],["edu","tabsEdu","No education filter"]]
+   .forEach(([kind,id,offLabel])=>{
     const host=document.getElementById(id); host.innerHTML="";
+    // the "off" option for this row: all respondents, i.e. no filter on this dimension
+    const off=document.createElement("button");
+    const otherOn = kind==="party" ? selStratum.startsWith("edu_") : selStratum.startsWith("party_");
+    off.className="tab off"+((selStratum==="all"||otherOn)?" on":"");
+    off.textContent=offLabel; off.dataset.stratum="all";
+    host.appendChild(off);
     strata(kind).forEach(st=>{
       const b=document.createElement("button");
-      b.className="tab"+(selStrata.includes(st.key)?" on":"");
+      b.className="tab"+(selStratum===st.key?" on":"");
       b.textContent=st.label; b.dataset.stratum=st.key;
       if(!avail[st.key]){b.disabled=true; b.title="Not estimable for this outcome — too few respondents";}
       else b.title=`n = ${avail[st.key].regime.n.toLocaleString()}`;
@@ -335,8 +347,9 @@ function renderTabs(){
 }
 document.addEventListener("click",e=>{
   const b=e.target.closest(".tab"); if(!b||b.disabled)return;
-  const k=b.dataset.stratum;
-  selStrata.includes(k)?selStrata=selStrata.filter(x=>x!==k):selStrata.push(k);
+  // single select across both rows: picking a party clears any education filter and
+  // vice versa, because the crossed cell is not a model that exists
+  selStratum = (selStratum===b.dataset.stratum) ? "all" : b.dataset.stratum;
   renderTabs(); draw();});
 
 function init(){
@@ -484,7 +497,7 @@ function draw(){
   let lo=1,hi=1;
   F.forEach(f=>rows.forEach(k=>{const e=estIn(f,k); if(e){lo=Math.min(lo,e.lo);hi=Math.max(hi,e.hi);}}));
   lo=Math.min(lo,1/1.15); hi=Math.max(hi,1.15);
-  const W=Math.max(200,320-(F.length-1)*20), PADR=16, H=25*rows.length+54, X1=W-PADR;
+  const W=340, PADR=16, H=25*rows.length+54, X1=W-PADR;
   const sx=v=>6+(Math.log(v)-Math.log(lo))/(Math.log(hi)-Math.log(lo))*(X1-6);
 
   F.forEach((f,ci)=>{
@@ -506,8 +519,10 @@ function draw(){
             <circle cx="${OX+sx(e.odds_ratio)}" cy="${y}" r="4.2" fill="${col}" stroke="${col}" stroke-width="1.4"/>`;
       if(e.restricted||isPlat(rk)) svg+=`<text x="${OX+sx(e.hi)+5}" y="${y+3.5}" fill="${PAL.faint}" font-size="9.5">6w</text>`;
     });
-    d.innerHTML=`<h3>${ci===0?o.label:flabel}</h3><p class="pmeta">${
-      ci===0&&F.length===1?"":flabel+" · "}${fb?fb.prevalence.toFixed(1):"–"}% ${
+    // name the active subgroup on the plot, or the sample is the only thing that says so
+    const sublab = f==="all" ? "" : `<span style="font-weight:400;color:${PAL.priv}"> · ${flabel}</span>`;
+    d.innerHTML=`<h3>${o.label}${sublab}</h3><p class="pmeta">${
+      f==="all"?"All respondents":flabel} · ${fb?fb.prevalence.toFixed(1):"–"}% ${
       o.direction==="trust"?"trusting":"believing"}${fb?" · n="+fb.n.toLocaleString():""}</p>${svg}</svg>`;
     plots.appendChild(d);
   });
