@@ -417,6 +417,7 @@ function init(){
     // one outcome at a time; its most adverse sources come on automatically
     selOut=[e.target.value];
     selPred=defaultsFor(selOut);
+    selStratum="all";        // a subgroup chosen for the previous outcome should not carry over
     renderTabs();renderTree();draw();});
 
   document.getElementById("allPred").onclick=()=>{      // regimes plus every channel and platform
