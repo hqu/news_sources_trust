@@ -15,7 +15,29 @@ h1{font-size:25px;font-weight:700;margin:0 0 5px}
 .sub{color:var(--mid);font-size:14px;margin:0}
 .track{letter-spacing:.19em;text-transform:uppercase;font-size:10.5px;font-weight:700;color:var(--mid)}
 .rule{height:1px;background:var(--hair);margin:18px 0 22px}
-.cols{display:grid;grid-template-columns:300px 1fr;gap:34px;align-items:start}
+.cols{display:grid;grid-template-columns:292px minmax(0,1fr) 246px;gap:26px;
+  grid-template-areas:"news plots outcome" "news model model";align-items:start}
+.a-news{grid-area:news}
+.a-plots{grid-area:plots}
+.a-outcome{grid-area:outcome}
+.a-model{grid-area:model;min-width:0}
+@media(max-width:1180px){
+  .cols{grid-template-columns:1fr;grid-template-areas:"outcome" "news" "plots" "model"}}
+
+/* forest plot gets a heavy frame so it reads as the focal object */
+.plotbox{border:2.5px solid #16181d;border-radius:13px;padding:16px 18px 12px}
+.plotbox>.track{margin-bottom:10px}
+
+/* the outcome column is dense, so everything inside it steps down a size */
+.a-outcome .panel{padding:12px 12px}
+.a-outcome label.row{font-size:11.6px;padding:2.5px 0;gap:6px}
+.a-outcome .meta{font-size:10.2px;padding-left:5px}
+.a-outcome .track{font-size:9.5px;letter-spacing:.16em}
+.a-outcome .disc{margin-top:7px}
+.a-outcome .disc>summary{font-size:11.4px;padding:6px 9px}
+.a-outcome .disc .inner{padding:6px 9px 7px}
+.a-outcome .ogrid{grid-template-columns:1fr;gap:0}
+.a-outcome input[type=checkbox]{margin-top:2px;transform:scale(.88);transform-origin:left center}
 .panel{border:1px solid var(--hair);border-radius:11px;padding:15px 16px}
 .panel+.panel{margin-top:16px}
 label.row{display:flex;gap:8px;align-items:flex-start;padding:3.5px 0;cursor:pointer;font-size:13px}
@@ -76,8 +98,8 @@ tr.sep td{border-bottom:1px solid var(--faint);padding:0;height:0}
   <div class="rule"></div>
 
   <div class="cols">
-    <!-- LEFT: news source tree -->
-    <div>
+    <!-- COLUMN 1 — news source tree -->
+    <div class="a-news">
       <div class="panel">
         <div class="track" style="margin-bottom:10px">News source</div>
         <div id="tree"></div>
@@ -91,19 +113,26 @@ tr.sep td{border-bottom:1px solid var(--faint);padding:0;height:0}
       </div>
     </div>
 
-    <!-- RIGHT: outcome, then plots -->
-    <div>
-      <div class="panel" style="margin-bottom:22px">
-        <div class="track" style="margin-bottom:9px">Outcome</div>
+    <!-- COLUMN 2 — forest plots -->
+    <div class="a-plots">
+      <div class="plotbox">
+        <div class="track">Forest plots</div>
+        <div class="plots" id="plots"></div>
+      </div>
+    </div>
+
+    <!-- COLUMN 3 — outcome -->
+    <div class="a-outcome">
+      <div class="panel">
+        <div class="track" style="margin-bottom:8px">Outcome</div>
         <div id="primary"></div>
         <div id="discs"></div>
       </div>
+    </div>
 
-      <div class="track" style="margin-bottom:10px">Forest plots</div>
-      <div class="plots" id="plots"></div>
-
-      <div class="rule" style="margin:24px 0 16px"></div>
-      <div class="track" style="margin-bottom:6px">Multivariate model</div>
+    <!-- ROW 2 — model, spanning columns 2 and 3 -->
+    <div class="a-model">
+      <div class="track" style="margin:4px 0 6px">Multivariate model</div>
       <div id="regression"></div>
       <p class="note" id="footnote"></p>
     </div>
@@ -167,20 +196,22 @@ function init(){
   const prim=document.getElementById("primary");
   PRIMARY.forEach(k=>O(k)&&prim.appendChild(outRow(k)));
   const discs=document.getElementById("discs");
+  // Conspiracy and election denial are primary outcomes and sit directly under
+  // trust in science; the collapsible institution groups come after them.
+  ALSO.forEach(([name,keys])=>{
+    const av=keys.filter(k=>O(k)); if(!av.length)return;
+    const h=document.createElement("div");
+    h.className="track"; h.style.cssText="margin:13px 0 3px";
+    h.textContent=name; discs.appendChild(h);
+    const g=document.createElement("div"); g.className="ogrid";
+    av.forEach(k=>g.appendChild(outRow(k))); discs.appendChild(g);
+  });
   DISCLOSE.forEach(([name,keys])=>{
     const av=keys.filter(k=>O(k)); if(!av.length)return;
     const d=document.createElement("details"); d.className="disc";
     d.innerHTML=`<summary>${name} <span class="meta" style="margin-left:0">${av.length}</span></summary>`;
     const inner=document.createElement("div"); inner.className="inner ogrid";
     av.forEach(k=>inner.appendChild(outRow(k))); d.appendChild(inner); discs.appendChild(d);
-  });
-  ALSO.forEach(([name,keys])=>{
-    const av=keys.filter(k=>O(k)); if(!av.length)return;
-    const h=document.createElement("div");
-    h.className="track"; h.style.cssText="margin:15px 0 4px;font-size:10px";
-    h.textContent=name; discs.appendChild(h);
-    const g=document.createElement("div"); g.className="ogrid";
-    av.forEach(k=>g.appendChild(outRow(k))); discs.appendChild(g);
   });
   document.getElementById("primary").parentNode.addEventListener("change",e=>{
     if(e.target.type!=="checkbox"||!e.target.dataset.out)return;
