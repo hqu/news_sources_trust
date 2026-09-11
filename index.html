@@ -340,7 +340,10 @@ const GROUPONLY={CRW:"Crowdsourced"};
 function defaultsFor(keys){
   const s=new Set();
   keys.forEach(k=>{const o=O(k); if(!o)return;
-    REG().forEach(r=>{if(estOf(o,r.key)) s.add(r.key);});});
+    REG().forEach(r=>{if(estOf(o,r.key)) s.add(r.key);});
+    // Very Large Platform also starts with its six platforms checked. They come from the
+    // 6-wave named-platform model rather than the 15-wave one, so the plot marks them.
+    PLATS().filter(p=>p.parent==="VLP").forEach(p=>{if(estOf(o,p.key)) s.add(p.key);});});
   return s;}
 
 function strata(kind){return (DATA.meta.strata||[]).filter(s=>s.kind===kind);}
