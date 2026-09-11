@@ -164936,7 +164936,10 @@ function drawScatter(host,state,opts={}){
       const cl=v=>Math.max(xlo,Math.min(xhi,v));
       const x1=X(cl(o1)), y1=Y(p1), x2=X(cl(o2)), y2=Y(p2);
       const faded=dim(r.regime);
-      svg.appendChild(el("line",{x1,y1,x2,y2,stroke:RC[r.regime],
+      /* `data-rk`, not `data-reg`: the latter is the regime-chip selector, and a click on a
+         mark inside the plot would bubble up and toggle that chip. */
+      const fg=el("g",{class:"fit","data-rk":r.regime});
+      fg.appendChild(el("line",{x1,y1,x2,y2,stroke:RC[r.regime],
         "stroke-width":faded?.7:1.15,opacity:faded?.2:.62,"stroke-linecap":"round"}));
       /* a wide transparent line so the hover target is reachable */
       const hit=el("line",{x1,y1,x2,y2,stroke:"transparent","stroke-width":14,
@@ -164947,13 +164950,13 @@ function drawScatter(host,state,opts={}){
         r = <b>${fmt(r.r,3)}</b> over ${r.kfit} outcome${r.kfit===1?"":"s"}<br>
         odds ratio ${fmt(o1)} at ${p1}% → ${fmt(o2)} at ${p2}%<br>
         <span style="opacity:.8">${lean}</span>`);
-      svg.appendChild(hit);
+      fg.appendChild(hit); svg.appendChild(fg);
     }
   }
   /* points */
   for(const c of C){
     const o=dim(c.regime)?.13:(opts.faint?.55:.95), col=RC[c.regime];
-    const g=el("g",{opacity:o});
+    const g=el("g",{opacity:o,"data-rk":c.regime});
     g.appendChild(el("line",{y1:Y(c.o.adverse),y2:Y(c.o.adverse),
       x1:X(Math.max(xlo,c.lo)),x2:X(Math.min(xhi,c.hi)),stroke:col,"stroke-width":1.1,opacity:.4}));
     const fam=c.o.fam, cx=X(c.or), cy=Y(c.o.adverse), s=4.2;
@@ -164986,6 +164989,27 @@ function drawScatter(host,state,opts={}){
     lg.appendChild(txt(d[1],{x:0,y:i*13,fill:"var(--mid)","font-size":10.2})));
   svg.appendChild(lg);
 }
+/* ============================ cross-chart highlight ============================ */
+/* Hovering a rank bar or a quadrant dot isolates that regime in the scatter. Done by
+   restyling the existing nodes rather than re-rendering, so the scatter's own tooltips and
+   hit targets survive the hover. Inline `style` wins over the presentation attribute, and
+   clearing it restores whatever the draw function set. */
+function crossHighlight(rg){
+  const host=document.getElementById("scatter"); if(!host) return;
+  host.querySelectorAll("[data-rk]").forEach(n=>{
+    const on = !rg || n.dataset.rk===rg;
+    n.style.opacity = rg ? (on?1:.14) : "";
+    n.style.filter  = (rg && !on) ? "grayscale(1)" : "";
+  });
+  host.querySelectorAll("g.fit").forEach(n=>{
+    const ln=n.querySelector('line[stroke-linecap]');
+    if(!ln) return;
+    const hot = rg && n.dataset.rk===rg;
+    ln.setAttribute("stroke-width", hot?2.8:1.15);
+    ln.setAttribute("opacity", hot?.95:.62);
+  });
+}
+
 /* ============================ rank panel ============================ */
 function drawRank(host,state){
   const rows=summarise(state), W=host.clientWidth||290;
@@ -165011,6 +165035,9 @@ function drawRank(host,state){
     bindTip(g,`<b>${RLAB[r.regime]}</b><br>geometric mean adverse OR <b>${fmt(r.gm)}</b><br>
       over ${r.k} estimate${r.k===1?"":"s"} in this window<br>
       slope r ${r.kfit>=5?"<b>"+fmt(r.r,3)+"</b>":"<i>needs ≥5 outcomes</i>"}`);
+    g.setAttribute("cursor","pointer");
+    g.addEventListener("mouseenter",()=>crossHighlight(r.regime));
+    g.addEventListener("mouseleave",()=>crossHighlight(null));
     svg.appendChild(g);
   });
   host.appendChild(svg);
@@ -165057,6 +165084,9 @@ function drawQuad(host,state){
     bindTip(g,`<b>${RLAB[r.regime]}</b><br>establishment axis <b>${fmt(r.estab)}</b><br>
       belief axis <b>${fmt(r.belief)}</b><br>
       ${r.belief>1&&r.estab>1?"adverse on BOTH families":"adverse on one family at most"}`);
+    g.setAttribute("cursor","pointer");
+    g.addEventListener("mouseenter",()=>crossHighlight(r.regime));
+    g.addEventListener("mouseleave",()=>crossHighlight(null));
     svg.appendChild(g);
   }
   host.appendChild(svg);
