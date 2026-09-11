@@ -226,9 +226,10 @@ for key,var,group,label,direction,default in OUTCOMES:
     reg=models.get("all",{}).get("regime")
     if reg is None: print(f"  skip {key}: not estimable"); continue
     chan=models.get("all",{}).get("channel"); plat=models.get("all",{}).get("platform")
-    # which predictors to switch on by default: the most ADVERSE ones
-    adverse = sorted(reg["estimates"], key=lambda r: r["odds_ratio"])
-    worst = [r["key"] for r in (adverse[:3] if direction=="trust" else adverse[::-1][:3])]
+    # The dashboard switches on every estimable regime, so no default list is emitted.
+    # Kept here in comment form because the ordering is still useful when reading output:
+    #   sorted(reg["estimates"], key=lambda r: r["odds_ratio"])
+    worst = []
     payload["outcomes"].append(dict(key=key,var=var,group=group,label=label,
                                     direction=direction,is_default=default,
                                     regime=reg,channel=chan,platform=plat,models=models,default_on=worst))
@@ -241,8 +242,7 @@ for key,claim,group,label,direction,default in FN_OUTCOMES:
     reg=models.get("all",{}).get("regime")
     if reg is None: print(f"  skip {key}: not estimable"); continue
     chan=models.get("all",{}).get("channel"); plat=models.get("all",{}).get("platform")
-    adverse=sorted(reg["estimates"], key=lambda r: r["odds_ratio"])
-    worst=[r["key"] for r in (adverse[:3] if direction=="accuracy" else adverse[::-1][:3])]
+    worst=[]   # see the note above: the dashboard checks every estimable regime
     payload["outcomes"].append(dict(key=key,var="FN_"+key,group=group,label=label,
                                     direction=direction,is_default=default,
                                     claim_text=claim,regime=reg,channel=chan,platform=plat,

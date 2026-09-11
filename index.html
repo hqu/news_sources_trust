@@ -129,9 +129,9 @@ tr.sep td{border-bottom:1px solid var(--faint);padding:0;height:0}
         <p class="legend">Grey % = share of respondents <b>using</b> this source</p>
         <div id="tree"></div>
         <div style="margin-top:12px">
-          <button class="btn" id="allPred">All</button>
+          <button class="btn" id="allPred">Everything</button>
           <button class="btn" id="nonePred">None</button>
-          <button class="btn" id="resetPred">Defaults</button>
+          <button class="btn" id="resetPred">All regimes</button>
         </div>
         <p class="note" style="margin-top:10px">Open a regime to check its individual channels.
           Regime and channel estimates come from two separate models.</p>
@@ -283,8 +283,14 @@ function orderedNodes(){
   });
   return out;}
 const GROUPONLY={CRW:"Crowdsourced"};
-function defaultsFor(keys){const s=new Set();
-  keys.forEach(k=>{const o=O(k); if(o) o.default_on.forEach(x=>s.add(x));}); return s;}
+// On load and on every outcome change, switch on all eight regimes — but only those the
+// chosen outcome can actually estimate, since a regime absent from its waves (AI Chat on
+// the pre-2024 items) would otherwise sit checked with nothing to draw.
+function defaultsFor(keys){
+  const s=new Set();
+  keys.forEach(k=>{const o=O(k); if(!o)return;
+    REG().forEach(r=>{if(estOf(o,r.key)) s.add(r.key);});});
+  return s;}
 
 function strata(kind){return (DATA.meta.strata||[]).filter(s=>s.kind===kind);}
 function modelsFor(k){return O(k).models||{};}
@@ -341,8 +347,9 @@ function init(){
     selPred=defaultsFor(selOut);
     renderTabs();renderTree();draw();});
 
-  document.getElementById("allPred").onclick=()=>{
-    selPred=new Set(REG().map(r=>r.key));renderTree();draw();};
+  document.getElementById("allPred").onclick=()=>{      // regimes plus every channel and platform
+    selPred=new Set(orderedNodes().filter(nd=>nd.level!=="grouponly").map(nd=>nd.key));
+    renderTree();draw();};
   document.getElementById("nonePred").onclick=()=>{selPred=new Set();renderTree();draw();};
   document.getElementById("resetPred").onclick=()=>{selPred=defaultsFor(selOut);renderTree();draw();};
 
