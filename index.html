@@ -56,6 +56,7 @@ input[type=checkbox]{margin:3px 0 0;accent-color:var(--obs);flex:none}
 .kids.open{display:block}
 .nrow label{flex:1;display:flex;gap:7px;align-items:center;cursor:pointer;font-size:13px}
 .kids label{font-size:12.3px;color:var(--mid)}
+.nrow .ch{color:var(--mid);font-size:11.4px}
 
 /* ---- outcome disclosure ---- */
 .disc{border:1px solid var(--hair);border-radius:9px;margin-top:9px;overflow:hidden}
@@ -257,35 +258,42 @@ function renderTree(){
   const host=document.getElementById("tree"); host.innerHTML="";
   REG().forEach(r=>{
     const node=document.createElement("div"); node.className="node";
-    const hasKids=r.channels.length>0;
+    // A regime with one channel has nothing to expand into: the regime IS the channel.
+    // Name the channel inline instead of offering a twisty that reveals a restatement.
+    const solo=r.channels.length===1;
+    const hasKids=r.channels.length>1;
     const open=openNodes.has(r.key);
     const e=selOut.length?estOf(O(selOut[0]),r.key):null;
+    const soloTag=solo?` <span class="ch">(${r.channels[0].label})</span>`:"";
     node.innerHTML=
       `<div class="nrow">
          <span class="tw ${hasKids?"":"leaf"} ${open?"open":""}" data-tw="${r.key}">▶</span>
          <label><input type="checkbox" data-pred="1" value="${r.key}" ${selPred.has(r.key)?"checked":""}>
-           <span>${r.label}</span></label>
+           <span>${r.label}${soloTag}</span></label>
          <span class="meta">${e?e.pct_occupying.toFixed(0)+"%":""}</span>
        </div>
-       <div class="kids ${open?"open":""}" data-kids="${r.key}"></div>`;
-    const kids=node.querySelector(".kids");
-    r.channels.forEach(c=>{
-      const ce=selOut.length?estOf(O(selOut[0]),c.key):null;
-      const l=document.createElement("label"); l.className="row";
-      l.innerHTML=`<input type="checkbox" data-pred="1" value="${c.key}" ${selPred.has(c.key)?"checked":""}>
-                   <span>${c.label}</span>
-                   <span class="meta">${ce?ce.pct_occupying.toFixed(0)+"%":""}</span>`;
-      kids.appendChild(l);
-    });
+       ${hasKids?`<div class="kids ${open?"open":""}" data-kids="${r.key}"></div>`:""}`;
+    if(hasKids){
+      const kids=node.querySelector(".kids");
+      r.channels.forEach(c=>{
+        const ce=selOut.length?estOf(O(selOut[0]),c.key):null;
+        const l=document.createElement("label"); l.className="row";
+        l.innerHTML=`<input type="checkbox" data-pred="1" value="${c.key}" ${selPred.has(c.key)?"checked":""}>
+                     <span>${c.label}</span>
+                     <span class="meta">${ce?ce.pct_occupying.toFixed(0)+"%":""}</span>`;
+        kids.appendChild(l);
+      });
+    }
     host.appendChild(node);
   });
 }
 document.addEventListener("click",e=>{
   const tw=e.target.closest("[data-tw]"); if(!tw||tw.classList.contains("leaf"))return;
-  const k=tw.dataset.tw;
+  const k=tw.dataset.tw, kids=document.querySelector(`[data-kids="${k}"]`);
+  if(!kids) return;                       // single-channel regime: nothing to expand
   openNodes.has(k)?openNodes.delete(k):openNodes.add(k);
   tw.classList.toggle("open");
-  document.querySelector(`[data-kids="${k}"]`).classList.toggle("open");
+  kids.classList.toggle("open");
 });
 document.addEventListener("change",e=>{
   if(e.target.type!=="checkbox"||!e.target.dataset.pred)return;
