@@ -141,7 +141,8 @@ tr.sep td{border-bottom:1px solid var(--faint);padding:0;height:0}
 <body>
 <div class="wrap">
   <h1>Where political news comes from, and what people believe</h1>
-  <p class="sub">Aggregated estimates from the Civic Health and Institutions Project (CHIP50), June 2022 – May 2026.</p>
+  <p class="sub">Aggregated estimates from the Civic Health and Institutions Project (CHIP50), June 2022 – May 2026.
+     <span id="buildstamp" style="color:#ccd1d6"></span></p>
   <div class="rule"></div>
 
   <div class="cols">
@@ -295,7 +296,11 @@ function renderQuestions(){
       .forEach(k=>{html+=item(k,ent[k]);});
     host.innerHTML=html||'<p class="q" style="color:#ccd1d6">not available</p>';};
   put("qsource","source"); put("qoutcome","outcome"); put("qcontrol","control");}
-function boot(d){try{DATA=d;init();loadQuestions();}catch(e){fail("Error building the view: "+e.message);throw e;}}
+function stamp(){
+  const m=DATA.meta, n=(DATA.outcomes||[]).length, st=(m.strata||[]).length;
+  document.getElementById("buildstamp").textContent =
+    ` · data built ${m.built} · ${n} outcomes · ${st} subgroups`;}
+function boot(d){try{DATA=d;init();loadQuestions();stamp();}catch(e){fail("Error building the view: "+e.message);throw e;}}
 
 const O=k=>DATA.outcomes.find(o=>o.key===k);
 const REG=()=>DATA.meta.regimes;

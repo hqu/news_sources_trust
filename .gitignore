@@ -5,3 +5,4 @@ CSP_W*
 *_restricted*
 .DS_Store
 *.bak_*
+dashboard_*.html
