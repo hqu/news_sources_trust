@@ -379,7 +379,7 @@ function renderTabs(){
       b.dataset.stratum=key;
       if(!m){b.disabled=true; b.innerHTML="—"; b.title="Not estimable for this outcome";}
       else b.innerHTML=(key==="all"?"Everyone":"&nbsp;")+
-            `<span class="xn">n = ${m.regime.n.toLocaleString()}</span>`;
+            `<span class="xn">${m.regime.n.toLocaleString()}</span>`;
       td.appendChild(b); tr.appendChild(td);
     });
     g.appendChild(tr);
