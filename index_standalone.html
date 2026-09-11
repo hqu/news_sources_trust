@@ -180,11 +180,11 @@ const DEFS=[
   "Professionally produced reporting with an identifiable editorial operation: named accountable editors, correction norms, and legal review before publication. What distinguishes it is an editor standing between the author and the audience."],
  ["PB","Partisan Broadcast","cable news, talk radio, late-night political comedy",
   "Professionally produced, with a real editorial operation, but organised around ideological commentary rather than reporting. It shares Journalistic Standard's accountability structure — named hosts, a corporate publisher, exposure to defamation — and does not share its editorial filter on claims. Separated from Journalistic Standard in September 2026 because the two behave differently: pooled, they predict election denial at an odds ratio of 0.998, which is the average of 0.83 for the reporting channels and 1.24 for these."],
- ["VLP","Very Large Platform","social media",
+ ["VLP","Very Large Platform","social media — Facebook, Twitter/X, YouTube, Instagram, Snapchat, TikTok",
   "Content distributed by an algorithmic feed operated by a single company, with a moderation policy the operator writes and enforces. This is the regime nearly all platform governance addresses — designation thresholds, systemic-risk audits, content-moderation duties."],
  ["DEC","Decentralized","podcasts",
   "Public content with no platform gatekeeper: RSS-style distribution where host discretion is the only filter. Nothing sits between the publisher and the audience, so there is no operator surface for moderation to act on. Note this is a single-channel regime, so its estimates are podcast estimates and cannot separate the governance property from the format."],
- ["PVT","Private Messaging","messaging apps",
+ ["PVT","Private Messaging","messaging apps — Facebook Messenger, WhatsApp",
   "One-to-one and small-group messaging. Neither the content nor the audience can be enumerated from outside, so nothing can be counted, corrected or audited. The only available levers are structural — forwarding limits and group size caps."],
  ["INT","Interpersonal Ties","friends and family",
   "Political information received in conversation from people the respondent knows. Fully attributable to a named person and leaving no durable record, which is the mirror image of a pseudonymous post. No intervention reaches it."],
@@ -195,7 +195,7 @@ const DEFS=[
  ["SPM","Semi-Public Messaging","not measured",
   "Large group chats on WhatsApp, Telegram and Discord: joinable by a researcher but not countable from outside. The regime exists in the taxonomy and has no CHIP50 channel of its own, so it cannot appear in any estimate here."],
  ["CRW","Crowdsourced","Wikipedia, Reddit",
-  "Publicly logged, community-moderated content written under pseudonyms. Perfectly countable and permanently preserved, with an author beyond the reach of defamation — the clearest case of the two axes coming apart. Reddit is fielded only in the extended battery, not the 24-hour one these models use, so Crowdsourced does not appear in the plots."]];
+  "Publicly logged, community-moderated content written under pseudonyms. Perfectly countable and permanently preserved, with an author beyond the reach of defamation — the clearest case of the two axes coming apart. Reddit and Wikipedia are fielded only in the named-platform battery, not the generic 24-hour one, so Crowdsourced has no regime-level estimate — but its two channels can be selected individually and are estimated on those six waves."]];
 
 function fail(msg){document.getElementById("plots").innerHTML=
   '<div style="border:1px solid #e6e9ec;border-radius:11px;padding:20px;color:#6b4c9a">'+
@@ -423,10 +423,13 @@ function draw(){
   document.getElementById("footnote").innerHTML=
    `Every news source at a given level was in the model whether or not it is drawn in the plot;
     unchecked terms are greyed in the table rather than removed, because <strong>toggling a source
-    filters the display of a fitted model and does not re-estimate it</strong>. Regime-level and
-    channel-level estimates come from two separate models and should not be read as nested.
-    Blue is below 1, purple above 1, grey spans 1. AI Chat is fielded in six waves only and is
-    estimated separately, marked “6w”. Trust outcomes are “a lot” or “some”; conspiracy items
+    filters the display of a fitted model and does not re-estimate it</strong>. There are three separate fitted models —
+    regime and channel on all 15 waves, and platform (Facebook, Twitter/X, YouTube, Instagram,
+    Snapchat, TikTok, Reddit, Wikipedia, Messenger, WhatsApp) on the six waves that field the
+    named-platform battery. A platform row is <strong>not a decomposition of the regime row above
+    it</strong>: they are different models on different samples. Blue is below 1, purple above 1,
+    grey spans 1. Estimates from the six-wave batteries — AI Chat and every platform — are marked
+    “6w”. Trust outcomes are “a lot” or “some”; conspiracy items
     “agree” or “strongly agree”. These are cross-sectional associations confounded with selective
     exposure, not transmission rates. Built ${DATA.meta.built}. ${DATA.meta.note}`;
 }
