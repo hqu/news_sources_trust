@@ -105,6 +105,8 @@ tr.sep td{border-bottom:1px solid var(--faint);padding:0;height:0}
 .tab:hover{background:var(--wash)}
 .tab.on{background:var(--ink);border-color:var(--ink);color:#fff}
 .tab.off{font-style:italic}
+.tab.xparty{padding:3.5px 7px;min-width:34px}
+.xsep{color:var(--faint);font-size:11px;margin:0 3px}
 .tab.off.on{background:var(--ink);border-color:var(--ink);color:#fff;font-style:normal}
 .tab[disabled]{opacity:.35;cursor:not-allowed}
 .qcols{display:grid;grid-template-columns:repeat(3,1fr);gap:30px}
@@ -135,9 +137,9 @@ tr.sep td{border-bottom:1px solid var(--faint);padding:0;height:0}
         <p class="legend">Grey % = share of respondents <b>using</b> this source</p>
         <div id="tree"></div>
         <div style="margin-top:12px">
+          <button class="btn" id="resetPred">All regimes</button>
           <button class="btn" id="allPred">Everything</button>
           <button class="btn" id="nonePred">None</button>
-          <button class="btn" id="resetPred">All regimes</button>
         </div>
         <p class="note" style="margin-top:10px">Open a regime to check its individual channels.
           Regime and channel estimates come from two separate models.</p>
@@ -153,14 +155,16 @@ tr.sep td{border-bottom:1px solid var(--faint);padding:0;height:0}
           <div class="tabset"><span class="tlab">Subgroup</span><div id="tabsAll"></div></div>
           <div class="tabset"><span class="tlab">Party</span><div id="tabsParty"></div></div>
           <div class="tabset"><span class="tlab">Education</span><div id="tabsEdu"></div></div>
-          <div class="tabset"><span class="tlab">Republicans by education</span><div id="tabsRepEdu"></div></div>
+          <div class="tabset"><span class="tlab">Party × education</span>
+            <div id="crossParty"></div><span class="xsep">×</span><div id="tabsRepEdu"></div></div>
           <p class="note" style="margin-top:8px">One filter at a time. Choosing a party clears
             any education filter and the reverse, because the models are fitted separately for
             each subgroup and no crossed cell — Republicans with a college degree, say — was
             estimated. Each subgroup is its own model, not an interaction, and the variable
-            defining it is dropped from the controls inside it. The third row crosses party
-            with education for Republicans only, which is where the education gradient is
-            sharpest; the equivalent cells for Democrats and Independents were not fitted.</p>
+            defining it is dropped from the controls inside it. The third row crosses the two:
+            pick a party, then an education level. Both party and education leave the controls
+            inside a crossed cell, and the cells get small at the edges — check the n on each
+            chip before reading much into one.</p>
         </div>
       </div>
     </div>
@@ -203,7 +207,8 @@ tr.sep td{border-bottom:1px solid var(--faint);padding:0;height:0}
 <script>
 const PAL={ink:"#16181d",mid:"#71777f",faint:"#ccd1d6",hair:"#e6e9ec",
            obs:"#2f6f8f",semi:"#4f5f9e",priv:"#6b4c9a",bg:"#fff",wash:"#f4f7f9"};
-let DATA=null, QTEXT=null, selOut=[], selPred=new Set(), openNodes=new Set(), selStratum="all";
+let DATA=null, QTEXT=null, selOut=[], selPred=new Set(), openNodes=new Set(),
+    selStratum="all", crossParty="rep";
 
 const PRIMARY=["science"];
 const DISCLOSE=[["Other science and health institutions",["cdc","fda","doctors","pharma"]],
@@ -339,8 +344,7 @@ function renderTabs(){
   allBtn.className="tab off"+(selStratum==="all"?" on":"");
   allBtn.textContent="All respondents — no filter"; allBtn.dataset.stratum="all";
   allHost.appendChild(allBtn);
-  [["party","tabsParty"],["edu","tabsEdu"],["repedu","tabsRepEdu"]]
-   .forEach(([kind,id])=>{
+  [["party","tabsParty"],["edu","tabsEdu"]].forEach(([kind,id])=>{
     const host=document.getElementById(id); host.innerHTML="";
     strata(kind).forEach(st=>{
       const b=document.createElement("button");
@@ -351,8 +355,31 @@ function renderTabs(){
       host.appendChild(b);
     });
   });
+  // Crossed row: choose a party once, then an education level. Twelve chips on one line
+  // would be unreadable, and the party choice is the thing a reader wants to switch while
+  // holding education fixed.
+  const ph=document.getElementById("crossParty"); ph.innerHTML="";
+  [["dem","Dem"],["ind","Ind"],["rep","Rep"]].forEach(([ab,lab])=>{
+    const b=document.createElement("button");
+    b.className="tab xparty"+(crossParty===ab?" on":"");
+    b.textContent=lab; b.dataset.crossparty=ab;
+    ph.appendChild(b);
+  });
+  const ch=document.getElementById("tabsRepEdu"); ch.innerHTML="";
+  strata("cross").filter(st=>st.key.startsWith("x_"+crossParty+"_")).forEach(st=>{
+    const b=document.createElement("button");
+    b.className="tab"+(selStratum===st.key?" on":"");
+    b.textContent=st.label.split(" · ")[1]; b.dataset.stratum=st.key;
+    if(!avail[st.key]){b.disabled=true; b.title="Not estimable for this outcome — too few respondents";}
+    else b.title=`n = ${avail[st.key].regime.n.toLocaleString()}`;
+    ch.appendChild(b);
+  });
 }
 document.addEventListener("click",e=>{
+  const xp=e.target.closest("[data-crossparty]");
+  if(xp){ crossParty=xp.dataset.crossparty;
+          if(selStratum.startsWith("x_")) selStratum="all";   // the old cell is a different party
+          renderTabs(); draw(); return; }
   const b=e.target.closest(".tab"); if(!b||b.disabled)return;
   // single select across both rows: picking a party clears any education filter and
   // vice versa, because the crossed cell is not a model that exists
@@ -527,7 +554,7 @@ function draw(){
       if(e.restricted||isPlat(rk)) svg+=`<text x="${OX+sx(e.hi)+5}" y="${y+3.5}" fill="${PAL.faint}" font-size="9">6 of 15 waves</text>`;
     });
     // name the active subgroup on the plot, or the sample is the only thing that says so
-    const pretty = f.startsWith("repedu_") ? "Republicans · "+flabel : flabel;
+    const pretty = flabel;
     const sublab = f==="all" ? "" : `<span style="font-weight:400;color:${PAL.priv}"> · ${pretty}</span>`;
     d.innerHTML=`<h3>${o.label}${sublab}</h3><p class="pmeta">${
       f==="all"?"All respondents":pretty} · ${fb?fb.prevalence.toFixed(1):"–"}% ${
@@ -546,8 +573,7 @@ function draw(){
       const all=blk.estimates.filter(e=>!e.restricted);
       const div=document.createElement("div"); div.style.marginBottom="22px";
       const outcomeWord=o.direction==="trust"?"trusts":"believes";
-      let fl=(DATA.meta.strata.find(s=>s.key===f)||{}).label||f;
-      if(f.startsWith("repedu_")) fl="Republicans · "+fl;
+      const fl=(DATA.meta.strata.find(s=>s.key===f)||{}).label||f;
       div.innerHTML=`<h3 style="font-size:13px;margin:0 0 3px">${o.label}
           <span style="font-weight:400;color:${PAL.mid}">· ${fl} · ${lv}-level model</span></h3>
         <div class="eq">logit( P(${outcomeWord} | X) ) = α + Σ β·source + party7 + education + age + income + male + wave fixed effects

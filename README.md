@@ -50,6 +50,20 @@ weighted occupancy share.
   construction**. They fix the ordering of predictors, not transmission rates, and nothing
   here identifies a causal effect of using a channel.
 
+## Subgroups
+
+One subgroup filter is active at a time, so there is always exactly one forest plot. Party
+folds leaners into the party they lean toward; only pure independents are Independent.
+
+The third row crosses the two: pick a party, then an education level. Twelve cells were
+fitted, and they are the only way to see an education gradient *inside* a party. They get
+thin at the edges — Independents holding a graduate degree is the smallest at about 6,000 —
+so check the n on the chip before reading much into a single cell.
+
+Every subgroup is its own fitted model rather than an interaction term, and the variables
+defining it leave the control set inside it: a party model drops party, an education model
+drops education, a crossed model drops both.
+
 ## Defaults
 
 On load the outcome is trust in scientists, with the three regimes predicting the *lowest*

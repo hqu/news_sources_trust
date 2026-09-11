@@ -134,12 +134,16 @@ for g in ["Democrat","Independent","Republican"]: STRATA.append(("party_"+g,g,"p
 EDU_LEVELS=["High school or less","Some college","College degree","Graduate degree"]
 for g in EDU_LEVELS:
     STRATA.append(("edu_"+g.replace(" ","_"),g,"edu4",g))
-# Crossed cells: Republicans by education. §6b of paper 2 turns on the education gradient
-# inside a party, and the marginal strata cannot show it. Encoded as a combined column so
+# Crossed cells: every party by education. Paper 2 §6b turns on the education gradient
+# *inside* a party and on how it differs between them, so crossing only one party would
+# show a gradient with nothing to compare it against. Encoded as a combined column so
 # run() can filter on a single equality like every other stratum.
-d["rep_edu"]=np.where(d["party3"]=="Republican", d["edu4"], None)
-for g in EDU_LEVELS:
-    STRATA.append(("repedu_"+g.replace(" ","_"),g,"rep_edu",g))
+d["party_edu"]=np.where(d["party3"].notna()&d["edu4"].notna(),
+                        d["party3"].astype(str)+" | "+d["edu4"].astype(str), None)
+PARTY_ABBR={"Democrat":"dem","Independent":"ind","Republican":"rep"}
+for pty,ab in PARTY_ABBR.items():
+    for g in EDU_LEVELS:
+        STRATA.append((f"x_{ab}_"+g.replace(" ","_"), f"{pty} · {g}", "party_edu", f"{pty} | {g}"))
 print("strata:",[k for k,_,_,_ in STRATA],flush=True)
 print(f"  loaded {len(d):,} rows, {d['wave'].nunique()} waves", flush=True)
 
@@ -155,8 +159,8 @@ def outcome_series(var):
 
 def run(y, preds, label, col=None, val=None):
     ctrl=[c for c in CTRL
-          if not (col in ("party3","rep_edu") and c=="party7")
-          and not (col in ("edu4","rep_edu") and c=="edu")]
+          if not (col in ("party3","party_edu") and c=="party7")
+          and not (col in ("edu4","party_edu") and c=="edu")]
     frame=d if col is None else d[d[col]==val]
     sub=frame.assign(y=(y if col is None else y[frame.index])).dropna(subset=["y","weight"]+ctrl+preds)
     if len(sub)<2000: return None
@@ -222,7 +226,7 @@ payload={"meta":{"built":pd.Timestamp.now().strftime("%Y-%m-%d"),
                  "conspiracy_wording":CONSP_TEXT,
                  "platforms":[{"key":k,"label":v[0],"parent":v[1]} for k,v in PLAT.items()],
                  "strata":[{"key":k,"label":l,
-                            "kind":("all" if c is None else ("party" if c=="party3" else ("repedu" if c=="rep_edu" else "edu")))}
+                            "kind":("all" if c is None else ("party" if c=="party3" else ("cross" if c=="party_edu" else "edu")))}
                            for k,l,c,_ in STRATA]},
          "outcomes":[]}
 for key,var,group,label,direction,default in OUTCOMES:
