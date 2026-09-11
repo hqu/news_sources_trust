@@ -1,0 +1,7 @@
+# Never commit survey microdata or anything derived from it at the row level.
+*.csv
+!data.json
+CSP_W*
+*_restricted*
+.DS_Store
+*.bak_*
