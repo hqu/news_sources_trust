@@ -9,14 +9,19 @@
       /* Eight categories on white, so the palette is Okabe-Ito derived: distinguishable under
          deuteranopia and protanopia, and separated in value as well as hue. Decentralized keeps
          the most salient colour because it is the result the page is about. */
-      --dec:#c1272d;   /* crimson      */
-      --pvt:#6a3d9a;   /* deep purple  */
-      --vlp:#0072b2;   /* strong blue  */
-      --js:#009e73;    /* bluish green */
-      --pb:#e08214;    /* orange       */
-      --srch:#4d4f55;  /* dark slate   */
-      --int:#cc79a7;   /* pink         */
-      --aich:#56b4e9}  /* sky blue     */
+      --dec:#b3003c;   /* deep crimson */
+      --pvt:#f28e2b;   /* orange       */
+      --vlp:#0047ab;   /* deep blue    */
+      --js:#1b7f3b;    /* green        */
+      --pb:#7b3294;    /* purple       */
+      --srch:#6b7078;  /* slate        */
+      --int:#8c6d4f;   /* brown        */
+      --aich:#4fc3e8}  /* light cyan   */
+      /* Chosen by maximising the smallest pairwise CIE-Lab distance across normal,
+         deuteranopic and protanopic vision: worst pair 12 (was 5). Private Messaging and
+         Very Large Platform are the two poles of the second result, so they are put on
+         opposite sides of the wheel -- 128 apart normally and 125 under deuteranopia,
+         against 43 and 9 for the blue/purple pair they replace. */
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);
   font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;font-size:14px;line-height:1.5}
@@ -173,21 +178,13 @@ logistic models adjusted for party, education, age, income, gender and wave. Eve
         to r&nbsp;=&nbsp;−0.890, so conspiracy predisposition explains part of the level and none of the pattern.</p>
       </div></div>
 
-      <div class="pane" data-step="5"><div class="card">
-        <div class="step">Now you</div>
-        <h3>Try it against the whole battery.</h3>
-        <p>Below you can pick any outcome or any group of them, slide the window over how widely the
-        belief is held, and watch the ranking reorder. The slope readout switches off below five
-        outcomes, because a correlation over three points means nothing.</p>
-        <p><button class="btn" id="toExplore">Go to the explorer ↓</button>
-           <button class="btn" id="replay">Replay the walkthrough</button></p>
-      </div></div>
     </div>
 
     <div class="sticky">
       <div class="storybar">
         <span class="track" id="storyTitle">The full picture</span>
-        <button class="btn" id="skip">Skip intro</button>
+        <button class="btn" id="skip">Skip to the explorer ↓</button>
+        <button class="btn" id="replay">Replay</button>
         <div class="dots" id="dots"></div>
       </div>
       <div id="storyChart" style="flex:1;min-height:0"></div>
@@ -165217,8 +165214,7 @@ const STEPS=[
    opts:{emphasis:["PVT","VLP"],annotate:{lines:["PVT leans left going up, r = −0.855","VLP leans right, r = +0.953"],w:252,h:40}}},
   {title:"Transmission against milieu",
    st:o=>({...o,outcomes:new Set(OUT.filter(x=>x.fam==="belief").map(x=>x.key))}),
-   opts:{emphasis:["PVT","VLP","DEC"],annotate:{lines:["the signs differ across regimes,","so this is not a scale artifact"],w:230,h:40}}},
-  {title:"Your turn", st:o=>({...o,outcomes:new Set(OUT.map(x=>x.key))}), opts:{noLines:true}}
+   opts:{emphasis:["PVT","VLP","DEC"],annotate:{lines:["the signs differ across regimes,","so this is not a scale artifact"],w:230,h:40}}}
 ];
 let storyStep=-1;
 function showStep(i){
@@ -165250,12 +165246,10 @@ function initStory(){
     addEventListener("scroll",onScroll,{passive:true}); onScroll();
   }
   showStep(0);
-  document.getElementById("skip").addEventListener("click",()=>
-    document.getElementById("explore").scrollIntoView({behavior:"smooth"}));
-  document.getElementById("toExplore").addEventListener("click",()=>
-    document.getElementById("explore").scrollIntoView({behavior:"smooth"}));
-  document.getElementById("replay").addEventListener("click",()=>
-    document.getElementById("story").scrollIntoView({behavior:"smooth"}));
+  /* optional-call so a headless check without scrollIntoView does not report a false error */
+  const goTo=id=>document.getElementById(id)?.scrollIntoView?.({behavior:"smooth"});
+  document.getElementById("skip").addEventListener("click",()=>goTo("explore"));
+  document.getElementById("replay").addEventListener("click",()=>goTo("story"));
 }
 
 /* ---- explorer wiring, all delegated ---- */
