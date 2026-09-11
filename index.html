@@ -218,7 +218,7 @@ tr.sep td{border-bottom:1px solid var(--faint);padding:0;height:0}
 <script>
 const PAL={ink:"#16181d",mid:"#71777f",faint:"#ccd1d6",hair:"#e6e9ec",
            obs:"#2f6f8f",semi:"#4f5f9e",priv:"#6b4c9a",bg:"#fff",wash:"#f4f7f9"};
-let DATA=null, QTEXT=null, selOut=[], selPred=new Set(), openNodes=new Set(["VLP"]),   // VLP opens by default: its platforms are the ones people ask for
+let DATA=null, QTEXT=null, selOut=[], selPred=new Set(), openNodes=new Set(["VLP","PVT"]),
    
     selStratum="all";
 
@@ -334,6 +334,8 @@ function orderedNodes(){
   });
   return out;}
 const GROUPONLY={CRW:"Crowdsourced"};
+// regimes whose named platforms are expanded and checked from the start
+const OPEN_BY_DEFAULT=["VLP","PVT"];
 // On load and on every outcome change, switch on all eight regimes — but only those the
 // chosen outcome can actually estimate, since a regime absent from its waves (AI Chat on
 // the pre-2024 items) would otherwise sit checked with nothing to draw.
@@ -341,9 +343,11 @@ function defaultsFor(keys){
   const s=new Set();
   keys.forEach(k=>{const o=O(k); if(!o)return;
     REG().forEach(r=>{if(estOf(o,r.key)) s.add(r.key);});
-    // Very Large Platform also starts with its six platforms checked. They come from the
-    // 6-wave named-platform model rather than the 15-wave one, so the plot marks them.
-    PLATS().filter(p=>p.parent==="VLP").forEach(p=>{if(estOf(o,p.key)) s.add(p.key);});});
+    // Very Large Platform and Private Messaging start with their named platforms checked.
+    // Those come from the 6-wave named-platform model rather than the 15-wave one, so the
+    // plot marks each such row.
+    PLATS().filter(p=>OPEN_BY_DEFAULT.includes(p.parent))
+           .forEach(p=>{if(estOf(o,p.key)) s.add(p.key);});});
   return s;}
 
 function strata(kind){return (DATA.meta.strata||[]).filter(s=>s.kind===kind);}
@@ -429,7 +433,7 @@ function init(){
     renderTree();draw();};
   document.getElementById("nonePred").onclick=()=>{selPred=new Set();renderTree();draw();};
   document.getElementById("resetPred").onclick=()=>{
-    selPred=defaultsFor(selOut); openNodes.add("VLP");   // show what sits inside the big one
+    selPred=defaultsFor(selOut); OPEN_BY_DEFAULT.forEach(k=>openNodes.add(k));
     renderTree();draw();};
 
   // definitions
