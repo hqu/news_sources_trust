@@ -7,7 +7,7 @@
 <style>
 :root{--ink:#16181d;--mid:#71777f;--faint:#ccd1d6;--hair:#e6e9ec;--bg:#fff;--wash:#f4f7f9;
       /* Eight categories on white, so the palette is Okabe-Ito derived: distinguishable under
-         deuteranopia and protanopia, and separated in value as well as hue. Decentralized keeps
+         deuteranopia and protanopia, and separated in value as well as hue. Podcasts keep
          the most salient colour because it is the result the page is about. */
       --dec:#b3003c;   /* deep crimson */
       --pvt:#f28e2b;   /* orange       */
@@ -138,7 +138,7 @@ logistic models adjusted for party, education, age, income, gender and wave. Eve
         <div class="step">Takeaway 1</div>
         <h3>Podcasts are the strongest predictor in the taxonomy.</h3>
         <div class="big">15 of 18</div>
-        <p class="bigsub">outcomes where Decentralized ranks first. No other regime leads more than twice.</p>
+        <p class="bigsub">outcomes where podcasts rank first. No other news source leads more than twice.</p>
         <p>It leads every one of the six misinformation claims, three of the four conspiracy items,
         and six of the eight institutional-trust outcomes — a mean rank of 1.4 out of 7, more than two
         full places clear of the next regime.</p>
@@ -293,6 +293,8 @@ const FAMS = [["belief","Belief in a claim","conspiracy and misinformation items
               ["establishment","Trust in the establishment","shown as DISTRUST, so higher = more adverse"],
               ["challenger","Trust in the challengers","RFK Jr. and Musk — these run the other way"]];
 let DATA=null, REG=[], RLAB={}, OUT=[], BYKEY={};
+/* short codes for the quadrant, where a full label will not fit beside a 5px dot */
+const RSHORT={JS:"JS",PB:"PB",SRCH:"SRCH",AICH:"AI",VLP:"VLP",PVT:"PVT",INT:"INT",DEC:"POD"};
 
 function famOf(o){ return o.direction==="belief" ? "belief"
                  : (CHALLENGERS.includes(o.key) ? "challenger" : "establishment"); }
@@ -306,6 +308,12 @@ function prepare(raw){
   DATA=raw;
   REG = raw.meta.regimes.map(r=>r.key);
   raw.meta.regimes.forEach(r=>RLAB[r.key]=r.label);
+  /* The DEC regime is operationally a single channel -- podcasts -- and the taxonomy's own
+     name for it carries a theoretical claim (no platform gatekeeper) that one item cannot
+     test. This page is read by people who did not write the taxonomy, so it says what was
+     actually measured. The payload label is overridden here rather than in data.json,
+     which the other page shares. */
+  RLAB.DEC = "Podcasts";
   OUT = raw.outcomes.map(o=>{
     const m=o.models.all.regime;
     return {key:o.key, label:o.label, group:o.group, direction:o.direction,
@@ -433,8 +441,9 @@ function drawScatter(host,state,opts={}){
       /* `data-rk`, not `data-reg`: the latter is the regime-chip selector, and a click on a
          mark inside the plot would bubble up and toggle that chip. */
       const fg=el("g",{class:"fit","data-rk":r.regime});
-      fg.appendChild(el("line",{x1,y1,x2,y2,stroke:RC[r.regime],
-        "stroke-width":faded?.7:1.15,opacity:faded?.2:.62,"stroke-linecap":"round"}));
+      const lw=faded?.7:1.15, lo=faded?.2:.62;
+      fg.appendChild(el("line",{x1,y1,x2,y2,stroke:RC[r.regime],"stroke-width":lw,opacity:lo,
+        "stroke-linecap":"round","data-w":lw,"data-o":lo}));
       /* a wide transparent line so the hover target is reachable */
       const hit=el("line",{x1,y1,x2,y2,stroke:"transparent","stroke-width":14,
         "pointer-events":"stroke",cursor:"crosshair"});
@@ -499,8 +508,8 @@ function crossHighlight(rg){
     const ln=n.querySelector('line[stroke-linecap]');
     if(!ln) return;
     const hot = rg && n.dataset.rk===rg;
-    ln.setAttribute("stroke-width", hot?2.8:1.15);
-    ln.setAttribute("opacity", hot?.95:.62);
+    ln.setAttribute("stroke-width", hot?2.8:ln.dataset.w);
+    ln.setAttribute("opacity",      hot?.95:ln.dataset.o);
   });
 }
 
@@ -573,7 +582,7 @@ function drawQuad(host,state){
   for(const r of usable){
     const g=el("g");
     g.appendChild(el("circle",{cx:X(r.estab),cy:Y(r.belief),r:5.5,fill:RC[r.regime],opacity:.9}));
-    g.appendChild(txt(r.regime,{x:X(r.estab)+8,y:Y(r.belief)+3.5,"font-size":9.8,
+    g.appendChild(txt(RSHORT[r.regime]||r.regime,{x:X(r.estab)+8,y:Y(r.belief)+3.5,"font-size":9.8,
       fill:"var(--ink)","font-weight":600}));
     bindTip(g,`<b>${RLAB[r.regime]}</b><br>establishment axis <b>${fmt(r.estab)}</b><br>
       belief axis <b>${fmt(r.belief)}</b><br>
@@ -625,6 +634,10 @@ function downloadCSV(state){
 
 /* ============================ state + wiring ============================ */
 const S={outcomes:new Set(), lo:0, hi:100, regimes:new Set(), aiFits:false, stratum:"all"};
+/* The page opens with podcasts picked out of the scatter, because that is the first result.
+   Any interaction clears it -- an emphasis the user cannot get rid of is a trap. */
+let openEmphasis="DEC";
+const clearEmphasis=()=>{ openEmphasis=null; };
 
 function buildOutcomeTree(){
   const host=document.getElementById("outcomeTree"); host.innerHTML="";
@@ -691,7 +704,8 @@ function syncControls(){
 }
 function render(){
   syncControls();
-  drawScatter(document.getElementById("scatter"),S,{height:430});
+  drawScatter(document.getElementById("scatter"),S,
+              {height:430, emphasis: openEmphasis?[openEmphasis]:null});
   drawRank(document.getElementById("rank"),S);
   drawQuad(document.getElementById("quad"),S);
   drawTable(S);
@@ -702,7 +716,7 @@ const STEPS=[
   {title:"The full picture", st:o=>({...o,outcomes:new Set(OUT.map(x=>x.key)),lo:0,hi:100}),
    opts:{faint:true,noLines:true}},
   {title:"Podcasts lead 15 of 18", st:o=>({...o,outcomes:new Set(OUT.filter(x=>x.fam!=="challenger").map(x=>x.key))}),
-   opts:{emphasis:["DEC"],annotate:{lines:["Decentralized (podcasts)","first on 15 of 18 outcomes"],w:210,h:40}}},
+   opts:{emphasis:["DEC"],annotate:{lines:["Podcasts","first on 15 of 18 outcomes"],w:196,h:40}}},
   {title:"…but it reverses for the challengers",
    st:o=>({...o,outcomes:new Set(OUT.map(x=>x.key))}),
    opts:{emphasis:["DEC"],annotate:{lines:["▲ RFK and Musk sit LEFT of 1","podcast listeners trust them more"],w:240,h:40}}},
@@ -758,30 +772,34 @@ function wire(){
       OUT.filter(o=>o.fam===t.dataset.fam).forEach(o=>
         t.checked?S.outcomes.add(o.key):S.outcomes.delete(o.key));
     } else return;
-    render();
+    clearEmphasis(); render();
   });
   document.addEventListener("click",e=>{
     const q=e.target.closest("[data-quick]");
     if(q){
       const k=q.dataset.quick;
       S.outcomes=new Set(k==="none"?[]:OUT.filter(o=>k==="all"||o.fam===k).map(o=>o.key));
-      render(); return;
+      clearEmphasis(); render(); return;
     }
     const w=e.target.closest("[data-win]");
-    if(w){ const [a,b]=w.dataset.win.split(",").map(Number); S.lo=a; S.hi=b; render(); return; }
+    if(w){ const [a,b]=w.dataset.win.split(",").map(Number); S.lo=a; S.hi=b;
+           clearEmphasis(); render(); return; }
     const c=e.target.closest("[data-reg]");
     if(c){ const rg=c.dataset.reg;
-      S.regimes.has(rg)?S.regimes.delete(rg):S.regimes.add(rg); render(); return; }
+      S.regimes.has(rg)?S.regimes.delete(rg):S.regimes.add(rg);
+      clearEmphasis(); render(); return; }
   });
   const lo=document.getElementById("rlo"), hi=document.getElementById("rhi");
   const onSlide=()=>{
     let a=+lo.value, b=+hi.value;
     if(a>b){ if(document.activeElement===lo) b=a; else a=b; }
-    S.lo=a; S.hi=b; render();
+    S.lo=a; S.hi=b; clearEmphasis(); render();
   };
   lo.addEventListener("input",onSlide); hi.addEventListener("input",onSlide);
-  document.getElementById("aiFits").addEventListener("change",e=>{S.aiFits=e.target.checked;render();});
-  document.getElementById("stratum").addEventListener("change",e=>{S.stratum=e.target.value;render();});
+  document.getElementById("aiFits").addEventListener("change",e=>{
+    S.aiFits=e.target.checked; clearEmphasis(); render();});
+  document.getElementById("stratum").addEventListener("change",e=>{
+    S.stratum=e.target.value; clearEmphasis(); render();});
   document.getElementById("csv").addEventListener("click",()=>downloadCSV(S));
   let timer=null;
   document.getElementById("animate").addEventListener("click",e=>{
