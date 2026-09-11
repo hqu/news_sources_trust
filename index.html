@@ -57,6 +57,8 @@ input[type=checkbox],input[type=radio]{margin:3px 0 0;accent-color:var(--obs);fl
 .nrow label{flex:1;display:flex;gap:7px;align-items:center;cursor:pointer;font-size:13px}
 .kids label{font-size:12.3px;color:var(--mid)}
 .nrow .ch{color:var(--mid);font-size:11.4px}
+.na{opacity:.34}
+.na label{cursor:not-allowed}
 
 /* ---- outcome disclosure ---- */
 .disc{border:1px solid var(--hair);border-radius:9px;margin-top:9px;overflow:hidden}
@@ -83,7 +85,6 @@ tr.sep td{border-bottom:1px solid var(--faint);padding:0;height:0}
 .legend{color:var(--mid);font-size:10.8px;margin:0 0 9px;line-height:1.4}
 .legend b{font-weight:600;color:var(--ink)}
 .a-outcome .legend{font-size:10px;margin-bottom:7px}
-.meta[title]{cursor:help;border-bottom:1px dotted var(--faint)}
 .btn{border:1px solid var(--hair);background:var(--bg);border-radius:7px;padding:5px 10px;
   font:inherit;font-size:11.6px;color:var(--mid);cursor:pointer;margin-right:6px}
 .btn:hover{background:var(--wash);color:var(--ink)}
@@ -367,11 +368,8 @@ function codingOf(o){
 function outRow(k){const o=O(k);
   const l=document.createElement("label"); l.className="row";
   const pct=o.regime.prevalence;
-  const tip=`${pct.toFixed(1)}% of respondents ${codingOf(o)} — the base rate of this outcome, `
-           +`before any model. n = ${o.regime.n.toLocaleString()}.`;
   l.innerHTML=`<input type="radio" name="outcome" data-out="1" value="${k}"><span>${o.label}</span>
-               <span class="meta" title="${tip}">${pct.toFixed(0)}%</span>`;
-  l.title=tip;
+               <span class="meta">${pct.toFixed(0)}%</span>`;
   return l;}
 
 // ---------- news-source tree ----------
@@ -388,26 +386,29 @@ function renderTree(){
     const hasKids=kidsList.length>0;
     const open=openNodes.has(pk);
     const e=(r&&selOut.length)?estOf(O(selOut[0]),pk):null;
+    const na=r&&selOut.length&&!e;          // regime not fielded for this outcome
     const node=document.createElement("div"); node.className="node";
     const soloTag=solo?` <span class="ch">(${r.channels[0].label})</span>`:"";
-    const box=r?`<input type="checkbox" data-pred="1" value="${pk}" ${selPred.has(pk)?"checked":""}>`
+    const box=r?`<input type="checkbox" data-pred="1" value="${pk}" ${selPred.has(pk)?"checked":""}${na?" disabled":""}>`
                :`<span style="width:13px;flex:none"></span>`;
     node.innerHTML=
-      `<div class="nrow">
+      `<div class="nrow${na?" na":""}"${na?' title="Not fielded in the waves that carry this outcome"':""}>
          <span class="tw ${hasKids?"":"leaf"} ${open?"open":""}" data-tw="${pk}">▶</span>
          <label>${box}<span>${labelOf(pk)}${soloTag}${
             r?"":' <span class="ch">(6-wave battery only)</span>'}</span></label>
-         <span class="meta" title="${e?e.pct_occupying.toFixed(1)+"% of respondents reported getting political news from this source in the previous 24 hours. This is a property of the source, not of the outcome, so it does not change when you change the outcome.":""}">${e?e.pct_occupying.toFixed(0)+"%":""}</span>
+         <span class="meta">${e?e.pct_occupying.toFixed(0)+"%":""}</span>
        </div>
        ${hasKids?`<div class="kids ${open?"open":""}" data-kids="${pk}"></div>`:""}`;
     if(hasKids){
       const kids=node.querySelector(".kids");
       kidsList.forEach(c=>{
         const ce=selOut.length?estOf(O(selOut[0]),c.key):null;
-        const l=document.createElement("label"); l.className="row";
-        l.innerHTML=`<input type="checkbox" data-pred="1" value="${c.key}" ${selPred.has(c.key)?"checked":""}>
-                     <span>${c.label}${c.six?' <span class="ch">6w</span>':''}</span>
-                     <span class="meta" title="${ce?ce.pct_occupying.toFixed(1)+"% of respondents used this channel in the previous 24 hours.":""}">${ce?ce.pct_occupying.toFixed(0)+"%":""}</span>`;
+        const cna=selOut.length&&!ce;
+        const l=document.createElement("label"); l.className="row"+(cna?" na":"");
+        if(cna) l.title="Not fielded in the waves that carry this outcome";
+        l.innerHTML=`<input type="checkbox" data-pred="1" value="${c.key}" ${selPred.has(c.key)?"checked":""}${cna?" disabled":""}>
+                     <span>${c.label}</span>
+                     <span class="meta">${ce?ce.pct_occupying.toFixed(0)+"%":""}</span>`;
         kids.appendChild(l);
       });
     }
@@ -440,7 +441,14 @@ function draw(){
       return b?b.estimates.find(e=>e.key===k):null;};
   const rows=orderedNodes().map(n=>n.key)
                 .filter(k=>selPred.has(k) && F.some(f=>estIn(f,k)));
-  if(!rows.length){plots.innerHTML='<div class="empty">None of the selected sources is fielded for these outcomes.</div>';return;}
+  if(!rows.length){
+    const names=[...selPred].map(labelOf).join(", ");
+    plots.innerHTML=`<div class="empty">${names||"Nothing"} ${selPred.size===1?"is":"are"} not
+      fielded in the waves that carry <b>${O(selOut[0]).label}</b>, so there is nothing to plot.
+      Pick another source on the left — greyed rows are unavailable for this outcome.</div>`;
+    document.getElementById("regression").innerHTML="";
+    document.getElementById("footnote").textContent="";
+    return;}
   let lo=1,hi=1;
   F.forEach(f=>rows.forEach(k=>{const e=estIn(f,k); if(e){lo=Math.min(lo,e.lo);hi=Math.max(hi,e.hi);}}));
   lo=Math.min(lo,1/1.15); hi=Math.max(hi,1.15);
