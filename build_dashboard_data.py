@@ -77,10 +77,6 @@ FN_OUTCOMES = [
   "Wind turbines cause cancer","belief",False),
  ("soros","George Soros is secretly working","Misinformation",
   "Soros is destabilising the US","belief",False),
- ("roe","The Supreme Court has overturned Roe","Factual",
-  "Roe v. Wade was overturned (true)","accuracy",False),
- ("queen","British monarch Queen Elizabeth II has died","Factual",
-  "Queen Elizabeth II has died (true)","accuracy",False),
 ]
 NEED = sorted({v for _,v,_,_,_,_ in OUTCOMES})
 

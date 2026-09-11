@@ -251,22 +251,6 @@
     "2 = Inaccurate",
     "3 = Not sure"
    ]
-  },
-  "FN_roe": {
-   "text": "The Supreme Court has overturned Roe v. Wade, eliminating the constitutional right to abortion",
-   "scale": [
-    "1 = Accurate",
-    "2 = Inaccurate",
-    "3 = Not sure"
-   ]
-  },
-  "FN_queen": {
-   "text": "British monarch Queen Elizabeth II has died",
-   "scale": [
-    "1 = Accurate",
-    "2 = Inaccurate",
-    "3 = Not sure"
-   ]
   }
  },
  "control": {

@@ -199,10 +199,7 @@ const DISCLOSE=[["Other science and health institutions",["cdc","fda","doctors",
                 ["Named individuals",["fauci","rfk","musk"]]];
 const ALSO=[["Conspiracy beliefs",["consp1","consp2","consp3","consp4"]],
             ["Election denial",["denial"]],
-            ["Misinformation claims (all false)",["gmo","machines","cia","turbines","soros"]]];
-// True statements, kept apart from the false ones: they test whether a source predicts
-// believing things in general or believing things that are untrue.
-const DISCLOSE2=[["Factual claims, for contrast (all true)",["roe","queen"]]];
+            ["Misinformation claims",["gmo","machines","cia","turbines","soros"]]];
 
 const COLDEFS=[
  ["Term","the variable whose coefficient that row reports. The upper block holds the news sources — a regime, or an individual channel, coded 1 if the respondent reported getting political news from it in the previous 24 hours and 0 otherwise. Below the rule sit the control variables, which are in every model and are not shown in the plot. A source greyed and marked <i>not shown</i> was in the fitted model but is currently unchecked in the left column, so it is adjusted for without being drawn."],
@@ -330,7 +327,7 @@ function init(){
     const g=document.createElement("div"); g.className="ogrid";
     av.forEach(k=>g.appendChild(outRow(k))); discs.appendChild(g);
   });
-  DISCLOSE.concat(DISCLOSE2).forEach(([name,keys])=>{
+  DISCLOSE.forEach(([name,keys])=>{
     const av=keys.filter(k=>O(k)); if(!av.length)return;
     const d=document.createElement("details"); d.className="disc";
     d.innerHTML=`<summary>${name} <span class="meta" style="margin-left:0">${av.length}</span></summary>`;
