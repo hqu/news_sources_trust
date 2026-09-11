@@ -235,11 +235,11 @@ const DEFS=[
  ["SRCH","Search Engine","search engines",
   "Queries that route a user to sources rather than publishing content. Highly enumerable and highly controllable, and the only regime with a protective association on most outcomes here."],
  ["AICH","AI Chat","AI chatbots",
-  "Generative systems that compose an answer rather than pointing to one. The output is not enumerable — it is produced once, for one person, and not retained in any public record — while the input is the most controllable of any regime, because a single operator sets the model's behaviour. Fielded in six waves only."],
+  "Generative systems that compose an answer rather than pointing to one. The output is not enumerable — it is produced once, for one person, and not retained in any public record — while the input is the most controllable of any regime, because a single operator sets the model's behaviour. The AI chatbot item was added to the questionnaire partway through the series, so it is asked in 6 of the 15 waves and its estimates come from a separate model on those waves."],
  ["SPM","Semi-Public Messaging","not measured",
   "Large group chats on WhatsApp, Telegram and Discord: joinable by a researcher but not countable from outside. The regime exists in the taxonomy and has no CHIP50 channel of its own, so it cannot appear in any estimate here."],
  ["CRW","Crowdsourced","Wikipedia, Reddit",
-  "Publicly logged, community-moderated content written under pseudonyms. Perfectly countable and permanently preserved, with an author beyond the reach of defamation — the clearest case of the two axes coming apart. Reddit and Wikipedia are fielded only in the named-platform battery, not the generic 24-hour one, so there is no 24-hour item to estimate: Crowdsourced appears in the selector as a heading over its two channels rather than as a regime you can check."]];
+  "Publicly logged, community-moderated content written under pseudonyms. Perfectly countable and permanently preserved, with an author beyond the reach of defamation — the clearest case of the two axes coming apart. Reddit and Wikipedia appear only in the question that lists individual platforms, asked in 6 of the 15 waves; the question asked in all 15 offers only the generic category “a social media website or app”. There is therefore no item to estimate at the regime level: Crowdsourced appears in the selector as a heading over its two channels rather than as a regime you can check."]];
 
 function fail(msg){document.getElementById("plots").innerHTML=
   '<div style="border:1px solid #e6e9ec;border-radius:11px;padding:20px;color:#6b4c9a">'+
@@ -251,8 +251,8 @@ function loadQuestions(){
 // Each stem heads the items it actually governs, so a reader can see which battery a
 // variable came from — the two news batteries differ in wave coverage and it matters.
 const STEM_NOTE={
-  pol_news1:"Asked in all 15 waves. This is the battery every regime-level and channel-level estimate uses.",
-  pol_news2:"The named-platform battery, asked in 6 waves (23, 26, 27, 28, 35, 35.1). Every platform-level estimate comes from here.",
+  pol_news1:"Asked in all 15 waves, in generic categories. Every regime-level and channel-level estimate uses this question.",
+  pol_news2:"The same question, but listing individual platforms by name. Asked in 6 of the 15 waves — 23, 26, 27, 28, 35 and 35.1 — so every platform-level estimate rests on those six.",
   pol_trust:"Asked in the waves carrying each target; coverage differs by target.",
   conspiracy:"Four items forming the conspiracy-predisposition battery.",
   fn:"A rotating battery; each claim runs in its own subset of waves."};
@@ -293,7 +293,8 @@ const labelOf=k=>GROUPONLY[k]?GROUPONLY[k]
                 : isRegime(k)?REG().find(r=>r.key===k).label
                 : isPlat(k)?platOf(k).label
                 : (chanOf(k)?chanOf(k).label:k);
-// three separate fitted models: 15-wave regime, 15-wave channel, 6-wave platform
+// three separate fitted models: regime and channel on all 15 waves, platform on the 6
+// waves whose questionnaire names individual platforms
 const blockFor=(o,k)=>isRegime(k)?o.regime:(isPlat(k)?o.platform:o.channel);
 const estOf=(o,k)=>((blockFor(o,k))||{estimates:[]}).estimates.find(e=>e.key===k);
 // every selectable node, grouped by regime so a channel never floats away from its parent
@@ -523,7 +524,7 @@ function draw(){
       const sig=!(e.lo<1&&e.hi>1), col=!sig?PAL.mid:(e.odds_ratio<1?PAL.obs:PAL.priv);
       svg+=`<line x1="${OX+sx(e.lo)}" y1="${y}" x2="${OX+sx(e.hi)}" y2="${y}" stroke="${col}" stroke-width="1.4"/>
             <circle cx="${OX+sx(e.odds_ratio)}" cy="${y}" r="4.2" fill="${col}" stroke="${col}" stroke-width="1.4"/>`;
-      if(e.restricted||isPlat(rk)) svg+=`<text x="${OX+sx(e.hi)+5}" y="${y+3.5}" fill="${PAL.faint}" font-size="9.5">6w</text>`;
+      if(e.restricted||isPlat(rk)) svg+=`<text x="${OX+sx(e.hi)+5}" y="${y+3.5}" fill="${PAL.faint}" font-size="9">6 of 15 waves</text>`;
     });
     // name the active subgroup on the plot, or the sample is the only thing that says so
     const pretty = f.startsWith("repedu_") ? "Republicans · "+flabel : flabel;
@@ -575,11 +576,12 @@ function draw(){
     unchecked terms are greyed in the table rather than removed, because <strong>toggling a source
     filters the display of a fitted model and does not re-estimate it</strong>. There are three separate fitted models —
     regime and channel on all 15 waves, and platform (Facebook, Twitter/X, YouTube, Instagram,
-    Snapchat, TikTok, Reddit, Wikipedia, Messenger, WhatsApp) on the six waves that field the
-    named-platform battery. A platform row is <strong>not a decomposition of the regime row above
+    Snapchat, TikTok, Reddit, Wikipedia, Messenger, WhatsApp) on the 6 of 15 waves that name
+    individual platforms rather than generic categories. A platform row is <strong>not a decomposition of the regime row above
     it</strong>: they are different models on different samples. Blue is below 1, purple above 1, grey means the
-    interval spans 1. Estimates from the six-wave batteries — AI Chat and every platform — are marked
-    “6w”. Trust outcomes are “a lot” or “some”; conspiracy items
+    interval spans 1. Two sets of estimates rest on 6 of the 15 waves and are marked as such in the
+    plot: the named platforms, because only 6 waves list platforms individually, and AI Chat,
+    because the item was added to the questionnaire partway through the series. Trust outcomes are “a lot” or “some”; conspiracy items
     “agree” or “strongly agree”. These are cross-sectional associations confounded with selective
     exposure, not transmission rates. Built ${DATA.meta.built}. ${DATA.meta.note}`;
 }

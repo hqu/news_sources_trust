@@ -38,8 +38,12 @@ weighted occupancy share.
   Every predictor at the chosen level was in the model whether or not it is shown.
 - Models are survey-weighted logistic regressions adjusted for party identification,
   education, age, household income, gender and wave fixed effects.
-- **AI Chat is fielded in six waves only.** Including it in the main model would restrict
-  every outcome to those six waves, so it is estimated separately and marked `6 waves`.
+- **Two things rest on 6 of the 15 waves**, and both are marked in the plot. The named
+  platforms — Facebook, Reddit, WhatsApp and the rest — because only 6 waves list platforms
+  individually; the other 9 offer just the generic category "a social media website or app".
+  And AI Chat, because that item was added to the questionnaire partway through the series.
+  Putting either in the main model would drag every outcome down to those 6 waves, so each is
+  fitted separately.
 - Trust outcomes are coded "a lot" or "some"; conspiracy items "agree" or "strongly agree";
   election denial is agreement that Trump would have won a fairly counted 2020 election.
 - These are **cross-sectional associations confounded with selective exposure by
@@ -63,7 +67,7 @@ regimes — lowest odds for a trust outcome, highest for conspiracy and denial.
 | Private Messaging | messaging apps |
 | Interpersonal Ties | friends and family |
 | Search Engine | search |
-| AI Chat | AI chatbots (six waves) |
+| AI Chat | AI chatbots (asked in 6 of the 15 waves) |
 
 Semi-Public Messaging and Crowdsourced are in the taxonomy but are not fielded in the
 24-hour battery, so they cannot appear here.
