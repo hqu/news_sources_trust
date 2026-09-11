@@ -113,9 +113,23 @@ def run(y, preds, label):
                          lo=float(np.exp(b-1.96*se)), hi=float(np.exp(b+1.96*se)),
                          p=float(m.pvalues[p]), n_occupying=int(sub[p].sum()),
                          pct_occupying=float(100*(occ["weight"].sum()/sub["weight"].sum()))))
+    # control coefficients too, so the dashboard can print the whole fitted model rather
+    # than only the terms drawn in the forest plot
+    CTRL_LABEL={"party7":"Party identification (1 Strong Rep – 7 Strong Dem)",
+                "edu":"Education (5-point)","age":"Age (years)",
+                "income_cat_5":"Household income (5-point)","male_c":"Male"}
+    ctrl_rows=[]
+    for c in CTRL:
+        if c not in m.params.index: continue
+        b,se=m.params[c],m.bse[c]
+        ctrl_rows.append(dict(key=c,label=CTRL_LABEL.get(c,c),odds_ratio=float(np.exp(b)),
+                              lo=float(np.exp(b-1.96*se)),hi=float(np.exp(b+1.96*se)),
+                              p=float(m.pvalues[c])))
     return dict(n=int(len(sub)), waves=sorted(sub["wave"].unique(), key=float),
                 prevalence=float(100*(sub["y"]*sub["weight"]).sum()/sub["weight"].sum()),
-                estimates=rows)
+                estimates=rows, controls=ctrl_rows,
+                n_wave_dummies=int(sum(1 for c in X.columns if c.startswith("w_"))),
+                llf=float(m.llf), df_model=int(m.df_model))
 
 payload={"meta":{"built":pd.Timestamp.now().strftime("%Y-%m-%d"),
                  "source":"CHIP50 / Civic Health and Institutions Project",
