@@ -250,15 +250,15 @@ prevalence window. Everything below recomputes from the same fitted models — n
       </div>
       <div class="slider">
         <div class="trk"></div><div class="fill" id="fill"></div>
-        <input type="range" id="rlo" min="0" max="100" step="1" value="0">
-        <input type="range" id="rhi" min="0" max="100" step="1" value="100">
+        <input type="range" id="rlo" min="0" max="75" step="1" value="0">
+        <input type="range" id="rhi" min="0" max="75" step="1" value="75">
       </div>
       <div class="ticks" id="ticks"></div>
-      <div class="scale"><span>0% — almost nobody</span><span>50%</span><span>100% — almost everybody</span></div>
+      <div class="scale"><span>0% — almost nobody</span><span>37.5%</span><span>75% — most people</span></div>
       <div class="ctlrow" style="margin-top:10px">
-        <button class="btn" data-win="0,100">All</button>
+        <button class="btn" data-win="0,75">All</button>
         <button class="btn" data-win="0,35">Confined &lt;35%</button>
-        <button class="btn" data-win="35,100">Widespread ≥35%</button>
+        <button class="btn" data-win="35,75">Widespread ≥35%</button>
         <button class="btn" id="animate">▶ Sweep</button>
         <span style="margin-left:auto;font-size:11.5px;color:var(--mid)" id="inView"></span>
       </div>
@@ -164799,6 +164799,10 @@ prevalence window. Everything below recomputes from the same fitted models — n
 "use strict";
 /* ============================ data layer ============================ */
 const CHALLENGERS = ["rfk","musk"];
+/* Ceiling of the prevalence axis. The most widely held outcome in the battery sits at 68.5%,
+   so 75 is the top of the data plus a little headroom; carrying the axis to 100 left a
+   quarter of every chart permanently empty. Nothing is excluded by this. */
+const PMAX = 75;
 const RC = {JS:"var(--js)",PB:"var(--pb)",SRCH:"var(--srch)",AICH:"var(--aich)",
             VLP:"var(--vlp)",PVT:"var(--pvt)",INT:"var(--int)",DEC:"var(--dec)"};
 const FAMS = [["belief","Belief in a claim","conspiracy and misinformation items"],
@@ -164918,10 +164922,10 @@ function drawScatter(host,state,opts={}){
   let xlo=Math.min(...C.map(c=>c.lo)), xhi=Math.max(...C.map(c=>c.hi));
   xlo=Math.min(xlo,0.78); xhi=Math.max(xhi,1.28);
   const X=v=>M.l+iw*((Math.log(v)-Math.log(xlo))/(Math.log(xhi)-Math.log(xlo)));
-  const Y=v=>M.t+ih*(1-v/100);
+  const Y=v=>M.t+ih*(1-v/PMAX);
 
   /* horizontal grid: % of the population in the adverse state */
-  [0,25,50,75,100].forEach(v=>{
+  [0,15,30,45,60,75].forEach(v=>{
     svg.appendChild(el("line",{x1:M.l,x2:M.l+iw,y1:Y(v),y2:Y(v),stroke:"var(--hair)"}));
     svg.appendChild(txt(v+"%",{x:M.l-8,y:Y(v)+3.5,"text-anchor":"end",fill:"var(--mid)","font-size":10.5}));
   });
@@ -164945,7 +164949,7 @@ function drawScatter(host,state,opts={}){
   if(!opts.noLines){
     for(const r of rows){
       if(!r.slope||!isFinite(r.slope.m)) continue;
-      const p1=Math.max(0,state.lo), p2=Math.min(100,state.hi);
+      const p1=Math.max(0,state.lo), p2=Math.min(PMAX,state.hi);
       const o1=Math.exp(r.slope.m*p1+r.slope.b), o2=Math.exp(r.slope.m*p2+r.slope.b);
       const cl=v=>Math.max(xlo,Math.min(xhi,v));
       const x1=X(cl(o1)), y1=Y(p1), x2=X(cl(o2)), y2=Y(p2);
@@ -165030,7 +165034,7 @@ function drawRank(host,state){
   const rows=summarise(state), W=host.clientWidth||290;
   host.innerHTML="";
   if(!rows.length){ host.innerHTML='<div class="note">No outcomes in this window.</div>'; return; }
-  const base=summarise({...state,lo:0,hi:100});
+  const base=summarise({...state,lo:0,hi:PMAX});
   const baseRank={}; base.forEach((r,i)=>baseRank[r.regime]=i+1);
   const hi=Math.max(1.05,...rows.map(r=>r.gm)), lo=Math.min(.95,...rows.map(r=>r.gm));
   const H=rows.length*26+6, svg=el("svg",{width:W,height:H,viewBox:`0 0 ${W} ${H}`});
@@ -165145,7 +165149,7 @@ function downloadCSV(state){
 }
 
 /* ============================ state + wiring ============================ */
-const S={outcomes:new Set(), lo:0, hi:100, regimes:new Set(), aiFits:false, stratum:"all"};
+const S={outcomes:new Set(), lo:0, hi:PMAX, regimes:new Set(), aiFits:false, stratum:"all"};
 /* The page opens with podcasts picked out of the scatter, because that is the first result.
    Any interaction clears it -- an emphasis the user cannot get rid of is a trap. */
 let openEmphasis="DEC";
@@ -165196,7 +165200,8 @@ function syncControls(){
   document.getElementById("rlo").value=S.lo;
   document.getElementById("rhi").value=S.hi;
   const f=document.getElementById("fill");
-  f.style.left=S.lo+"%"; f.style.width=(S.hi-S.lo)+"%";
+  const pct=v=>100*v/PMAX;   /* the track is 0-PMAX, but CSS offsets are 0-100 */
+  f.style.left=pct(S.lo)+"%"; f.style.width=(pct(S.hi)-pct(S.lo))+"%";
   document.getElementById("winLabel").textContent=`${S.lo}% – ${S.hi}%`;
   const inw=OUT.filter(o=>S.outcomes.has(o.key)&&o.adverse>=S.lo&&o.adverse<=S.hi).length;
   document.getElementById("inView").textContent=
@@ -165206,7 +165211,7 @@ function syncControls(){
                 challenger:"trust in a challenger"};
   for(const o of OUT){
     const i=document.createElement("i");
-    i.style.left=`${o.adverse}%`;
+    i.style.left=`${pct(o.adverse)}%`;
     const sel=S.outcomes.has(o.key), win=o.adverse>=S.lo&&o.adverse<=S.hi;
     if(sel&&win) i.className="inwin";
     /* Several outcomes sit within a point of each other — 34.0, 34.9 and 35.5, for instance —
@@ -165243,7 +165248,7 @@ function render(){
 
 /* ---- scrollytelling ---- */
 const STEPS=[
-  {title:"The full picture", st:o=>({...o,outcomes:new Set(OUT.map(x=>x.key)),lo:0,hi:100}),
+  {title:"The full picture", st:o=>({...o,outcomes:new Set(OUT.map(x=>x.key)),lo:0,hi:PMAX}),
    opts:{faint:true,noLines:true}},
   {title:"Podcasts lead 15 of 18", st:o=>({...o,outcomes:new Set(OUT.filter(x=>x.fam!=="challenger").map(x=>x.key))}),
    opts:{emphasis:["DEC"],annotate:{lines:["Podcasts","first on 15 of 18 outcomes"],w:196,h:40}}},
@@ -165263,7 +165268,7 @@ function showStep(i){
   const s=STEPS[i]; if(!s) return;
   document.getElementById("storyTitle").textContent=s.title;
   const host=document.getElementById("storyChart");
-  const st=s.st({...S,regimes:new Set(REG),stratum:"all",lo:0,hi:100,aiFits:false});
+  const st=s.st({...S,regimes:new Set(REG),stratum:"all",lo:0,hi:PMAX,aiFits:false});
   drawScatter(host,st,{...s.opts,height:host.clientHeight||420});
   document.querySelectorAll("#dots .dot").forEach((d,j)=>d.classList.toggle("on",j===i));
   document.querySelectorAll("#panes .pane").forEach((p,j)=>p.classList.toggle("active",j===i));
@@ -165335,11 +165340,12 @@ function wire(){
   document.getElementById("animate").addEventListener("click",e=>{
     if(timer){ clearInterval(timer); timer=null; e.target.textContent="▶ Sweep"; return; }
     e.target.textContent="■ Stop"; let p=0;
-    S.lo=0; S.hi=30;
+    const span=25;
+    S.lo=0; S.hi=span;
     timer=setInterval(()=>{
-      p+=2; if(p>70){ clearInterval(timer); timer=null; e.target.textContent="▶ Sweep";
-        S.lo=0; S.hi=100; render(); return; }
-      S.lo=p; S.hi=Math.min(100,p+30); render();
+      p+=1.5; if(p>PMAX-span){ clearInterval(timer); timer=null; e.target.textContent="▶ Sweep";
+        S.lo=0; S.hi=PMAX; render(); return; }
+      S.lo=Math.round(p); S.hi=Math.min(PMAX,Math.round(p)+span); render();
     },160);
   });
   let rt=null;
