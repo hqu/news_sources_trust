@@ -80,6 +80,10 @@ tbody tr:hover{background:var(--wash)}
 tr.ctrl td{color:var(--mid)}
 tr.sep td{border-bottom:1px solid var(--faint);padding:0;height:0}
 .note{color:var(--mid);font-size:11.8px;line-height:1.65;margin-top:9px}
+.legend{color:var(--mid);font-size:10.8px;margin:0 0 9px;line-height:1.4}
+.legend b{font-weight:600;color:var(--ink)}
+.a-outcome .legend{font-size:10px;margin-bottom:7px}
+.meta[title]{cursor:help;border-bottom:1px dotted var(--faint)}
 .btn{border:1px solid var(--hair);background:var(--bg);border-radius:7px;padding:5px 10px;
   font:inherit;font-size:11.6px;color:var(--mid);cursor:pointer;margin-right:6px}
 .btn:hover{background:var(--wash);color:var(--ink)}
@@ -102,7 +106,8 @@ tr.sep td{border-bottom:1px solid var(--faint);padding:0;height:0}
     <!-- COLUMN 1 — news source tree -->
     <div class="a-news">
       <div class="panel">
-        <div class="track" style="margin-bottom:10px">News source</div>
+        <div class="track" style="margin-bottom:2px">News source</div>
+        <p class="legend">Grey % = share of respondents <b>using</b> this source</p>
         <div id="tree"></div>
         <div style="margin-top:12px">
           <button class="btn" id="allPred">All</button>
@@ -125,7 +130,8 @@ tr.sep td{border-bottom:1px solid var(--faint);padding:0;height:0}
     <!-- COLUMN 3 — outcome -->
     <div class="a-outcome">
       <div class="panel">
-        <div class="track" style="margin-bottom:8px">Outcome</div>
+        <div class="track" style="margin-bottom:2px">Outcome</div>
+        <p class="legend">Grey % = share <b>holding</b> this view</p>
         <div id="primary"></div>
         <div id="discs"></div>
       </div>
@@ -247,10 +253,18 @@ function init(){
   selPred=defaultsFor(selOut);
   renderTree();draw();
 }
+function codingOf(o){
+  if(o.var.startsWith("conspiracy")) return "answered “agree” or “strongly agree”";
+  if(o.var==="trump_win") return "said Trump would have won a fairly counted 2020 election";
+  return "answered “a lot” or “some”";}
 function outRow(k){const o=O(k);
   const l=document.createElement("label"); l.className="row";
+  const pct=o.regime.prevalence;
+  const tip=`${pct.toFixed(1)}% of respondents ${codingOf(o)} — the base rate of this outcome, `
+           +`before any model. n = ${o.regime.n.toLocaleString()}.`;
   l.innerHTML=`<input type="checkbox" data-out="1" value="${k}"><span>${o.label}</span>
-               <span class="meta">${o.regime.prevalence.toFixed(0)}%</span>`;
+               <span class="meta" title="${tip}">${pct.toFixed(0)}%</span>`;
+  l.title=tip;
   return l;}
 
 // ---------- news-source tree ----------
@@ -270,7 +284,7 @@ function renderTree(){
          <span class="tw ${hasKids?"":"leaf"} ${open?"open":""}" data-tw="${r.key}">▶</span>
          <label><input type="checkbox" data-pred="1" value="${r.key}" ${selPred.has(r.key)?"checked":""}>
            <span>${r.label}${soloTag}</span></label>
-         <span class="meta">${e?e.pct_occupying.toFixed(0)+"%":""}</span>
+         <span class="meta" title="${e?e.pct_occupying.toFixed(1)+"% of respondents reported getting political news from this source in the previous 24 hours. This is a property of the source, not of the outcome, so it does not change when you change the outcome.":""}">${e?e.pct_occupying.toFixed(0)+"%":""}</span>
        </div>
        ${hasKids?`<div class="kids ${open?"open":""}" data-kids="${r.key}"></div>`:""}`;
     if(hasKids){
@@ -280,7 +294,7 @@ function renderTree(){
         const l=document.createElement("label"); l.className="row";
         l.innerHTML=`<input type="checkbox" data-pred="1" value="${c.key}" ${selPred.has(c.key)?"checked":""}>
                      <span>${c.label}</span>
-                     <span class="meta">${ce?ce.pct_occupying.toFixed(0)+"%":""}</span>`;
+                     <span class="meta" title="${ce?ce.pct_occupying.toFixed(1)+"% of respondents used this channel in the previous 24 hours.":""}">${ce?ce.pct_occupying.toFixed(0)+"%":""}</span>`;
         kids.appendChild(l);
       });
     }
