@@ -93,8 +93,13 @@ input[type=checkbox]{margin:3px 0 0;accent-color:var(--vlp);flex:none}
 .slider input[type=range]::-moz-range-thumb{pointer-events:auto;width:16px;height:16px;border-radius:50%;
   background:#fff;border:2.5px solid var(--ink);cursor:grab}
 .ticks{position:relative;height:16px;margin:0 2px}
-.ticks i{position:absolute;top:0;width:1px;height:6px;background:var(--faint)}
-.ticks i.inwin{background:var(--ink);height:9px}
+/* The mark is a hairline but the hover target is 13px wide and the full height of the strip,
+   otherwise it cannot be hit with a mouse. The visible line is drawn by the pseudo-element. */
+.ticks i{position:absolute;top:0;width:13px;margin-left:-6.5px;height:15px;cursor:help}
+.ticks i:after{content:"";position:absolute;left:6px;top:0;width:1px;height:6px;
+  background:var(--faint);transition:height .12s,background .12s}
+.ticks i.inwin:after{background:var(--ink);height:9px}
+.ticks i:hover:after{background:var(--ink);height:13px;width:2px;left:5.5px}
 .scale{display:flex;justify-content:space-between;color:var(--mid);font-size:10.2px;margin-top:-2px}
 table{border-collapse:collapse;width:100%;font-size:12.2px;margin-top:8px}
 th,td{text-align:right;padding:4.5px 9px;border-bottom:1px solid var(--hair);white-space:nowrap}
@@ -165197,11 +165202,29 @@ function syncControls(){
   document.getElementById("inView").textContent=
     `${inw} of ${OUT.length} outcomes in view`;
   const tk=document.getElementById("ticks"); tk.innerHTML="";
+  const FAMLAB={belief:"belief in a claim",establishment:"trust in an institution",
+                challenger:"trust in a challenger"};
   for(const o of OUT){
     const i=document.createElement("i");
-    i.style.left=`calc(${o.adverse}% - 0px)`;
-    if(S.outcomes.has(o.key)&&o.adverse>=S.lo&&o.adverse<=S.hi) i.className="inwin";
-    i.title=`${o.label} — ${o.adverse.toFixed(1)}%`;
+    i.style.left=`${o.adverse}%`;
+    const sel=S.outcomes.has(o.key), win=o.adverse>=S.lo&&o.adverse<=S.hi;
+    if(sel&&win) i.className="inwin";
+    /* Several outcomes sit within a point of each other — 34.0, 34.9 and 35.5, for instance —
+       so their hit zones overlap and whichever was appended last would win. List the whole
+       cluster instead, so any tick in it gives the same complete answer. */
+    const near=OUT.filter(x=>Math.abs(x.adverse-o.adverse)<1.5);
+    const line=x=>{
+      const s2=S.outcomes.has(x.key), w2=x.adverse>=S.lo&&x.adverse<=S.hi;
+      const state = !s2 ? "not selected" : (w2 ? "in the window" : "outside the window");
+      const m=(x.models[S.stratum]||{}).regime;
+      return `<div style="margin-top:3px">${x.key===o.key?"<b>":""}${x.label}${x.key===o.key?"</b>":""}<br>
+        <span style="opacity:.75">${x.adverse.toFixed(1)}% ${x.direction==="belief"?"believe it":"distrust them"}
+        · ${FAMLAB[x.fam]}${m?" · n="+m.n.toLocaleString()+" · "+m.waves.length+" waves":""}
+        · ${state}</span></div>`;
+    };
+    bindTip(i, near.length>1
+      ? `<b>${near.length} outcomes at this point on the axis</b>${near.map(line).join("")}`
+      : line(o));
     tk.appendChild(i);
   }
   const st=DATA.meta.strata.find(x=>x.key===S.stratum);
