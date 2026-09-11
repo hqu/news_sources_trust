@@ -575,7 +575,11 @@ function draw(){
                 ["platform",rows.filter(isPlat)]].filter(([,ks])=>ks.length);
     lvls.forEach(([lv,ks])=>{
       const blk=(M[f]||{})[lv]; if(!blk)return;
-      const all=blk.estimates.filter(e=>!e.restricted);
+      // follow the selector's display order, not the order the model happened to fit in
+      const ord=orderedNodes().map(nd=>nd.key);
+      const all=blk.estimates.slice().sort((a,b)=>{
+                   const ia=ord.indexOf(a.key), ib=ord.indexOf(b.key);
+                   return (ia<0?999:ia)-(ib<0?999:ib);});
       const div=document.createElement("div"); div.style.marginBottom="22px";
       const outcomeWord=o.direction==="trust"?"trusts":"believes";
       const fl=(DATA.meta.strata.find(s=>s.key===f)||{}).label||f;
@@ -587,7 +591,8 @@ function draw(){
       all.forEach(e=>{
         const shown=ks.includes(e.key), sig=!(e.lo<1&&e.hi>1);
         t+=`<tr${shown?' style="font-weight:600"':' style="opacity:.5"'}>
-            <td>${labelOf(e.key)}${shown?"":' <span class="meta" style="margin:0">not shown</span>'}</td>
+            <td>${labelOf(e.key)}${e.restricted||isPlat(e.key)?' <span class="meta" style="margin:0">6 of 15 waves, separate model</span>':""}${
+                shown?"":' <span class="meta" style="margin:0">not shown</span>'}</td>
             <td style="color:${sig?(e.odds_ratio<1?PAL.obs:PAL.priv):PAL.mid}">${e.odds_ratio.toFixed(3)}</td>
             <td>[${e.lo.toFixed(3)}, ${e.hi.toFixed(3)}]</td>
             <td>${e.p<1e-4?"&lt;0.0001":e.p.toFixed(4)}</td>

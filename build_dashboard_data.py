@@ -28,7 +28,10 @@ CHAN = {"pol_news1_5":("Network TV","JS"),   "pol_news1_4":("Local TV","JS"),
         "pol_news1_14":("Social media","VLP"), "pol_news1_3":("Podcasts","DEC"),
         "pol_news1_15":("Messaging app","PVT"), "pol_news1_1":("Friends and family","INT"),
         "pol_news1_13":("Search engine","SRCH"), "pol_news1_17":("AI chatbot","AICH")}
-REGIMES = ["JS","PB","VLP","DEC","PVT","INT","SRCH","AICH"]
+# Display order, used by the selector and the forest plot: the editorially filtered and
+# retrieval regimes first, then the platform and closed-channel ones, with the
+# single-channel Decentralized regime last.
+REGIMES = ["JS","PB","SRCH","AICH","VLP","PVT","INT","DEC"]
 # Platform-level detail, from the pol_news2 battery. Fielded in six waves only
 # (W23, 26, 27, 28, 35, 35.1), so these are estimated in their own model and must
 # never be read alongside the 15-wave regime estimates as if they were nested.
