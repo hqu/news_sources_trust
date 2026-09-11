@@ -124,6 +124,20 @@ d["edu"]=d["education_cat"].map(EDU)
 for c in ["weight","party7","income_cat_5","age"]: d[c]=pd.to_numeric(d[c],errors="coerce")
 d["male_c"]=CC.male_from(d)
 CTRL=["party7","edu","age","income_cat_5","male_c"]
+
+# Subgroups. party7 runs 1 Strong Republican .. 7 Strong Democrat, so leaners (3 and 5)
+# fold into the party they lean toward; only pure independents (4) stay Independent.
+d["party3"]=np.where(d["party7"].isin([1,2,3]),"Republican",
+             np.where(d["party7"].isin([5,6,7]),"Democrat",
+             np.where(d["party7"]==4,"Independent",None)))
+EDU4={1:"High school or less",2:"High school or less",3:"Some college",
+      4:"College degree",5:"Graduate degree"}
+d["edu4"]=d["edu"].map(EDU4)
+STRATA=[("all","All respondents",None,None)]
+for g in ["Democrat","Independent","Republican"]: STRATA.append(("party_"+g,g,"party3",g))
+for g in ["High school or less","Some college","College degree","Graduate degree"]:
+    STRATA.append(("edu_"+g.replace(" ","_"),g,"edu4",g))
+print("strata:",[k for k,_,_,_ in STRATA],flush=True)
 print(f"  loaded {len(d):,} rows, {d['wave'].nunique()} waves", flush=True)
 
 def fn_series(key):
@@ -136,12 +150,14 @@ def outcome_series(var):
     if var.startswith("conspiracy"): return (v>=4).astype(float).where(v.notna())  # agree / strongly agree
     return (v>=3).astype(float).where(v.notna())                                    # a lot / some
 
-def run(y, preds, label):
-    sub=d.assign(y=y).dropna(subset=["y","weight"]+CTRL+preds)
+def run(y, preds, label, col=None, val=None):
+    ctrl=[c for c in CTRL if not (col=="party3" and c=="party7") and not (col=="edu4" and c=="edu")]
+    frame=d if col is None else d[d[col]==val]
+    sub=frame.assign(y=(y if col is None else y[frame.index])).dropna(subset=["y","weight"]+ctrl+preds)
     if len(sub)<2000: return None
     X=pd.get_dummies(sub["wave"].astype(str),prefix="w",drop_first=True).astype(float)
     for p in preds: X[p]=sub[p].values
-    for c in CTRL: X[c]=sub[c].astype(float).values
+    for c in ctrl: X[c]=sub[c].astype(float).values
     X=X.loc[:,X.std()>1e-9]
     m=sm.GLM(sub["y"].values,sm.add_constant(X.reset_index(drop=True)),
              family=sm.families.Binomial(),freq_weights=sub["weight"].values).fit()
@@ -160,7 +176,7 @@ def run(y, preds, label):
                 "edu":"Education (5-point)","age":"Age (years)",
                 "income_cat_5":"Household income (5-point)","male_c":"Male"}
     ctrl_rows=[]
-    for c in CTRL:
+    for c in ctrl:
         if c not in m.params.index: continue
         b,se=m.params[c],m.bse[c]
         ctrl_rows.append(dict(key=c,label=CTRL_LABEL.get(c,c),odds_ratio=float(np.exp(b)),
@@ -172,6 +188,26 @@ def run(y, preds, label):
                 n_wave_dummies=int(sum(1 for c in X.columns if c.startswith("w_"))),
                 llf=float(m.llf), df_model=int(m.df_model))
 
+def build_all(y,key):
+    main_reg=[r for r in REGIMES if r!="AICH" and d[r].notna().any()]
+    main_chan=[c for c in CHAN if c!="pol_news1_17" and d[c].notna().any()]
+    plats=[c for c in PLAT if d[c].notna().any()]
+    out={}
+    for skey,slabel,col,val in STRATA:
+        reg=run(y,main_reg,key,col,val)
+        if reg is None: continue
+        chan=run(y,main_chan,key,col,val); plat=run(y,plats,key,col,val)
+        reg_ai=run(y,[r for r in REGIMES if d[r].notna().any()],key,col,val)
+        chan_ai=run(y,[c for c in CHAN if d[c].notna().any()],key,col,val)
+        for src,dst in ((reg_ai,reg),(chan_ai,chan)):
+            if src is None or dst is None: continue
+            for e in src["estimates"]:
+                if e["key"] in ("AICH","pol_news1_17"):
+                    e=dict(e); e["restricted"]=True; e["n"]=src["n"]; e["waves"]=src["waves"]
+                    dst["estimates"].append(e)
+        out[skey]={"label":slabel,"regime":reg,"channel":chan,"platform":plat}
+    return out
+
 payload={"meta":{"built":pd.Timestamp.now().strftime("%Y-%m-%d"),
                  "source":"CHIP50 / Civic Health and Institutions Project",
                  "note":"Aggregated model output only. No respondent-level data is present in this file.",
@@ -179,7 +215,10 @@ payload={"meta":{"built":pd.Timestamp.now().strftime("%Y-%m-%d"),
                              "channels":[{"key":c,"label":CHAN[c][0]} for c in CHAN if CHAN[c][1]==k]}
                             for k in REGIMES],
                  "conspiracy_wording":CONSP_TEXT,
-                 "platforms":[{"key":k,"label":v[0],"parent":v[1]} for k,v in PLAT.items()]},
+                 "platforms":[{"key":k,"label":v[0],"parent":v[1]} for k,v in PLAT.items()],
+                 "strata":[{"key":k,"label":l,
+                            "kind":("all" if c is None else ("party" if c=="party3" else "edu"))}
+                           for k,l,c,_ in STRATA]},
          "outcomes":[]}
 for key,var,group,label,direction,default in OUTCOMES:
     y=outcome_series(var)
@@ -187,43 +226,31 @@ for key,var,group,label,direction,default in OUTCOMES:
     # AI Chat is fielded in six waves only. Entering it in the joint model would restrict
     # EVERY outcome to those six waves (and drops Fauci entirely, whose waves predate it),
     # so the main model omits it and a supplementary model adds it on its own wave subset.
-    main_reg=[r for r in REGIMES if r!="AICH" and d[r].notna().any()]
-    main_chan=[c for c in CHAN if c!="pol_news1_17" and d[c].notna().any()]
-    reg=run(y,main_reg,key)
-    chan=run(y,main_chan,key)
-    reg_ai=run(y,[r for r in REGIMES if d[r].notna().any()],key)
-    plat=run(y,[c for c in PLAT if d[c].notna().any()],key)
-    chan_ai=run(y,[c for c in CHAN if d[c].notna().any()],key)
+    models=build_all(y,key)
+    reg=models.get("all",{}).get("regime")
     if reg is None: print(f"  skip {key}: not estimable"); continue
-    # splice the AI Chat estimate in, flagged with its own n and wave list
-    for src,dst in ((reg_ai,reg),(chan_ai,chan)):
-        if src is None or dst is None: continue
-        for e in src["estimates"]:
-            if e["key"] in ("AICH","pol_news1_17"):
-                e=dict(e); e["restricted"]=True; e["n"]=src["n"]
-                e["waves"]=src["waves"]; dst["estimates"].append(e)
+    chan=models.get("all",{}).get("channel"); plat=models.get("all",{}).get("platform")
     # which predictors to switch on by default: the most ADVERSE ones
     adverse = sorted(reg["estimates"], key=lambda r: r["odds_ratio"])
     worst = [r["key"] for r in (adverse[:3] if direction=="trust" else adverse[::-1][:3])]
     payload["outcomes"].append(dict(key=key,var=var,group=group,label=label,
                                     direction=direction,is_default=default,
-                                    regime=reg,channel=chan,platform=plat,default_on=worst))
+                                    regime=reg,channel=chan,platform=plat,models=models,default_on=worst))
     print(f"  {key:<8} n={reg['n']:>7,}  prev={reg['prevalence']:5.1f}%  default_on={worst}", flush=True)
 
 for key,claim,group,label,direction,default in FN_OUTCOMES:
     y=fn_series(key)
     if y.notna().sum()<2000: print(f"  skip {key}: unavailable"); continue
-    main_reg=[r for r in REGIMES if r!="AICH" and d[r].notna().any()]
-    main_chan=[c for c in CHAN if c!="pol_news1_17" and d[c].notna().any()]
-    reg=run(y,main_reg,key); chan=run(y,main_chan,key)
-    plat=run(y,[c for c in PLAT if d[c].notna().any()],key)
+    models=build_all(y,key)
+    reg=models.get("all",{}).get("regime")
     if reg is None: print(f"  skip {key}: not estimable"); continue
+    chan=models.get("all",{}).get("channel"); plat=models.get("all",{}).get("platform")
     adverse=sorted(reg["estimates"], key=lambda r: r["odds_ratio"])
     worst=[r["key"] for r in (adverse[:3] if direction=="accuracy" else adverse[::-1][:3])]
     payload["outcomes"].append(dict(key=key,var="FN_"+key,group=group,label=label,
                                     direction=direction,is_default=default,
                                     claim_text=claim,regime=reg,channel=chan,platform=plat,
-                                    default_on=worst))
+                                    models=models,default_on=worst))
     print(f"  {key:<9} n={reg['n']:>7,}  prev={reg['prevalence']:5.1f}%  "
           f"{len(reg['waves'])} waves  default_on={worst}", flush=True)
 

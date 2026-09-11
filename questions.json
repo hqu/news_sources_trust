@@ -1,0 +1,317 @@
+{
+ "source": {
+  "__stem_pol_news1": {
+   "text": "In the last 24 hours, did you get any news or information about politics and current affairs from the following sources? (Please select all applicable answers. For example, if you read a New York Times article shared on Facebook, select “A news website or app” and “A social media website or app”)",
+   "scale": []
+  },
+  "__stem_pol_news2": {
+   "text": "In the last 24 hours, did you get any news or information about politics and current affairs from the following sources? (Please select all that apply)",
+   "scale": []
+  },
+  "pol_news1_1": {
+   "text": "Friends and family",
+   "scale": []
+  },
+  "pol_news1_2": {
+   "text": "Radio news",
+   "scale": []
+  },
+  "pol_news1_3": {
+   "text": "Podcasts",
+   "scale": []
+  },
+  "pol_news1_4": {
+   "text": "Local television",
+   "scale": []
+  },
+  "pol_news1_5": {
+   "text": "Network television (e.g. ABC, CBS, or NBC)",
+   "scale": []
+  },
+  "pol_news1_6": {
+   "text": "Cable television (e.g. CNN, Fox News, or MSNBC)",
+   "scale": []
+  },
+  "pol_news1_7": {
+   "text": "Late-night comedy shows (e.g. The Late Show with Stephen Colbert or The Daily Show)",
+   "scale": []
+  },
+  "pol_news1_8": {
+   "text": "Print newspapers (e.g. the New York Times or the Wall Street Journal print edition)",
+   "scale": []
+  },
+  "pol_news1_9": {
+   "text": "A news website or app (e.g. the New York Times or Fox News websites or apps)",
+   "scale": []
+  },
+  "pol_news1_13": {
+   "text": "A search engine website or app (e.g. Google, Bing)",
+   "scale": []
+  },
+  "pol_news1_14": {
+   "text": "A social media website or app (e.g. Facebook, Twitter, Snapchat)",
+   "scale": []
+  },
+  "pol_news1_15": {
+   "text": "A mobile instant message app (e.g. Facebook Messenger or WhatsApp)",
+   "scale": []
+  },
+  "pol_news1_16": {
+   "text": "A community newspaper or website",
+   "scale": []
+  },
+  "pol_news1_17": {
+   "text": "Artificial Intelligence chatbots (e.g. ChatGPT, Gemini, Copilot)",
+   "scale": []
+  },
+  "pol_news2_1": {
+   "text": "Facebook (website or app)",
+   "scale": []
+  },
+  "pol_news2_2": {
+   "text": "Twitter (website or app)",
+   "scale": []
+  },
+  "pol_news2_3": {
+   "text": "Youtube (website or app)",
+   "scale": []
+  },
+  "pol_news2_4": {
+   "text": "Reddit (website or app)",
+   "scale": []
+  },
+  "pol_news2_5": {
+   "text": "Instagram (website or app)",
+   "scale": []
+  },
+  "pol_news2_6": {
+   "text": "Snapchat (website or app)",
+   "scale": []
+  },
+  "pol_news2_7": {
+   "text": "Wikipedia (website or app)",
+   "scale": []
+  },
+  "pol_news2_8": {
+   "text": "Facebook Messenger app",
+   "scale": []
+  },
+  "pol_news2_10": {
+   "text": "WhatsApp app",
+   "scale": []
+  },
+  "pol_news2_11": {
+   "text": "TikTok app",
+   "scale": []
+  }
+ },
+ "outcome": {
+  "__stem_conspiracy": {
+   "text": "How much do you agree or disagree with the following statements? -",
+   "scale": []
+  },
+  "__stem_fn": {
+   "text": "Below are some statements about current affairs. To the best of your knowledge, are those statements accurate or inaccurate? -",
+   "scale": []
+  },
+  "pol_trust_science": {
+   "text": "How much do you trust the following people and organizations to do what is right? - Scientists and researchers",
+   "scale": [
+    "4 = A lot",
+    "3 = Some",
+    "2 = Not too much",
+    "1 = Not at all"
+   ]
+  },
+  "pol_trust_cdc": {
+   "text": "How much do you trust the following people and organizations to do what is right? - The CDC (Centers for Disease Control and Prevention)",
+   "scale": [
+    "4 = A lot",
+    "3 = Some",
+    "2 = Not too much",
+    "1 = Not at all"
+   ]
+  },
+  "pol_trust_fda": {
+   "text": "How much do you trust the following people and organizations to do what is right? - The FDA (Food and Drug Administration)",
+   "scale": [
+    "4 = A lot",
+    "3 = Some",
+    "2 = Not too much",
+    "1 = Not at all"
+   ]
+  },
+  "pol_trust_doctors": {
+   "text": "How much do you trust the following people and organizations to do what is right? - Hospitals and doctors",
+   "scale": [
+    "4 = A lot",
+    "3 = Some",
+    "2 = Not too much",
+    "1 = Not at all"
+   ]
+  },
+  "pol_trust_pharma": {
+   "text": "How much do you trust the following people and organizations to do what is right? - Pharmaceutical companies",
+   "scale": [
+    "4 = A lot",
+    "3 = Some",
+    "2 = Not too much",
+    "1 = Not at all"
+   ]
+  },
+  "pol_trust_musk": {
+   "text": "How much do you trust the following people and organizations to do what is right? - Elon Musk",
+   "scale": [
+    "4 = A lot",
+    "3 = Some",
+    "2 = Not too much",
+    "1 = Not at all"
+   ]
+  },
+  "pol_trust_fauci": {
+   "text": "How much do you trust the following people and organizations to do what is right? - Dr. Anthony Fauci of the National Institute of Health",
+   "scale": [
+    "4 = A lot",
+    "3 = Some",
+    "2 = Not too much",
+    "1 = Not at all"
+   ]
+  },
+  "pol_trust_rfk": {
+   "text": "How much do you trust the following people and organizations to do what is right? - Robert F. Kennedy Jr.",
+   "scale": [
+    "4 = A lot",
+    "3 = Some",
+    "2 = Not too much",
+    "1 = Not at all"
+   ]
+  },
+  "conspiracy_1": {
+   "text": "Even though we live in a democracy, a few people will always run things anyway.",
+   "scale": []
+  },
+  "conspiracy_2": {
+   "text": "The people who really 'run' the country are not known to the voters",
+   "scale": []
+  },
+  "conspiracy_3": {
+   "text": "Big events like wars, recessions, and the outcomes of elections are controlled by small groups of people who are working in secret against the rest of us.",
+   "scale": []
+  },
+  "conspiracy_4": {
+   "text": "Much of our lives are being controlled by plots hatched in secret places",
+   "scale": []
+  },
+  "trump_win": {
+   "text": "How much do you agree or disagree with the following statement: “If votes were fairly counted, Donald Trump would have won the 2020 election”",
+   "scale": [
+    "5 = Strongly agree",
+    "4 = Somewhat agree",
+    "3 = Neither agree nor disagree",
+    "2 = Somewhat disagree",
+    "1 = Strongly disagree"
+   ]
+  },
+  "FN_gmo": {
+   "text": "Genetically modified foods have harmful effects that companies and the government are hiding",
+   "scale": [
+    "1 = Accurate",
+    "2 = Inaccurate",
+    "3 = Not sure"
+   ]
+  },
+  "FN_machines": {
+   "text": "Voting machines in the 2020 election were rigged to favor Democrats",
+   "scale": [
+    "1 = Accurate",
+    "2 = Inaccurate",
+    "3 = Not sure"
+   ]
+  },
+  "FN_cia": {
+   "text": "A dying CIA agent confessed that US government agencies were behind the 9/11 attacks",
+   "scale": [
+    "1 = Accurate",
+    "2 = Inaccurate",
+    "3 = Not sure"
+   ]
+  },
+  "FN_turbines": {
+   "text": "Wind turbines cause cancer",
+   "scale": [
+    "1 = Accurate",
+    "2 = Inaccurate",
+    "3 = Not sure"
+   ]
+  },
+  "FN_soros": {
+   "text": "George Soros is secretly working to destabilize the US government",
+   "scale": [
+    "1 = Accurate",
+    "2 = Inaccurate",
+    "3 = Not sure"
+   ]
+  },
+  "FN_roe": {
+   "text": "The Supreme Court has overturned Roe v. Wade, eliminating the constitutional right to abortion",
+   "scale": [
+    "1 = Accurate",
+    "2 = Inaccurate",
+    "3 = Not sure"
+   ]
+  },
+  "FN_queen": {
+   "text": "British monarch Queen Elizabeth II has died",
+   "scale": [
+    "1 = Accurate",
+    "2 = Inaccurate",
+    "3 = Not sure"
+   ]
+  }
+ },
+ "control": {
+  "party7": {
+   "text": "Political affiliation",
+   "scale": [
+    "1 = Strong Republican",
+    "2 = Republican",
+    "3 = Leaning Republican",
+    "4 = Independent",
+    "5 = Leaning Democrat",
+    "6 = Democrat",
+    "7 = Strong Democrat"
+   ]
+  },
+  "education_cat": {
+   "text": "Education level (5 categories)",
+   "scale": [
+    "Some High School or Less = Some High School or Less",
+    "High School Graduate = High School Graduate",
+    "Some College = Some College",
+    "College Degree = College Degree",
+    "Graduate Degree = Graduate Degree"
+   ]
+  },
+  "age": {
+   "text": "Respondent age (in years)",
+   "scale": []
+  },
+  "income_cat_5": {
+   "text": "What was the total combined income of your household for the past year?",
+   "scale": [
+    "1 = Under 25K",
+    "2 = 25k to under 50k",
+    "3 = 50K to under 75K",
+    "4 = 75K to under 100K",
+    "5 = 100K and over"
+   ]
+  },
+  "male": {
+   "text": "Gender, supplied by the panel vendor and coded 1 = male. Note the variable named `gender` is null in every wave; `male` and `female` carry the data.",
+   "scale": [
+    "1 = Male",
+    "0 = Otherwise"
+   ]
+  }
+ }
+}

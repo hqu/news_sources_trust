@@ -91,6 +91,24 @@ tr.sep td{border-bottom:1px solid var(--faint);padding:0;height:0}
 .defs{columns:2;column-gap:40px;font-size:12.8px;line-height:1.62;color:var(--ink)}
 .defs p{margin:0 0 11px;break-inside:avoid}
 .defs b{font-weight:600}
+.tabsets{border-top:1px solid var(--hair);margin-top:14px;padding-top:11px}
+.tabset{display:flex;align-items:center;gap:9px;margin-bottom:7px;flex-wrap:wrap}
+.tlab{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--mid);
+  font-weight:700;width:66px;flex:none}
+.tab{border:1px solid var(--hair);background:var(--bg);border-radius:20px;padding:4px 12px;
+  font:inherit;font-size:11.8px;color:var(--mid);cursor:pointer}
+.tab:hover{background:var(--wash)}
+.tab.on{background:var(--ink);border-color:var(--ink);color:#fff}
+.tab[disabled]{opacity:.35;cursor:not-allowed}
+.qcols{display:grid;grid-template-columns:repeat(3,1fr);gap:30px}
+@media(max-width:1000px){.qcols{grid-template-columns:1fr}}
+.qhead{font-size:12px;font-weight:600;margin-bottom:8px;padding-bottom:5px;
+  border-bottom:1px solid var(--hair)}
+.q{margin:0 0 11px;font-size:12.1px;line-height:1.55}
+.q .qv{font-family:"SF Mono",Menlo,monospace;font-size:10.4px;color:var(--faint);display:block}
+.q .qs{color:var(--mid);font-size:11.2px}
+.qstem{background:var(--wash);border-radius:7px;padding:8px 10px;margin:0 0 12px;
+  font-size:11.8px;line-height:1.5}
 .defs .ch{color:var(--mid)}
 .eq{font-family:"SF Mono",Menlo,monospace;font-size:11.6px;color:var(--mid);
     background:var(--wash);border-radius:7px;padding:9px 11px;margin:2px 0 10px;overflow-x:auto}
@@ -124,6 +142,14 @@ tr.sep td{border-bottom:1px solid var(--faint);padding:0;height:0}
       <div class="plotbox">
         <div class="track">Forest plots</div>
         <div class="plots" id="plots"></div>
+        <div class="tabsets">
+          <div class="tabset"><span class="tlab">Party</span><div id="tabsParty"></div></div>
+          <div class="tabset"><span class="tlab">Education</span><div id="tabsEdu"></div></div>
+          <p class="note" style="margin-top:8px">Select any combination; each becomes a column.
+            With none selected the plot shows all respondents. Subgroups are separately
+            fitted models, not interactions — the variable defining a subgroup is dropped
+            from the controls inside it.</p>
+        </div>
       </div>
     </div>
 
@@ -150,13 +176,22 @@ tr.sep td{border-bottom:1px solid var(--faint);padding:0;height:0}
   <div class="rule" style="margin:34px 0 18px"></div>
   <div class="track" style="margin-bottom:12px">How the regimes are defined</div>
   <div class="defs" id="defs"></div>
+
+  <div class="rule" style="margin:30px 0 18px"></div>
+  <div class="track" style="margin-bottom:12px">Exact survey wording</div>
+  <div class="qcols">
+    <div><div class="qhead">News source — the inputs</div><div id="qsource"></div></div>
+    <div><div class="qhead">Outcomes</div><div id="qoutcome"></div></div>
+    <div><div class="qhead">Control variables</div><div id="qcontrol"></div></div>
+  </div>
 </div>
 
 <script id="payload" type="application/json">__PAYLOAD__</script>
+<script id="questions" type="application/json">__QUESTIONS__</script>
 <script>
 const PAL={ink:"#16181d",mid:"#71777f",faint:"#ccd1d6",hair:"#e6e9ec",
            obs:"#2f6f8f",semi:"#4f5f9e",priv:"#6b4c9a",bg:"#fff",wash:"#f4f7f9"};
-let DATA=null, selOut=[], selPred=new Set(), openNodes=new Set();
+let DATA=null, QTEXT=null, selOut=[], selPred=new Set(), openNodes=new Set(), selStrata=[];
 
 const PRIMARY=["science"];
 const DISCLOSE=[["Other science and health institutions",["cdc","fda","doctors","pharma"]],
@@ -200,7 +235,25 @@ const DEFS=[
 function fail(msg){document.getElementById("plots").innerHTML=
   '<div style="border:1px solid #e6e9ec;border-radius:11px;padding:20px;color:#6b4c9a">'+
   '<strong>The dashboard could not load its data.</strong><br>'+msg+'</div>';}
-function boot(d){try{DATA=d;init();}catch(e){fail("Error building the view: "+e.message);throw e;}}
+function loadQuestions(){
+  const el=document.getElementById("questions"), raw=el?el.textContent.trim():"";
+  if(raw&&raw[0]==="{"){QTEXT=JSON.parse(raw); renderQuestions(); return;}
+  fetch("questions.json").then(r=>r.json()).then(q=>{QTEXT=q;renderQuestions();}).catch(()=>{});}
+function renderQuestions(){
+  if(!QTEXT)return;
+  const put=(id,grp)=>{
+    const host=document.getElementById(id); if(!host)return;
+    const ent=QTEXT[grp]||{};
+    let html="";
+    Object.keys(ent).filter(k=>k.startsWith("__stem_")).forEach(k=>{
+      html+=`<p class="qstem"><b>${k.replace("__stem_","")}</b> — ${ent[k].text}</p>`;});
+    Object.keys(ent).filter(k=>!k.startsWith("__stem_")).forEach(k=>{
+      const e=ent[k];
+      html+=`<p class="q"><span class="qv">${k}</span>${e.text}`
+           +(e.scale&&e.scale.length?`<br><span class="qs">${e.scale.join(" · ")}</span>`:"")+`</p>`;});
+    host.innerHTML=html||'<p class="q" style="color:#ccd1d6">not available</p>';};
+  put("qsource","source"); put("qoutcome","outcome"); put("qcontrol","control");}
+function boot(d){try{DATA=d;init();loadQuestions();}catch(e){fail("Error building the view: "+e.message);throw e;}}
 
 const O=k=>DATA.outcomes.find(o=>o.key===k);
 const REG=()=>DATA.meta.regimes;
@@ -235,6 +288,32 @@ const GROUPONLY={CRW:"Crowdsourced"};
 function defaultsFor(keys){const s=new Set();
   keys.forEach(k=>{const o=O(k); if(o) o.default_on.forEach(x=>s.add(x));}); return s;}
 
+function strata(kind){return (DATA.meta.strata||[]).filter(s=>s.kind===kind);}
+function modelsFor(k){return O(k).models||{};}
+function facets(){                     // which strata to draw, in declaration order
+  const avail=modelsFor(selOut[0]);
+  const picked=selStrata.filter(k=>avail[k]);
+  return picked.length?picked:["all"];}
+function renderTabs(){
+  const avail=modelsFor(selOut[0]);
+  [["party","tabsParty"],["edu","tabsEdu"]].forEach(([kind,id])=>{
+    const host=document.getElementById(id); host.innerHTML="";
+    strata(kind).forEach(st=>{
+      const b=document.createElement("button");
+      b.className="tab"+(selStrata.includes(st.key)?" on":"");
+      b.textContent=st.label; b.dataset.stratum=st.key;
+      if(!avail[st.key]){b.disabled=true; b.title="Not estimable for this outcome — too few respondents";}
+      else b.title=`n = ${avail[st.key].regime.n.toLocaleString()}`;
+      host.appendChild(b);
+    });
+  });
+}
+document.addEventListener("click",e=>{
+  const b=e.target.closest(".tab"); if(!b||b.disabled)return;
+  const k=b.dataset.stratum;
+  selStrata.includes(k)?selStrata=selStrata.filter(x=>x!==k):selStrata.push(k);
+  renderTabs(); draw();});
+
 function init(){
   // ---- outcome: primary, disclosures, then the always-visible extras
   const prim=document.getElementById("primary");
@@ -262,7 +341,7 @@ function init(){
     // one outcome at a time; its most adverse sources come on automatically
     selOut=[e.target.value];
     selPred=defaultsFor(selOut);
-    renderTree();draw();});
+    renderTabs();renderTree();draw();});
 
   document.getElementById("allPred").onclick=()=>{
     selPred=new Set(REG().map(r=>r.key));renderTree();draw();};
@@ -279,7 +358,7 @@ function init(){
   selOut=[first.key];
   document.querySelector(`input[data-out][value="${first.key}"]`).checked=true;
   selPred=defaultsFor(selOut);
-  renderTree();draw();
+  renderTabs();renderTree();draw();
 }
 function codingOf(o){
   if(o.var.startsWith("conspiracy")) return "answered “agree” or “strongly agree”";
@@ -355,25 +434,35 @@ function draw(){
   if(!selOut.length||!selPred.size){
     plots.innerHTML='<div class="empty">Choose at least one outcome and one news source.</div>';
     document.getElementById("footnote").textContent="";return;}
+  const F=facets(), M=modelsFor(selOut[0]);
+  const blk=(f,lv)=>((M[f]||{})[lv]||null);
+  const estIn=(f,k)=>{const b=blk(f,isRegime(k)?"regime":(isPlat(k)?"platform":"channel"));
+      return b?b.estimates.find(e=>e.key===k):null;};
   const rows=orderedNodes().map(n=>n.key)
-                .filter(k=>selPred.has(k) && selOut.some(ok=>estOf(O(ok),k)));
+                .filter(k=>selPred.has(k) && F.some(f=>estIn(f,k)));
   if(!rows.length){plots.innerHTML='<div class="empty">None of the selected sources is fielded for these outcomes.</div>';return;}
   let lo=1,hi=1;
-  selOut.forEach(ok=>rows.forEach(k=>{const e=estOf(O(ok),k); if(e){lo=Math.min(lo,e.lo);hi=Math.max(hi,e.hi);}}));
+  F.forEach(f=>rows.forEach(k=>{const e=estIn(f,k); if(e){lo=Math.min(lo,e.lo);hi=Math.max(hi,e.hi);}}));
   lo=Math.min(lo,1/1.15); hi=Math.max(hi,1.15);
-  const W=Math.max(215,320-(selOut.length-1)*14), PADR=16, H=25*rows.length+54, X1=W-PADR;
+  const W=Math.max(200,320-(F.length-1)*20), PADR=16, H=25*rows.length+76, X1=W-PADR;
   const sx=v=>6+(Math.log(v)-Math.log(lo))/(Math.log(hi)-Math.log(lo))*(X1-6);
 
-  selOut.forEach((ok,ci)=>{
-    const o=O(ok), OX=ci===0?176:0;
+  F.forEach((f,ci)=>{
+    const o=O(selOut[0]), OX=ci===0?176:0;
+    const fb=blk(f,"regime"), flabel=(DATA.meta.strata.find(s=>s.key===f)||{}).label||f;
     const d=document.createElement("div"); d.className="plot";
     let svg=`<svg width="${W+OX}" height="${H}" font-family="Helvetica Neue,Helvetica,Arial">`;
     [0.5,0.7,1,1.5,2,3].filter(t=>t>=lo*.98&&t<=hi*1.02).forEach(t=>{
       svg+=`<text x="${OX+sx(t)}" y="${H-6}" fill="${PAL.mid}" font-size="10" text-anchor="middle">${t}</text>
             <line x1="${OX+sx(t)}" y1="${H-20}" x2="${OX+sx(t)}" y2="${H-17}" stroke="${PAL.faint}"/>`;});
-    svg+=`<line x1="${OX+sx(1)}" y1="30" x2="${OX+sx(1)}" y2="${H-20}" stroke="${PAL.faint}"/>`;
+    svg+=`<line x1="${OX+sx(1)}" y1="52" x2="${OX+sx(1)}" y2="${H-20}" stroke="${PAL.faint}"/>`;
+    if(ci===0){   // key: what a filled versus hollow circle means
+      svg+=`<circle cx="6" cy="20" r="4.2" fill="${PAL.priv}" stroke="${PAL.priv}" stroke-width="1.4"/>
+            <text x="15" y="23.5" fill="${PAL.mid}" font-size="10">filled — interval excludes 1</text>
+            <circle cx="6" cy="33" r="3.4" fill="${PAL.bg}" stroke="${PAL.mid}" stroke-width="1.4"/>
+            <text x="15" y="36.5" fill="${PAL.mid}" font-size="10">hollow — interval spans 1</text>`;}
     rows.forEach((rk,i)=>{
-      const e=estOf(o,rk), y=40+i*25, ind=isRegime(rk)?0:12;
+      const e=estIn(f,rk), y=62+i*25, ind=isRegime(rk)?0:12;
       if(ci===0) svg+=`<text x="${ind}" y="${y+4}" fill="${isRegime(rk)?PAL.ink:PAL.mid}" font-size="${isRegime(rk)?12:11.3}">${labelOf(rk)}</text>`;
       if(!e){svg+=`<text x="${OX+sx(1)}" y="${y+4}" fill="${PAL.faint}" font-size="10" text-anchor="middle">not fielded</text>`;return;}
       const sig=!(e.lo<1&&e.hi>1), col=!sig?PAL.mid:(e.odds_ratio<1?PAL.obs:PAL.priv);
@@ -381,24 +470,26 @@ function draw(){
             <circle cx="${OX+sx(e.odds_ratio)}" cy="${y}" r="${sig?4.2:3.4}" fill="${sig?col:PAL.bg}" stroke="${col}" stroke-width="1.4"/>`;
       if(e.restricted||isPlat(rk)) svg+=`<text x="${OX+sx(e.hi)+5}" y="${y+3.5}" fill="${PAL.faint}" font-size="9.5">6w</text>`;
     });
-    d.innerHTML=`<h3>${o.label}</h3><p class="pmeta">${o.regime.prevalence.toFixed(1)}% ${
-      o.direction==="trust"?"trusting":"believing"}</p>${svg}</svg>`;
+    d.innerHTML=`<h3>${ci===0?o.label:flabel}</h3><p class="pmeta">${
+      ci===0&&F.length===1?"":flabel+" · "}${fb?fb.prevalence.toFixed(1):"–"}% ${
+      o.direction==="trust"?"trusting":"believing"}${fb?" · n="+fb.n.toLocaleString():""}</p>${svg}</svg>`;
     plots.appendChild(d);
   });
 
   // ---- multivariate regression, one block per selected outcome
-  selOut.forEach(ok=>{
-    const o=O(ok);
+  F.forEach(f=>{
+    const o=O(selOut[0]);
     const lvls=[["regime",rows.filter(isRegime)],
                 ["channel",rows.filter(k=>!isRegime(k)&&!isPlat(k))],
                 ["platform",rows.filter(isPlat)]].filter(([,ks])=>ks.length);
     lvls.forEach(([lv,ks])=>{
-      const blk=lv==="regime"?o.regime:(lv==="platform"?o.platform:o.channel); if(!blk)return;
+      const blk=(M[f]||{})[lv]; if(!blk)return;
       const all=blk.estimates.filter(e=>!e.restricted);
       const div=document.createElement("div"); div.style.marginBottom="22px";
       const outcomeWord=o.direction==="trust"?"trusts":"believes";
+      const fl=(DATA.meta.strata.find(s=>s.key===f)||{}).label||f;
       div.innerHTML=`<h3 style="font-size:13px;margin:0 0 3px">${o.label}
-          <span style="font-weight:400;color:${PAL.mid}">· ${lv}-level model</span></h3>
+          <span style="font-weight:400;color:${PAL.mid}">· ${fl} · ${lv}-level model</span></h3>
         <div class="eq">logit( P(${outcomeWord} | X) ) = α + Σ β·source + party7 + education + age + income + male + wave fixed effects
         &nbsp;&nbsp;n = ${blk.n.toLocaleString()} · ${blk.waves.length} waves · ${blk.n_wave_dummies} wave dummies · ${blk.df_model} model df</div>`;
       let t=`<table><thead><tr><th>Term</th><th>Odds ratio</th><th>95% CI</th><th>p</th><th>Occupancy</th></tr></thead><tbody>`;
