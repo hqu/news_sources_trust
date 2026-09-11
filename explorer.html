@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>How far a belief has spread changes which news source predicts it — CHIP50</title>
+<style>
+:root{--ink:#16181d;--mid:#71777f;--faint:#ccd1d6;--hair:#e6e9ec;--bg:#fff;--wash:#f4f7f9;
+      --dec:#c1272d;--pvt:#6b4c9a;--vlp:#2f6f8f;--js:#3f8265;--pb:#b07a2a;--srch:#7c828a;
+      --int:#8a6a8a;--aich:#2f8fa0}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;font-size:14px;line-height:1.5}
+.wrap{max-width:1500px;margin:0 auto;padding:34px 30px 70px}
+h1{font-size:25px;font-weight:700;margin:0 0 5px;letter-spacing:-.01em}
+h2{font-size:17px;font-weight:700;margin:0 0 8px}
+.sub{color:var(--mid);font-size:14px;margin:0;max-width:900px}
+.track{letter-spacing:.19em;text-transform:uppercase;font-size:10.5px;font-weight:700;color:var(--mid)}
+.rule{height:1px;background:var(--hair);margin:20px 0 24px}
+.panel{border:1px solid var(--hair);border-radius:11px;padding:15px 16px}
+.panel+.panel{margin-top:14px}
+button{font:inherit;cursor:pointer}
+.btn{border:1px solid var(--faint);background:#fff;border-radius:7px;padding:4px 10px;
+     font-size:11.5px;color:var(--ink)}
+.btn:hover{background:var(--wash)}
+.btn.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.note{color:var(--mid);font-size:11.8px;line-height:1.65;margin-top:9px}
+.warn{color:#9a3b30;font-size:11.5px}
+
+/* ======== scrollytelling ======== */
+#story{position:relative;margin:0 0 18px}
+.storygrid{display:grid;grid-template-columns:minmax(300px,400px) minmax(0,1fr);gap:40px;align-items:start}
+.panes{padding:6vh 0 40vh}
+.pane{min-height:74vh;display:flex;align-items:center}
+.pane .card{border-left:3px solid var(--hair);padding:4px 0 4px 20px;
+  opacity:.26;transition:opacity .35s,border-color .35s}
+.pane.active .card{opacity:1;border-left-color:var(--ink)}
+.pane .step{font-size:10.5px;letter-spacing:.19em;text-transform:uppercase;color:var(--mid);
+  font-weight:700;margin-bottom:7px}
+.pane h3{font-size:21px;margin:0 0 10px;line-height:1.25;font-weight:700}
+.pane p{margin:0 0 10px;font-size:14px;color:#3a4048}
+.pane .big{font-size:30px;font-weight:700;letter-spacing:-.02em;margin:6px 0 2px}
+.pane .bigsub{font-size:11.6px;color:var(--mid);margin:0 0 8px}
+.sticky{position:sticky;top:14px;height:min(86vh,700px);display:flex;flex-direction:column;
+  border:2.5px solid var(--ink);border-radius:13px;padding:14px 16px 10px;background:#fff}
+.storybar{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.dots{display:flex;gap:5px;margin-left:auto}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--faint)}
+.dot.on{background:var(--ink)}
+@media(max-width:1060px){.storygrid{grid-template-columns:1fr}.sticky{height:62vh}.panes{padding:2vh 0 10vh}
+  .pane{min-height:auto;padding:14px 0}}
+
+/* ======== explorer ======== */
+.cols{display:grid;grid-template-columns:300px minmax(0,1fr);gap:24px;align-items:start}
+@media(max-width:1060px){.cols{grid-template-columns:1fr}}
+.ctlrow{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:9px}
+label.row{display:flex;gap:8px;align-items:flex-start;padding:3px 0;cursor:pointer;font-size:12.6px}
+input[type=checkbox]{margin:3px 0 0;accent-color:var(--vlp);flex:none}
+.meta{color:var(--mid);font-size:10.8px;margin-left:auto;padding-left:8px;white-space:nowrap}
+.fam{border-top:1px solid var(--hair);padding-top:7px;margin-top:7px}
+.fam:first-child{border-top:none;margin-top:0;padding-top:0}
+.famhdr{display:flex;align-items:center;gap:7px;padding:3px 0}
+.famhdr .fl{font-size:12.6px;font-weight:600}
+.famhdr .fn{margin-left:auto;font-size:10px;color:var(--faint);font-style:italic}
+.kids{padding-left:20px}
+.swatch{width:9px;height:9px;border-radius:2px;flex:none}
+.chip{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--faint);
+  border-radius:20px;padding:2.5px 9px;font-size:11.3px;cursor:pointer;background:#fff}
+.chip.off{opacity:.4}
+.chip .sw{width:8px;height:8px;border-radius:50%}
+/* dual range */
+.slider{position:relative;height:34px;margin:14px 2px 2px}
+.slider .trk{position:absolute;top:13px;left:0;right:0;height:4px;background:var(--hair);border-radius:3px}
+.slider .fill{position:absolute;top:13px;height:4px;background:var(--ink);border-radius:3px}
+.slider input[type=range]{position:absolute;top:6px;left:0;width:100%;margin:0;background:none;
+  pointer-events:none;-webkit-appearance:none;appearance:none;height:18px}
+.slider input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;pointer-events:auto;
+  width:16px;height:16px;border-radius:50%;background:#fff;border:2.5px solid var(--ink);cursor:grab}
+.slider input[type=range]::-moz-range-thumb{pointer-events:auto;width:16px;height:16px;border-radius:50%;
+  background:#fff;border:2.5px solid var(--ink);cursor:grab}
+.ticks{position:relative;height:16px;margin:0 2px}
+.ticks i{position:absolute;top:0;width:1px;height:6px;background:var(--faint)}
+.ticks i.inwin{background:var(--ink);height:9px}
+.scale{display:flex;justify-content:space-between;color:var(--mid);font-size:10.2px;margin-top:-2px}
+table{border-collapse:collapse;width:100%;font-size:12.2px;margin-top:8px}
+th,td{text-align:right;padding:4.5px 9px;border-bottom:1px solid var(--hair);white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+th{color:var(--mid);font-weight:600;font-size:10.4px;letter-spacing:.05em;text-transform:uppercase}
+tbody tr:hover{background:var(--wash)}
+.charts{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:20px;align-items:start}
+@media(max-width:1240px){.charts{grid-template-columns:1fr}}
+.tip{position:fixed;pointer-events:none;background:#16181dF2;color:#fff;border-radius:7px;
+  padding:7px 10px;font-size:11.4px;line-height:1.45;z-index:99;display:none;max-width:270px}
+.tip b{font-weight:600}
+svg{display:block;overflow:visible}
+.bar{transition:transform .5s cubic-bezier(.4,0,.2,1)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>How far a belief has spread changes which news source predicts it</h1>
+<p class="sub">Eighteen outcomes and eight news-source regimes from the CHIP50 panel, all from survey-weighted
+logistic models adjusted for party, education, age, income, gender and wave. Every outcome is oriented so that
+<b>above&nbsp;1 means the adverse direction</b> — believing the claim, or <em>distrusting</em> the institution.</p>
+<div class="rule"></div>
+
+<!-- ========================= SCROLLYTELLING ========================= -->
+<section id="story">
+  <div class="storygrid">
+    <div class="panes" id="panes">
+      <div class="pane" data-step="0"><div class="card">
+        <div class="step">Start here</div>
+        <h3>Eighteen outcomes, eight ways of getting political news.</h3>
+        <p>Each dot is one regime's association with one outcome. Height is the odds ratio; above the
+        line means the regime predicts the adverse direction — believing a false or conspiratorial
+        claim, or distrusting an institution.</p>
+        <p>Horizontal position is <b>how much of the population is already in that adverse state</b>.
+        That axis turns out to matter more than the topic.</p>
+      </div></div>
+
+      <div class="pane" data-step="1"><div class="card">
+        <div class="step">Takeaway 1</div>
+        <h3>Podcasts are the strongest predictor in the taxonomy.</h3>
+        <div class="big">15 of 18</div>
+        <p class="bigsub">outcomes where Decentralized ranks first. No other regime leads more than twice.</p>
+        <p>It leads every one of the six misinformation claims, three of the four conspiracy items,
+        and six of the eight institutional-trust outcomes — a mean rank of 1.4 out of 7, more than two
+        full places clear of the next regime.</p>
+      </div></div>
+
+      <div class="pane" data-step="2"><div class="card">
+        <div class="step">Takeaway 1, continued</div>
+        <h3>But it is substitution, not cynicism.</h3>
+        <div class="big">1.97×</div>
+        <p class="bigsub">gap between how podcasts track the establishment and how they track its challengers.</p>
+        <p>Podcast listening predicts distrust of the CDC, FDA, doctors, scientists, pharma and Fauci —
+        and it <b>reverses</b> for Robert F.&nbsp;Kennedy&nbsp;Jr. and Elon Musk, where listeners are
+        1.40× and 1.59× <em>more</em> trusting. Every other regime sits between 0.62 and 1.33 on that ratio.</p>
+        <p>The sign is identical in all three parties, the reversal included among Democrats.</p>
+      </div></div>
+
+      <div class="pane" data-step="3"><div class="card">
+        <div class="step">Takeaway 2</div>
+        <h3>Private messaging predicts the claims a minority holds — and nothing once a claim is common.</h3>
+        <div class="big">r = −0.855</div>
+        <p class="bigsub">correlation between how widely a claim is believed and private messaging's log odds ratio.</p>
+        <p>It is the strongest predictor of the CIA&nbsp;9/11 claim (22% believed), election denial (31%)
+        and wind turbines (15%) — and is <em>negatively</em> associated with the two most widely
+        believed items in the battery.</p>
+        <p><b>Very Large Platform runs the opposite way, at r&nbsp;=&nbsp;+0.953.</b> Because the signs
+        differ across regimes, this cannot be the odds scale compressing near saturation — that would
+        move every regime the same way.</p>
+      </div></div>
+
+      <div class="pane" data-step="4"><div class="card">
+        <div class="step">Takeaway 2, continued</div>
+        <h3>One behaves like transmission. The other like a milieu.</h3>
+        <p>Private messaging discriminates while a claim is still confined to a minority and adds
+        nothing once it is widespread. Very Large Platform is strongest precisely on the attitudes most
+        people already hold — ambient exposure, not transmission.</p>
+        <p>Holding all four conspiracy items fixed does not flatten this. The gradient <em>steepens</em>,
+        to r&nbsp;=&nbsp;−0.890, so conspiracy predisposition explains part of the level and none of the pattern.</p>
+      </div></div>
+
+      <div class="pane" data-step="5"><div class="card">
+        <div class="step">Now you</div>
+        <h3>Try it against the whole battery.</h3>
+        <p>Below you can pick any outcome or any group of them, slide the window over how widely the
+        belief is held, and watch the ranking reorder. The slope readout switches off below five
+        outcomes, because a correlation over three points means nothing.</p>
+        <p><button class="btn" id="toExplore">Go to the explorer ↓</button>
+           <button class="btn" id="replay">Replay the walkthrough</button></p>
+      </div></div>
+    </div>
+
+    <div class="sticky">
+      <div class="storybar">
+        <span class="track" id="storyTitle">The full picture</span>
+        <button class="btn" id="skip">Skip intro</button>
+        <div class="dots" id="dots"></div>
+      </div>
+      <div id="storyChart" style="flex:1;min-height:0"></div>
+    </div>
+  </div>
+</section>
+
+<div class="rule"></div>
+
+<!-- ========================= EXPLORER ========================= -->
+<section id="explore">
+<h2>Explore it yourself</h2>
+<p class="sub" style="margin-bottom:16px">Pick outcomes individually or by family, then narrow the
+prevalence window. Everything below recomputes from the same fitted models — nothing is re-estimated.</p>
+
+<div class="cols">
+  <div>
+    <div class="panel">
+      <div class="track" style="margin-bottom:8px">Outcomes</div>
+      <div class="ctlrow">
+        <button class="btn" data-quick="all">All 18</button>
+        <button class="btn" data-quick="belief">Belief 10</button>
+        <button class="btn" data-quick="establishment">Establishment 6</button>
+        <button class="btn" data-quick="challenger">Challengers 2</button>
+        <button class="btn" data-quick="none">None</button>
+      </div>
+      <div id="outcomeTree"></div>
+    </div>
+
+    <div class="panel">
+      <div class="track" style="margin-bottom:4px">Regimes drawn</div>
+      <div class="ctlrow" id="regimeChips" style="margin-top:8px"></div>
+      <label class="row" style="margin-top:6px">
+        <input type="checkbox" id="aiFits">
+        <span>Include AI&nbsp;Chat in the fitted slopes
+          <span style="color:var(--mid)">— it rests on 2–3 waves per outcome, so it is drawn hollow and
+          excluded from the lines by default</span></span>
+      </label>
+    </div>
+
+    <div class="panel">
+      <div class="track">Respondents</div>
+      <select id="stratum" style="width:100%;margin-top:8px;font:inherit;font-size:12.4px;padding:5px 7px;
+        border:1px solid var(--faint);border-radius:7px"></select>
+      <div class="note" id="stratumNote"></div>
+    </div>
+  </div>
+
+  <div>
+    <div class="panel" style="border:2.5px solid var(--ink);border-radius:13px">
+      <div class="ctlrow" style="margin-bottom:2px">
+        <span class="track">% of the population in the adverse state</span>
+        <span style="margin-left:auto;font-size:11.5px;color:var(--mid)" id="winLabel"></span>
+      </div>
+      <div class="slider">
+        <div class="trk"></div><div class="fill" id="fill"></div>
+        <input type="range" id="rlo" min="0" max="100" step="1" value="0">
+        <input type="range" id="rhi" min="0" max="100" step="1" value="100">
+      </div>
+      <div class="ticks" id="ticks"></div>
+      <div class="scale"><span>0% — almost nobody</span><span>50%</span><span>100% — almost everybody</span></div>
+      <div class="ctlrow" style="margin-top:10px">
+        <button class="btn" data-win="0,100">All</button>
+        <button class="btn" data-win="0,35">Confined &lt;35%</button>
+        <button class="btn" data-win="35,100">Widespread ≥35%</button>
+        <button class="btn" id="animate">▶ Sweep</button>
+        <span style="margin-left:auto;font-size:11.5px;color:var(--mid)" id="inView"></span>
+      </div>
+
+      <div class="charts" style="margin-top:14px">
+        <div>
+          <div class="track" style="margin-bottom:6px">Association against how widely the belief is held</div>
+          <div id="scatter"></div>
+        </div>
+        <div>
+          <div class="track" style="margin-bottom:6px">Ranking in this window</div>
+          <div id="rank"></div>
+          <div class="track" style="margin:16px 0 6px">Adverse on both families?</div>
+          <div id="quad"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="ctlrow">
+        <span class="track">Every estimate in the window</span>
+        <button class="btn" id="csv" style="margin-left:auto">Download CSV</button>
+      </div>
+      <div style="max-height:420px;overflow:auto"><table id="tbl"></table></div>
+      <div class="note" id="foot"></div>
+    </div>
+  </div>
+</div>
+</section>
+</div>
+<div class="tip" id="tip"></div>
+
+<script id="payload" type="application/json">__PAYLOAD__</script>
+<script>
+"use strict";
+/* ============================ data layer ============================ */
+const CHALLENGERS = ["rfk","musk"];
+const RC = {JS:"var(--js)",PB:"var(--pb)",SRCH:"var(--srch)",AICH:"var(--aich)",
+            VLP:"var(--vlp)",PVT:"var(--pvt)",INT:"var(--int)",DEC:"var(--dec)"};
+const FAMS = [["belief","Belief in a claim","conspiracy and misinformation items"],
+              ["establishment","Trust in the establishment","shown as DISTRUST, so higher = more adverse"],
+              ["challenger","Trust in the challengers","RFK Jr. and Musk — these run the other way"]];
+let DATA=null, REG=[], RLAB={}, OUT=[], BYKEY={};
+
+function famOf(o){ return o.direction==="belief" ? "belief"
+                 : (CHALLENGERS.includes(o.key) ? "challenger" : "establishment"); }
+/* orient every estimate so >1 is adverse; trust models are inverted and the interval swapped */
+function orient(o,e){
+  return o.direction==="trust"
+    ? {or:1/e.odds_ratio, lo:1/e.hi, hi:1/e.lo}
+    : {or:e.odds_ratio,   lo:e.lo,   hi:e.hi};
+}
+function prepare(raw){
+  DATA=raw;
+  REG = raw.meta.regimes.map(r=>r.key);
+  raw.meta.regimes.forEach(r=>RLAB[r.key]=r.label);
+  OUT = raw.outcomes.map(o=>{
+    const m=o.models.all.regime;
+    return {key:o.key, label:o.label, group:o.group, direction:o.direction,
+            fam:famOf(o), adverse: o.direction==="trust" ? 100-m.prevalence : m.prevalence,
+            models:o.models};
+  }).sort((a,b)=>a.adverse-b.adverse);
+  OUT.forEach(o=>BYKEY[o.key]=o);
+}
+/* cells for the current stratum: one row per (outcome, regime) */
+function cells(state){
+  const out=[];
+  for(const o of OUT){
+    if(!state.outcomes.has(o.key)) continue;
+    if(o.adverse<state.lo || o.adverse>state.hi) continue;
+    const m=(o.models[state.stratum]||{}).regime; if(!m) continue;
+    for(const e of m.estimates){
+      if(!state.regimes.has(e.key)) continue;
+      const v=orient(o,e);
+      out.push({o, regime:e.key, ...v, restricted:!!e.restricted,
+                n:e.n||m.n, waves:(e.waves||m.waves).length, occ:e.pct_occupying});
+    }
+  }
+  return out;
+}
+const gmean = a => a.length ? Math.exp(a.reduce((s,x)=>s+Math.log(x),0)/a.length) : NaN;
+function pearson(xs,ys){
+  const n=xs.length; if(n<2) return NaN;
+  const mx=xs.reduce((a,b)=>a+b,0)/n, my=ys.reduce((a,b)=>a+b,0)/n;
+  let sxy=0,sx=0,sy=0;
+  for(let i=0;i<n;i++){const a=xs[i]-mx,b=ys[i]-my; sxy+=a*b; sx+=a*a; sy+=b*b;}
+  return (sx&&sy)? sxy/Math.sqrt(sx*sy) : NaN;
+}
+/* per-regime summary within the window */
+function summarise(state){
+  const C=cells(state), by={};
+  for(const c of C){ (by[c.regime]=by[c.regime]||[]).push(c); }
+  const rows=[];
+  for(const rg of REG){
+    const list=by[rg]; if(!list||!list.length) continue;
+    const usable = state.aiFits ? list : list.filter(c=>!c.restricted);
+    const xs=usable.map(c=>c.o.adverse), ys=usable.map(c=>Math.log(c.or));
+    const k=usable.length;
+    let slope=NaN, r=NaN;
+    if(k>=5){
+      r=pearson(xs,ys);
+      const mx=xs.reduce((a,b)=>a+b,0)/k, my=ys.reduce((a,b)=>a+b,0)/k;
+      let num=0,den=0; for(let i=0;i<k;i++){num+=(xs[i]-mx)*(ys[i]-my); den+=(xs[i]-mx)**2;}
+      slope = den? {m:num/den, b:my-(num/den)*mx} : NaN;
+    }
+    rows.push({regime:rg, k:list.length, kfit:k, gm:gmean(list.map(c=>c.or)), r, slope,
+               belief:gmean(list.filter(c=>c.o.fam==="belief").map(c=>c.or)),
+               estab: gmean(list.filter(c=>c.o.fam==="establishment").map(c=>c.or))});
+  }
+  rows.sort((a,b)=>b.gm-a.gm);
+  return rows;
+}
+
+/* ============================ svg helpers ============================ */
+const NS="http://www.w3.org/2000/svg";
+function el(t,a={},kids=[]){ const n=document.createElementNS(NS,t);
+  for(const k in a) n.setAttribute(k,a[k]);
+  kids.forEach(c=>n.appendChild(c)); return n; }
+function txt(s,a={}){ const n=el("text",a); n.textContent=s; return n; }
+const TIP=()=>document.getElementById("tip");
+function bindTip(node,html){
+  node.addEventListener("mousemove",ev=>{const t=TIP();
+    t.innerHTML=html; t.style.display="block";
+    t.style.left=Math.min(ev.clientX+14,innerWidth-290)+"px";
+    t.style.top=(ev.clientY+16)+"px";});
+  node.addEventListener("mouseleave",()=>{TIP().style.display="none";});
+}
+const fmt=(x,d=2)=>isFinite(x)?x.toFixed(d):"—";
+
+/* ============================ the scatter ============================ */
+function drawScatter(host,state,opts={}){
+  const W=host.clientWidth||760, H=opts.height||Math.max(320,Math.min(520,host.clientHeight||420));
+  const M={t:14,r:16,b:42,l:52};
+  const C=cells(state), rows=summarise(state);
+  host.innerHTML="";
+  const svg=el("svg",{width:W,height:H,viewBox:`0 0 ${W} ${H}`});
+  host.appendChild(svg);
+  if(!C.length){ svg.appendChild(txt("No outcomes in this window.",
+      {x:W/2,y:H/2,"text-anchor":"middle",fill:"var(--mid)","font-size":13})); return; }
+
+  const iw=W-M.l-M.r, ih=H-M.t-M.b;
+  let ylo=Math.min(...C.map(c=>c.lo)), yhi=Math.max(...C.map(c=>c.hi));
+  ylo=Math.min(ylo,0.78); yhi=Math.max(yhi,1.28);
+  const X=v=>M.l+iw*(v/100), Y=v=>M.t+ih*(1-(Math.log(v)-Math.log(ylo))/(Math.log(yhi)-Math.log(ylo)));
+
+  /* grid */
+  [0,25,50,75,100].forEach(v=>{
+    svg.appendChild(el("line",{x1:X(v),x2:X(v),y1:M.t,y2:M.t+ih,stroke:"var(--hair)"}));
+    svg.appendChild(txt(v+"%",{x:X(v),y:M.t+ih+16,"text-anchor":"middle",fill:"var(--mid)","font-size":10.5}));
+  });
+  [0.7,0.8,0.9,1.0,1.2,1.4,1.6,1.8,2.0].filter(v=>v>=ylo&&v<=yhi).forEach(v=>{
+    const one=Math.abs(v-1)<1e-9;
+    svg.appendChild(el("line",{x1:M.l,x2:M.l+iw,y1:Y(v),y2:Y(v),
+      stroke:one?"var(--ink)":"var(--hair)","stroke-width":one?1.4:1}));
+    svg.appendChild(txt(v.toFixed(1),{x:M.l-8,y:Y(v)+3.5,"text-anchor":"end",
+      fill:one?"var(--ink)":"var(--mid)","font-size":10.5,"font-weight":one?600:400}));
+  });
+  svg.appendChild(txt("% of the population in the adverse state",
+    {x:M.l+iw/2,y:H-6,"text-anchor":"middle",fill:"var(--mid)","font-size":11}));
+  svg.appendChild(txt("adverse odds ratio",{x:12,y:M.t+ih/2,"text-anchor":"middle",
+    fill:"var(--mid)","font-size":11,transform:`rotate(-90 12 ${M.t+ih/2})`}));
+
+  const emph=opts.emphasis||null;
+  const dim = rg => emph && !emph.includes(rg);
+
+  /* fitted lines */
+  for(const r of rows){
+    if(!r.slope||!isFinite(r.slope.m)) continue;
+    const x1=Math.max(0,state.lo), x2=Math.min(100,state.hi);
+    const p1=Math.exp(r.slope.m*x1+r.slope.b), p2=Math.exp(r.slope.m*x2+r.slope.b);
+    svg.appendChild(el("line",{x1:X(x1),x2:X(x2),y1:Y(Math.max(ylo,Math.min(yhi,p1))),
+      y2:Y(Math.max(ylo,Math.min(yhi,p2))),stroke:RC[r.regime],
+      "stroke-width":dim(r.regime)?1.2:2.6,opacity:dim(r.regime)?.16:.85}));
+  }
+  /* points */
+  for(const c of C){
+    const o=dim(c.regime)?.13:(opts.faint?.5:.95), col=RC[c.regime];
+    const g=el("g",{opacity:o});
+    g.appendChild(el("line",{x1:X(c.o.adverse),x2:X(c.o.adverse),
+      y1:Y(Math.min(yhi,c.hi)),y2:Y(Math.max(ylo,c.lo)),stroke:col,"stroke-width":1.1,opacity:.4}));
+    const fam=c.o.fam, cx=X(c.o.adverse), cy=Y(c.or), s=4.2;
+    let mark;
+    if(fam==="belief") mark=el("circle",{cx,cy,r:s});
+    else if(fam==="establishment") mark=el("rect",{x:cx-s,y:cy-s,width:2*s,height:2*s,rx:1});
+    else mark=el("polygon",{points:`${cx},${cy-s-.7} ${cx+s+.7},${cy+s} ${cx-s-.7},${cy+s}`});
+    mark.setAttribute("fill",c.restricted?"#fff":col);
+    mark.setAttribute("stroke",col); mark.setAttribute("stroke-width",c.restricted?1.8:0);
+    g.appendChild(mark);
+    bindTip(g,`<b>${RLAB[c.regime]}</b> · ${c.o.label}<br>
+      adverse OR <b>${fmt(c.or)}</b> [${fmt(c.lo)}, ${fmt(c.hi)}]<br>
+      ${c.o.adverse.toFixed(1)}% in the adverse state · n=${c.n.toLocaleString()} · ${c.waves} waves
+      ${c.restricted?"<br><i>separate short-wave fit</i>":""}`);
+    svg.appendChild(g);
+  }
+  /* annotation */
+  if(opts.annotate){
+    const a=el("g");
+    a.appendChild(el("rect",{x:M.l+8,y:M.t+6,width:opts.annotate.w||236,height:opts.annotate.h||40,
+      rx:7,fill:"#16181d",opacity:.92}));
+    opts.annotate.lines.forEach((s,i)=>a.appendChild(txt(s,
+      {x:M.l+18,y:M.t+24+i*15,fill:"#fff","font-size":11.6,"font-weight":i?400:700})));
+    svg.appendChild(a);
+  }
+  /* legend */
+  const lg=el("g",{transform:`translate(${M.l+iw-172},${M.t+ih-42})`});
+  [["belief","● belief in a claim"],["establishment","■ distrust of an institution"],
+   ["challenger","▲ trust in RFK / Musk"]].forEach((d,i)=>
+    lg.appendChild(txt(d[1],{x:0,y:i*13,fill:"var(--mid)","font-size":10.2})));
+  svg.appendChild(lg);
+}
+
+/* ============================ rank panel ============================ */
+function drawRank(host,state){
+  const rows=summarise(state), W=host.clientWidth||290;
+  host.innerHTML="";
+  if(!rows.length){ host.innerHTML='<div class="note">No outcomes in this window.</div>'; return; }
+  const base=summarise({...state,lo:0,hi:100});
+  const baseRank={}; base.forEach((r,i)=>baseRank[r.regime]=i+1);
+  const hi=Math.max(1.05,...rows.map(r=>r.gm)), lo=Math.min(.95,...rows.map(r=>r.gm));
+  const H=rows.length*26+6, svg=el("svg",{width:W,height:H,viewBox:`0 0 ${W} ${H}`});
+  const x0=86, xw=W-x0-46, one=x0+xw*((1-lo)/(hi-lo));
+  svg.appendChild(el("line",{x1:one,x2:one,y1:0,y2:H-6,stroke:"var(--faint)"}));
+  rows.forEach((r,i)=>{
+    const y=i*26, xv=x0+xw*((r.gm-lo)/(hi-lo));
+    const g=el("g",{class:"bar",transform:`translate(0,${y})`});
+    g.appendChild(txt(RLAB[r.regime],{x:x0-7,y:14,"text-anchor":"end","font-size":11,
+      "font-weight":600,fill:"var(--ink)"}));
+    g.appendChild(el("rect",{x:Math.min(one,xv),y:4,width:Math.abs(xv-one)||1.5,height:13,rx:2,
+      fill:RC[r.regime],opacity:.85}));
+    g.appendChild(txt(fmt(r.gm),{x:W-42,y:14,"font-size":11,"text-anchor":"start"}));
+    const d=baseRank[r.regime]-(i+1);
+    if(d) g.appendChild(txt((d>0?"▲":"▼")+Math.abs(d),{x:W-14,y:14,"font-size":9.5,
+      fill:d>0?"#9a3b30":"var(--mid)"}));
+    bindTip(g,`<b>${RLAB[r.regime]}</b><br>geometric mean adverse OR <b>${fmt(r.gm)}</b><br>
+      over ${r.k} estimate${r.k===1?"":"s"} in this window<br>
+      slope r ${r.kfit>=5?"<b>"+fmt(r.r,3)+"</b>":"<i>needs ≥5 outcomes</i>"}`);
+    svg.appendChild(g);
+  });
+  host.appendChild(svg);
+  const nfit=new Set(cells(state).map(c=>c.o.key)).size;
+  const note=document.createElement("div"); note.className="note";
+  note.innerHTML = nfit>=5
+    ? `Slopes fitted on ${nfit} outcomes. ` + rows.filter(r=>isFinite(r.r))
+        .sort((a,b)=>a.r-b.r).slice(0,1).map(r=>`Steepest downward: <b>${r.regime} ${fmt(r.r,3)}</b>.`).join("")
+      + rows.filter(r=>isFinite(r.r)).sort((a,b)=>b.r-a.r).slice(0,1)
+        .map(r=>` Steepest upward: <b>${r.regime} +${fmt(r.r,3)}</b>.`).join("")
+    : `<span class="warn">Slope readout off: ${nfit} outcome${nfit===1?"":"s"} in the window.</span>
+       A correlation over fewer than five points is not interpretable.`;
+  host.appendChild(note);
+}
+
+/* ============================ quadrant ============================ */
+function drawQuad(host,state){
+  const rows=summarise(state), W=host.clientWidth||290, H=250, M={t:10,r:12,b:30,l:34};
+  host.innerHTML="";
+  const usable=rows.filter(r=>isFinite(r.belief)&&isFinite(r.estab));
+  if(usable.length<2){ host.innerHTML='<div class="note">Select outcomes from both families to see this.</div>'; return; }
+  const iw=W-M.l-M.r, ih=H-M.t-M.b;
+  const xs=usable.map(r=>r.belief), ys=usable.map(r=>r.estab);
+  const xlo=Math.min(.9,...xs)-.03, xhi=Math.max(1.1,...xs)+.03;
+  const ylo=Math.min(.9,...ys)-.03, yhi=Math.max(1.1,...ys)+.03;
+  const X=v=>M.l+iw*((v-xlo)/(xhi-xlo)), Y=v=>M.t+ih*(1-(v-ylo)/(yhi-ylo));
+  const svg=el("svg",{width:W,height:H,viewBox:`0 0 ${W} ${H}`});
+  svg.appendChild(el("rect",{x:X(1),y:M.t,width:Math.max(0,M.l+iw-X(1)),height:Math.max(0,Y(1)-M.t),
+    fill:"#c1272d",opacity:.055}));
+  svg.appendChild(el("line",{x1:X(1),x2:X(1),y1:M.t,y2:M.t+ih,stroke:"var(--faint)"}));
+  svg.appendChild(el("line",{x1:M.l,x2:M.l+iw,y1:Y(1),y2:Y(1),stroke:"var(--faint)"}));
+  svg.appendChild(txt("believes claims →",{x:M.l+iw,y:H-16,"text-anchor":"end",fill:"var(--mid)","font-size":10}));
+  svg.appendChild(txt("distrusts establishment →",{x:14,y:M.t+ih/2,"text-anchor":"middle",
+    fill:"var(--mid)","font-size":10,transform:`rotate(-90 14 ${M.t+ih/2})`}));
+  svg.appendChild(txt("adverse on both",{x:M.l+iw-4,y:M.t+12,"text-anchor":"end",
+    fill:"#c1272d","font-size":9.5,"font-weight":700}));
+  for(const r of usable){
+    const g=el("g");
+    g.appendChild(el("circle",{cx:X(r.belief),cy:Y(r.estab),r:5.5,fill:RC[r.regime],opacity:.9}));
+    g.appendChild(txt(r.regime,{x:X(r.belief)+8,y:Y(r.estab)+3.5,"font-size":9.8,
+      fill:"var(--ink)","font-weight":600}));
+    bindTip(g,`<b>${RLAB[r.regime]}</b><br>belief axis <b>${fmt(r.belief)}</b><br>
+      establishment axis <b>${fmt(r.estab)}</b><br>
+      ${r.belief>1&&r.estab>1?"adverse on BOTH families":"adverse on one family at most"}`);
+    svg.appendChild(g);
+  }
+  host.appendChild(svg);
+}
+
+/* ============================ table ============================ */
+function drawTable(state){
+  const C=cells(state).sort((a,b)=>a.o.adverse-b.o.adverse||b.or-a.or);
+  const t=document.getElementById("tbl");
+  t.innerHTML="<thead><tr><th>Outcome</th><th>Family</th><th>Adverse %</th><th>Regime</th>"
+    +"<th>Adverse OR</th><th>95% CI</th><th>Occupancy</th><th>n</th><th>Waves</th></tr></thead>";
+  const tb=document.createElement("tbody");
+  for(const c of C){
+    const tr=document.createElement("tr");
+    tr.innerHTML=`<td>${c.o.label}${c.restricted?" *":""}</td><td>${c.o.fam}</td>
+      <td>${c.o.adverse.toFixed(1)}%</td><td>${RLAB[c.regime]}</td>
+      <td><b>${fmt(c.or)}</b></td><td>[${fmt(c.lo)}, ${fmt(c.hi)}]</td>
+      <td>${c.occ!=null?c.occ.toFixed(1)+"%":"—"}</td><td>${c.n.toLocaleString()}</td><td>${c.waves}</td>`;
+    tb.appendChild(tr);
+  }
+  t.appendChild(tb);
+  document.getElementById("foot").innerHTML =
+    `<b>Adverse OR</b> is the odds ratio oriented so that above 1 means the adverse direction: believing
+     the claim, or <em>distrusting</em> the institution (trust models are inverted, 1/OR, with the interval
+     endpoints swapped). <b>Adverse %</b> is the weighted share of the population in that state.
+     <b>Occupancy</b> is the weighted share using that regime for political news.
+     Rows marked * are separate short-wave fits and are excluded from the fitted slopes unless you opt in.
+     Putting belief and distrust on one axis is an interpretive choice, not something the models assert.
+     These are cross-sectional associations confounded with selective exposure: they fix ordering, not
+     transmission rates. Built ${DATA.meta.built} from ${DATA.meta.source}.`;
+}
+function downloadCSV(state){
+  const C=cells(state);
+  const head=["outcome","family","direction","adverse_pct","regime","adverse_or","lo","hi","occupancy_pct","n","waves","short_wave_fit"];
+  const lines=[head.join(",")].concat(C.map(c=>[
+    `"${c.o.label}"`,c.o.fam,c.o.direction,c.o.adverse.toFixed(2),c.regime,
+    c.or.toFixed(4),c.lo.toFixed(4),c.hi.toFixed(4),
+    c.occ!=null?c.occ.toFixed(2):"",c.n,c.waves,c.restricted?"yes":"no"].join(",")));
+  const b=new Blob([lines.join("\n")],{type:"text/csv"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(b); a.download="chip50_prevalence_window.csv"; a.click();
+}
+
+/* ============================ state + wiring ============================ */
+const S={outcomes:new Set(), lo:0, hi:100, regimes:new Set(), aiFits:false, stratum:"all"};
+
+function buildOutcomeTree(){
+  const host=document.getElementById("outcomeTree"); host.innerHTML="";
+  for(const [fk,flab,fnote] of FAMS){
+    const list=OUT.filter(o=>o.fam===fk);
+    const wrap=document.createElement("div"); wrap.className="fam";
+    const hdr=document.createElement("div"); hdr.className="famhdr";
+    hdr.innerHTML=`<input type="checkbox" data-fam="${fk}">
+      <span class="fl">${flab}</span><span class="fn">${list.length} · ${fnote}</span>`;
+    wrap.appendChild(hdr);
+    const kids=document.createElement("div"); kids.className="kids";
+    for(const o of list){
+      const l=document.createElement("label"); l.className="row";
+      l.innerHTML=`<input type="checkbox" data-out="${o.key}">
+        <span>${o.label}</span><span class="meta">${o.adverse.toFixed(0)}%</span>`;
+      kids.appendChild(l);
+    }
+    wrap.appendChild(kids); host.appendChild(wrap);
+  }
+}
+function buildRegimeChips(){
+  const host=document.getElementById("regimeChips"); host.innerHTML="";
+  for(const rg of REG){
+    const c=document.createElement("span");
+    c.className="chip"; c.dataset.reg=rg;
+    c.innerHTML=`<span class="sw" style="background:${RC[rg]}"></span>${RLAB[rg]}`;
+    host.appendChild(c);
+  }
+}
+function buildStrata(){
+  const s=document.getElementById("stratum");
+  s.innerHTML=DATA.meta.strata.map(x=>`<option value="${x.key}">${x.label}</option>`).join("");
+}
+function syncControls(){
+  document.querySelectorAll("[data-out]").forEach(i=>i.checked=S.outcomes.has(i.dataset.out));
+  for(const [fk] of FAMS){
+    const list=OUT.filter(o=>o.fam===fk), on=list.filter(o=>S.outcomes.has(o.key)).length;
+    const box=document.querySelector(`[data-fam="${fk}"]`);
+    box.checked = on===list.length && on>0;
+    box.indeterminate = on>0 && on<list.length;
+  }
+  document.querySelectorAll("[data-reg]").forEach(c=>
+    c.classList.toggle("off",!S.regimes.has(c.dataset.reg)));
+  document.getElementById("rlo").value=S.lo;
+  document.getElementById("rhi").value=S.hi;
+  const f=document.getElementById("fill");
+  f.style.left=S.lo+"%"; f.style.width=(S.hi-S.lo)+"%";
+  document.getElementById("winLabel").textContent=`${S.lo}% – ${S.hi}%`;
+  const inw=OUT.filter(o=>S.outcomes.has(o.key)&&o.adverse>=S.lo&&o.adverse<=S.hi).length;
+  document.getElementById("inView").textContent=
+    `${inw} of ${OUT.length} outcomes in view`;
+  const tk=document.getElementById("ticks"); tk.innerHTML="";
+  for(const o of OUT){
+    const i=document.createElement("i");
+    i.style.left=`calc(${o.adverse}% - 0px)`;
+    if(S.outcomes.has(o.key)&&o.adverse>=S.lo&&o.adverse<=S.hi) i.className="inwin";
+    i.title=`${o.label} — ${o.adverse.toFixed(1)}%`;
+    tk.appendChild(i);
+  }
+  const st=DATA.meta.strata.find(x=>x.key===S.stratum);
+  document.getElementById("stratumNote").textContent = S.stratum==="all"
+    ? "All respondents. Party and education are controls in the model."
+    : `Model refitted within ${st.label}; that variable leaves the control set.`;
+}
+function render(){
+  syncControls();
+  drawScatter(document.getElementById("scatter"),S,{height:430});
+  drawRank(document.getElementById("rank"),S);
+  drawQuad(document.getElementById("quad"),S);
+  drawTable(S);
+}
+
+/* ---- scrollytelling ---- */
+const STEPS=[
+  {title:"The full picture", st:o=>({...o,outcomes:new Set(OUT.map(x=>x.key)),lo:0,hi:100}),
+   opts:{faint:true}},
+  {title:"Podcasts lead 15 of 18", st:o=>({...o,outcomes:new Set(OUT.filter(x=>x.fam!=="challenger").map(x=>x.key))}),
+   opts:{emphasis:["DEC"],annotate:{lines:["Decentralized (podcasts)","first on 15 of 18 outcomes"],w:210,h:40}}},
+  {title:"…but it reverses for the challengers",
+   st:o=>({...o,outcomes:new Set(OUT.map(x=>x.key))}),
+   opts:{emphasis:["DEC"],annotate:{lines:["▲ RFK and Musk sit BELOW 1","podcast listeners trust them more"],w:236,h:40}}},
+  {title:"Private messaging against Very Large Platform",
+   st:o=>({...o,outcomes:new Set(OUT.filter(x=>x.fam==="belief").map(x=>x.key))}),
+   opts:{emphasis:["PVT","VLP"],annotate:{lines:["PVT slopes down, r = −0.855","VLP slopes up, r = +0.953"],w:220,h:40}}},
+  {title:"Transmission against milieu",
+   st:o=>({...o,outcomes:new Set(OUT.filter(x=>x.fam==="belief").map(x=>x.key))}),
+   opts:{emphasis:["PVT","VLP","DEC"],annotate:{lines:["the signs differ across regimes,","so this is not a scale artifact"],w:230,h:40}}},
+  {title:"Your turn", st:o=>({...o,outcomes:new Set(OUT.map(x=>x.key))}), opts:{}}
+];
+let storyStep=-1;
+function showStep(i){
+  if(i===storyStep) return; storyStep=i;
+  const s=STEPS[i]; if(!s) return;
+  document.getElementById("storyTitle").textContent=s.title;
+  const host=document.getElementById("storyChart");
+  const st=s.st({...S,regimes:new Set(REG),stratum:"all",lo:0,hi:100,aiFits:false});
+  drawScatter(host,st,{...s.opts,height:host.clientHeight||420});
+  document.querySelectorAll("#dots .dot").forEach((d,j)=>d.classList.toggle("on",j===i));
+  document.querySelectorAll("#panes .pane").forEach((p,j)=>p.classList.toggle("active",j===i));
+}
+function initStory(){
+  const dots=document.getElementById("dots");
+  dots.innerHTML=STEPS.map(()=>'<span class="dot"></span>').join("");
+  const panes=[...document.querySelectorAll("#panes .pane")];
+  if(typeof IntersectionObserver==="function"){
+    const io=new IntersectionObserver(es=>{
+      es.forEach(e=>{ if(e.isIntersecting) showStep(+e.target.dataset.step); });
+    },{rootMargin:"-45% 0px -45% 0px"});
+    panes.forEach(p=>io.observe(p));
+  }else{
+    const onScroll=()=>{
+      const mid=innerHeight/2; let best=0, bd=Infinity;
+      panes.forEach(p=>{ const r=p.getBoundingClientRect();
+        const d=Math.abs((r.top+r.bottom)/2-mid); if(d<bd){bd=d;best=+p.dataset.step;} });
+      showStep(best);
+    };
+    addEventListener("scroll",onScroll,{passive:true}); onScroll();
+  }
+  showStep(0);
+  document.getElementById("skip").addEventListener("click",()=>
+    document.getElementById("explore").scrollIntoView({behavior:"smooth"}));
+  document.getElementById("toExplore").addEventListener("click",()=>
+    document.getElementById("explore").scrollIntoView({behavior:"smooth"}));
+  document.getElementById("replay").addEventListener("click",()=>
+    document.getElementById("story").scrollIntoView({behavior:"smooth"}));
+}
+
+/* ---- explorer wiring, all delegated ---- */
+function wire(){
+  document.getElementById("outcomeTree").addEventListener("change",e=>{
+    const t=e.target;
+    if(t.dataset.out){ t.checked?S.outcomes.add(t.dataset.out):S.outcomes.delete(t.dataset.out); }
+    else if(t.dataset.fam){
+      OUT.filter(o=>o.fam===t.dataset.fam).forEach(o=>
+        t.checked?S.outcomes.add(o.key):S.outcomes.delete(o.key));
+    } else return;
+    render();
+  });
+  document.addEventListener("click",e=>{
+    const q=e.target.closest("[data-quick]");
+    if(q){
+      const k=q.dataset.quick;
+      S.outcomes=new Set(k==="none"?[]:OUT.filter(o=>k==="all"||o.fam===k).map(o=>o.key));
+      render(); return;
+    }
+    const w=e.target.closest("[data-win]");
+    if(w){ const [a,b]=w.dataset.win.split(",").map(Number); S.lo=a; S.hi=b; render(); return; }
+    const c=e.target.closest("[data-reg]");
+    if(c){ const rg=c.dataset.reg;
+      S.regimes.has(rg)?S.regimes.delete(rg):S.regimes.add(rg); render(); return; }
+  });
+  const lo=document.getElementById("rlo"), hi=document.getElementById("rhi");
+  const onSlide=()=>{
+    let a=+lo.value, b=+hi.value;
+    if(a>b){ if(document.activeElement===lo) b=a; else a=b; }
+    S.lo=a; S.hi=b; render();
+  };
+  lo.addEventListener("input",onSlide); hi.addEventListener("input",onSlide);
+  document.getElementById("aiFits").addEventListener("change",e=>{S.aiFits=e.target.checked;render();});
+  document.getElementById("stratum").addEventListener("change",e=>{S.stratum=e.target.value;render();});
+  document.getElementById("csv").addEventListener("click",()=>downloadCSV(S));
+  let timer=null;
+  document.getElementById("animate").addEventListener("click",e=>{
+    if(timer){ clearInterval(timer); timer=null; e.target.textContent="▶ Sweep"; return; }
+    e.target.textContent="■ Stop"; let p=0;
+    S.lo=0; S.hi=30;
+    timer=setInterval(()=>{
+      p+=2; if(p>70){ clearInterval(timer); timer=null; e.target.textContent="▶ Sweep";
+        S.lo=0; S.hi=100; render(); return; }
+      S.lo=p; S.hi=Math.min(100,p+30); render();
+    },160);
+  });
+  let rt=null;
+  addEventListener("resize",()=>{ clearTimeout(rt); rt=setTimeout(()=>{
+    render(); const i=storyStep; storyStep=-1; showStep(i); },180); });
+}
+
+/* ---- boot (last, so every const above is initialised) ---- */
+(function boot(){
+  const inline=document.getElementById("payload").textContent.trim();
+  const go=raw=>{
+    prepare(raw);
+    S.outcomes=new Set(OUT.filter(o=>o.fam!=="challenger").map(o=>o.key));
+    S.regimes=new Set(REG);
+    buildOutcomeTree(); buildRegimeChips(); buildStrata();
+    wire(); render(); initStory();
+  };
+  if(inline && inline!=="__PAY"+"LOAD__"){ go(JSON.parse(inline)); return; }
+  fetch("data.json").then(r=>{
+    if(!r.ok) throw new Error("HTTP "+r.status); return r.json();
+  }).then(go).catch(err=>{
+    document.querySelector(".wrap").insertAdjacentHTML("afterbegin",
+      `<div class="panel" style="border-color:#c1272d;color:#9a3b30">
+       <b>Could not load data.json.</b> Opening this file directly with <code>file://</code> blocks
+       the fetch. Use <code>explorer_standalone.html</code>, or serve the folder with
+       <code>python3 -m http.server</code>. <br><small>${err.message}</small></div>`);
+  });
+})();
+</script>
+</body>
+</html>

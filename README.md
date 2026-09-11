@@ -4,9 +4,27 @@ An interactive view of how political news source use predicts trust in science a
 institutions, conspiracy belief, and election denial. Built for collaborators who want to
 explore the estimates without touching the underlying survey.
 
+There are **two pages**, both reading the same `data.json`:
+
+| page | question it answers |
+|---|---|
+| `index.html` | For a given outcome, how do the news-source regimes rank? Forest plot, live multivariate model, party and education subgroups. |
+| `explorer.html` | How does that ranking **change with how widely the belief is held**? Guided walkthrough of the two headline results, then a prevalence-window explorer. |
+
+`explorer.html` orients every outcome to the **adverse direction** — believing the claim, or
+*distrusting* the institution — and puts all eighteen on one axis, "% of the population in the
+adverse state." That unification is an interpretive choice, not something the models assert, and
+the page says so. It opens with a six-pane scrollytelling walkthrough of the two takeaways
+(podcasts lead 15 of 18 outcomes; private messaging predicts low-prevalence claims while Very
+Large Platform predicts high-prevalence ones), then hands over to free exploration: pick outcomes
+individually or by family, drag a two-handled prevalence window, watch the ranking reorder.
+
+**The slope readout switches off below five outcomes in the window.** With ten belief outcomes, a
+user who narrows to three points would otherwise get a correlation near ±1 that means nothing.
+
 ## Running it
 
-**Just open `index_standalone.html`.** It has the data built in, needs no server, and works
+**Just open `index_standalone.html`** (or `explorer_standalone.html`). It has the data built in, needs no server, and works
 from a double-click or as an email attachment. That is the file to send to collaborators.
 
 `index.html` + `data.json` is the version to use while iterating — it reads the JSON at load
@@ -15,9 +33,10 @@ browsers block a `file://` page from reading a sibling file:
 
     python3 -m http.server 8000
 
-After rebuilding `data.json`, regenerate the shareable copy:
+After rebuilding `data.json`, regenerate both shareable copies:
 
     python3 embed_data.py
+    python3 embed_explorer.py
 
 No external dependencies, no CDN, no build step beyond that.
 
