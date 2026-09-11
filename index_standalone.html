@@ -97,15 +97,15 @@ tr.sep td{border-bottom:1px solid var(--faint);padding:0;height:0}
 .defs b{font-weight:600}
 .tabsets{border-top:1px solid var(--hair);margin-top:14px;padding-top:11px}
 .tabset{display:flex;align-items:center;gap:5px;margin-bottom:6px;flex-wrap:nowrap}
-.tlab{font-size:9px;letter-spacing:.13em;text-transform:uppercase;color:var(--mid);
-  font-weight:700;width:60px;flex:none}
+.tlab{font-size:9px;letter-spacing:.11em;text-transform:uppercase;color:var(--mid);
+  font-weight:700;width:96px;flex:none;line-height:1.25}
 .tab{border:1px solid var(--hair);background:var(--bg);border-radius:20px;padding:3.5px 9px;
   font-family:inherit;font-weight:400;font-size:10.4px;color:var(--mid);cursor:pointer;
   white-space:nowrap}
 .tab:hover{background:var(--wash)}
 .tab.on{background:var(--ink);border-color:var(--ink);color:#fff}
 .tab.off{font-style:italic}
-.tab.off.on{background:var(--wash);border-color:var(--faint);color:var(--mid);font-style:normal}
+.tab.off.on{background:var(--ink);border-color:var(--ink);color:#fff;font-style:normal}
 .tab[disabled]{opacity:.35;cursor:not-allowed}
 .qcols{display:grid;grid-template-columns:repeat(3,1fr);gap:30px}
 @media(max-width:1000px){.qcols{grid-template-columns:1fr}}
@@ -150,9 +150,10 @@ tr.sep td{border-bottom:1px solid var(--faint);padding:0;height:0}
         <div class="track">Forest plots</div>
         <div class="plots" id="plots"></div>
         <div class="tabsets">
+          <div class="tabset"><span class="tlab">Subgroup</span><div id="tabsAll"></div></div>
           <div class="tabset"><span class="tlab">Party</span><div id="tabsParty"></div></div>
           <div class="tabset"><span class="tlab">Education</span><div id="tabsEdu"></div></div>
-          <div class="tabset"><span class="tlab">Rep × edu</span><div id="tabsRepEdu"></div></div>
+          <div class="tabset"><span class="tlab">Republicans by education</span><div id="tabsRepEdu"></div></div>
           <p class="note" style="margin-top:8px">One filter at a time. Choosing a party clears
             any education filter and the reverse, because the models are fitted separately for
             each subgroup and no crossed cell — Republicans with a college degree, say — was
@@ -330,18 +331,16 @@ function facets(){
   return [avail[selStratum]?selStratum:"all"];}
 function renderTabs(){
   const avail=modelsFor(selOut[0]);
-  [["party","tabsParty","No party filter"],
-   ["edu","tabsEdu","No education filter"],
-   ["repedu","tabsRepEdu","Off"]]
-   .forEach(([kind,id,offLabel])=>{
+  // One filter is active at a time, so there is one control that turns it off — three
+  // per-row "off" buttons all pointed at the same state and were pure redundancy.
+  const allHost=document.getElementById("tabsAll"); allHost.innerHTML="";
+  const allBtn=document.createElement("button");
+  allBtn.className="tab off"+(selStratum==="all"?" on":"");
+  allBtn.textContent="All respondents — no filter"; allBtn.dataset.stratum="all";
+  allHost.appendChild(allBtn);
+  [["party","tabsParty"],["edu","tabsEdu"],["repedu","tabsRepEdu"]]
+   .forEach(([kind,id])=>{
     const host=document.getElementById(id); host.innerHTML="";
-    // the "off" option for this row: all respondents, i.e. no filter on this dimension
-    const off=document.createElement("button");
-    const pre = kind==="party" ? "party_" : (kind==="edu" ? "edu_" : "repedu_");
-    const otherOn = !selStratum.startsWith(pre);
-    off.className="tab off"+((selStratum==="all"||otherOn)?" on":"");
-    off.textContent=offLabel; off.dataset.stratum="all";
-    host.appendChild(off);
     strata(kind).forEach(st=>{
       const b=document.createElement("button");
       b.className="tab"+(selStratum===st.key?" on":"");
