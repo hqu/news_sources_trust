@@ -218,7 +218,8 @@ tr.sep td{border-bottom:1px solid var(--faint);padding:0;height:0}
 <script>
 const PAL={ink:"#16181d",mid:"#71777f",faint:"#ccd1d6",hair:"#e6e9ec",
            obs:"#2f6f8f",semi:"#4f5f9e",priv:"#6b4c9a",bg:"#fff",wash:"#f4f7f9"};
-let DATA=null, QTEXT=null, selOut=[], selPred=new Set(), openNodes=new Set(),
+let DATA=null, QTEXT=null, selOut=[], selPred=new Set(), openNodes=new Set(["VLP"]),   // VLP opens by default: its platforms are the ones people ask for
+   
     selStratum="all";
 
 const PRIMARY=["science"];
@@ -424,7 +425,9 @@ function init(){
     selPred=new Set(orderedNodes().filter(nd=>nd.level!=="grouponly").map(nd=>nd.key));
     renderTree();draw();};
   document.getElementById("nonePred").onclick=()=>{selPred=new Set();renderTree();draw();};
-  document.getElementById("resetPred").onclick=()=>{selPred=defaultsFor(selOut);renderTree();draw();};
+  document.getElementById("resetPred").onclick=()=>{
+    selPred=defaultsFor(selOut); openNodes.add("VLP");   // show what sits inside the big one
+    renderTree();draw();};
 
   // definitions
   document.getElementById("coldefs").innerHTML=COLDEFS.map(([n,txt])=>
@@ -507,10 +510,21 @@ document.addEventListener("click",e=>{
   tw.classList.toggle("open");
   kids.classList.toggle("open");
 });
+function childrenOf(rk){
+  const r=REG().find(x=>x.key===rk);
+  const ch=(r&&r.channels.length>1)?r.channels.map(c=>c.key):[];
+  return ch.concat(PLATS().filter(p=>p.parent===rk).map(p=>p.key));}
 document.addEventListener("change",e=>{
   if(e.target.type!=="checkbox"||!e.target.dataset.pred)return;
-  e.target.checked?selPred.add(e.target.value):selPred.delete(e.target.value);
-  draw();});
+  const k=e.target.value;
+  if(e.target.checked) selPred.add(k);
+  else{
+    selPred.delete(k);
+    // a regime switched off takes its channels and platforms with it: leaving them
+    // checked would show rows nested under a parent that is no longer in the plot
+    if(isRegime(k)) childrenOf(k).forEach(c=>selPred.delete(c));
+  }
+  renderTree(); draw();});
 
 // ---------- plots, table, regression ----------
 function draw(){
