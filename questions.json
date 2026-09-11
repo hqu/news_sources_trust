@@ -115,7 +115,7 @@
    "scale": []
   },
   "pol_trust_science": {
-   "text": "How much do you trust the following people and organizations to do what is right? - Scientists and researchers",
+   "text": "Scientists and researchers",
    "scale": [
     "4 = A lot",
     "3 = Some",
@@ -124,7 +124,7 @@
    ]
   },
   "pol_trust_cdc": {
-   "text": "How much do you trust the following people and organizations to do what is right? - The CDC (Centers for Disease Control and Prevention)",
+   "text": "The CDC (Centers for Disease Control and Prevention)",
    "scale": [
     "4 = A lot",
     "3 = Some",
@@ -133,7 +133,7 @@
    ]
   },
   "pol_trust_fda": {
-   "text": "How much do you trust the following people and organizations to do what is right? - The FDA (Food and Drug Administration)",
+   "text": "The FDA (Food and Drug Administration)",
    "scale": [
     "4 = A lot",
     "3 = Some",
@@ -142,7 +142,7 @@
    ]
   },
   "pol_trust_doctors": {
-   "text": "How much do you trust the following people and organizations to do what is right? - Hospitals and doctors",
+   "text": "Hospitals and doctors",
    "scale": [
     "4 = A lot",
     "3 = Some",
@@ -151,7 +151,7 @@
    ]
   },
   "pol_trust_pharma": {
-   "text": "How much do you trust the following people and organizations to do what is right? - Pharmaceutical companies",
+   "text": "Pharmaceutical companies",
    "scale": [
     "4 = A lot",
     "3 = Some",
@@ -160,7 +160,7 @@
    ]
   },
   "pol_trust_musk": {
-   "text": "How much do you trust the following people and organizations to do what is right? - Elon Musk",
+   "text": "Elon Musk",
    "scale": [
     "4 = A lot",
     "3 = Some",
@@ -169,7 +169,7 @@
    ]
   },
   "pol_trust_fauci": {
-   "text": "How much do you trust the following people and organizations to do what is right? - Dr. Anthony Fauci of the National Institute of Health",
+   "text": "Dr. Anthony Fauci of the National Institute of Health",
    "scale": [
     "4 = A lot",
     "3 = Some",
@@ -178,7 +178,7 @@
    ]
   },
   "pol_trust_rfk": {
-   "text": "How much do you trust the following people and organizations to do what is right? - Robert F. Kennedy Jr.",
+   "text": "Robert F. Kennedy Jr.",
    "scale": [
     "4 = A lot",
     "3 = Some",
@@ -251,6 +251,10 @@
     "2 = Inaccurate",
     "3 = Not sure"
    ]
+  },
+  "__stem_pol_trust": {
+   "text": "How much do you trust the following people and organizations to do what is right?",
+   "scale": []
   }
  },
  "control": {

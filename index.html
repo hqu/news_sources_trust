@@ -240,18 +240,36 @@ function loadQuestions(){
   const el=document.getElementById("questions"), raw=el?el.textContent.trim():"";
   if(raw&&raw[0]==="{"){QTEXT=JSON.parse(raw); renderQuestions(); return;}
   fetch("questions.json").then(r=>r.json()).then(q=>{QTEXT=q;renderQuestions();}).catch(()=>{});}
+// Each stem heads the items it actually governs, so a reader can see which battery a
+// variable came from — the two news batteries differ in wave coverage and it matters.
+const STEM_NOTE={
+  pol_news1:"Asked in all 15 waves. This is the battery every regime-level and channel-level estimate uses.",
+  pol_news2:"The named-platform battery, asked in 6 waves (23, 26, 27, 28, 35, 35.1). Every platform-level estimate comes from here.",
+  pol_trust:"Asked in the waves carrying each target; coverage differs by target.",
+  conspiracy:"Four items forming the conspiracy-predisposition battery.",
+  fn:"A rotating battery; each claim runs in its own subset of waves."};
 function renderQuestions(){
   if(!QTEXT)return;
+  const item=(k,e)=>`<p class="q"><span class="qv">${k}</span>${e.text}`
+      +(e.scale&&e.scale.length?`<br><span class="qs">${e.scale.join(" · ")}</span>`:"")+`</p>`;
   const put=(id,grp)=>{
     const host=document.getElementById(id); if(!host)return;
     const ent=QTEXT[grp]||{};
-    let html="";
-    Object.keys(ent).filter(k=>k.startsWith("__stem_")).forEach(k=>{
-      html+=`<p class="qstem"><b>${k.replace("__stem_","")}</b> — ${ent[k].text}</p>`;});
-    Object.keys(ent).filter(k=>!k.startsWith("__stem_")).forEach(k=>{
-      const e=ent[k];
-      html+=`<p class="q"><span class="qv">${k}</span>${e.text}`
-           +(e.scale&&e.scale.length?`<br><span class="qs">${e.scale.join(" · ")}</span>`:"")+`</p>`;});
+    const ORDER=["pol_news1","pol_news2","pol_trust","conspiracy","fn"];
+    const stems=Object.keys(ent).filter(k=>k.startsWith("__stem_")).map(k=>k.replace("__stem_",""))
+                      .sort((a,b)=>ORDER.indexOf(a)-ORDER.indexOf(b));
+    const used=new Set(); let html="";
+    stems.forEach(st=>{
+      const kids=Object.keys(ent).filter(k=>!k.startsWith("__stem_")&&
+        (k.startsWith(st+"_")||k.toLowerCase().startsWith("fn_")&&st==="fn"));
+      if(!kids.length) return;
+      html+=`<p class="qstem">${ent["__stem_"+st].text}`
+           +(STEM_NOTE[st]?`<br><span class="qs">${STEM_NOTE[st]}</span>`:"")+`</p>`;
+      kids.sort((a,b)=>{const n=x=>parseInt((x.match(/_(\d+)$/)||[0,0])[1]);return n(a)-n(b)||a.localeCompare(b);});
+      kids.forEach(k=>{used.add(k); html+=item(k,ent[k]);});
+    });
+    Object.keys(ent).filter(k=>!k.startsWith("__stem_")&&!used.has(k))
+      .forEach(k=>{html+=item(k,ent[k]);});
     host.innerHTML=html||'<p class="q" style="color:#ccd1d6">not available</p>';};
   put("qsource","source"); put("qoutcome","outcome"); put("qcontrol","control");}
 function boot(d){try{DATA=d;init();loadQuestions();}catch(e){fail("Error building the view: "+e.message);throw e;}}
