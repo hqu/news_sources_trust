@@ -134,6 +134,8 @@ tr.sep td{border-bottom:1px solid var(--faint);padding:0;height:0}
     <div class="a-model">
       <div class="track" style="margin:4px 0 6px">Multivariate model</div>
       <div id="regression"></div>
+      <div class="track" style="margin:20px 0 8px">What the columns mean</div>
+      <div class="defs" id="coldefs"></div>
       <p class="note" id="footnote"></p>
     </div>
   </div>
@@ -154,6 +156,13 @@ const DISCLOSE=[["Other science and health institutions",["cdc","fda","doctors",
                 ["Named individuals",["fauci","rfk","musk"]]];
 const ALSO=[["Conspiracy beliefs",["consp1","consp2","consp3","consp4"]],
             ["Election denial",["denial"]]];
+
+const COLDEFS=[
+ ["Term","the variable whose coefficient that row reports. The upper block holds the news sources — a regime, or an individual channel, coded 1 if the respondent reported getting political news from it in the previous 24 hours and 0 otherwise. Below the rule sit the control variables, which are in every model and are not shown in the plot. A source greyed and marked <i>not shown</i> was in the fitted model but is currently unchecked in the left column, so it is adjusted for without being drawn."],
+ ["Odds ratio","the exponentiated coefficient: how the odds of the outcome change for someone who uses that source, holding every other term in the model fixed. One means no difference. Above one means higher odds of the outcome — more trusting on a trust measure, more believing on a conspiracy or denial measure. Below one means lower odds. An odds ratio of 1.50 is a 50% increase in the odds, not in the probability, and the two diverge as the outcome becomes common."],
+ ["95% CI","the confidence interval around the odds ratio. Read it as the range of values the data are consistent with. An interval that excludes one is conventionally called significant and is drawn in colour in the plot; an interval spanning one is drawn in grey and open. Intervals here are model-based on survey-weighted estimates, so they quantify uncertainty conditional on the panel and its weighting, not selection into the panel."],
+ ["p","the two-sided p-value for the null that the odds ratio is one. With samples in the hundreds of thousands almost everything clears conventional thresholds, so the interval and the size of the estimate carry more information than the p-value does, and the ordering of sources matters more than any single test."],
+ ["Occupancy","the weighted share of respondents in that model who reported using the source in the previous 24 hours. It is a property of the predictor, not of the outcome, so it does not change when the outcome changes. It matters for reading the rest of the row: a large odds ratio on a source occupied by 2% of adults describes far fewer people than a modest one on a source occupied by 60%, and controls have no occupancy, marked with a dash."]];
 
 const DEFS=[
  ["JS","Journalistic Standard","network and local television, print newspapers, news websites and apps, community papers",
@@ -226,6 +235,8 @@ function init(){
   document.getElementById("resetPred").onclick=()=>{selPred=defaultsFor(selOut);renderTree();draw();};
 
   // definitions
+  document.getElementById("coldefs").innerHTML=COLDEFS.map(([n,txt])=>
+    `<p><b>${n}</b> — ${txt}</p>`).join("");
   document.getElementById("defs").innerHTML=DEFS.map(([s,n,ch,txt])=>
     `<p><b>${n}</b> <span class="ch">(${s}) — ${ch}.</span> ${txt}</p>`).join("");
 
