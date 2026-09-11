@@ -131,8 +131,15 @@ EDU4={1:"High school or less",2:"High school or less",3:"Some college",
 d["edu4"]=d["edu"].map(EDU4)
 STRATA=[("all","All respondents",None,None)]
 for g in ["Democrat","Independent","Republican"]: STRATA.append(("party_"+g,g,"party3",g))
-for g in ["High school or less","Some college","College degree","Graduate degree"]:
+EDU_LEVELS=["High school or less","Some college","College degree","Graduate degree"]
+for g in EDU_LEVELS:
     STRATA.append(("edu_"+g.replace(" ","_"),g,"edu4",g))
+# Crossed cells: Republicans by education. §6b of paper 2 turns on the education gradient
+# inside a party, and the marginal strata cannot show it. Encoded as a combined column so
+# run() can filter on a single equality like every other stratum.
+d["rep_edu"]=np.where(d["party3"]=="Republican", d["edu4"], None)
+for g in EDU_LEVELS:
+    STRATA.append(("repedu_"+g.replace(" ","_"),g,"rep_edu",g))
 print("strata:",[k for k,_,_,_ in STRATA],flush=True)
 print(f"  loaded {len(d):,} rows, {d['wave'].nunique()} waves", flush=True)
 
@@ -147,7 +154,9 @@ def outcome_series(var):
     return (v>=3).astype(float).where(v.notna())                                    # a lot / some
 
 def run(y, preds, label, col=None, val=None):
-    ctrl=[c for c in CTRL if not (col=="party3" and c=="party7") and not (col=="edu4" and c=="edu")]
+    ctrl=[c for c in CTRL
+          if not (col in ("party3","rep_edu") and c=="party7")
+          and not (col in ("edu4","rep_edu") and c=="edu")]
     frame=d if col is None else d[d[col]==val]
     sub=frame.assign(y=(y if col is None else y[frame.index])).dropna(subset=["y","weight"]+ctrl+preds)
     if len(sub)<2000: return None
@@ -213,7 +222,7 @@ payload={"meta":{"built":pd.Timestamp.now().strftime("%Y-%m-%d"),
                  "conspiracy_wording":CONSP_TEXT,
                  "platforms":[{"key":k,"label":v[0],"parent":v[1]} for k,v in PLAT.items()],
                  "strata":[{"key":k,"label":l,
-                            "kind":("all" if c is None else ("party" if c=="party3" else "edu"))}
+                            "kind":("all" if c is None else ("party" if c=="party3" else ("repedu" if c=="rep_edu" else "edu")))}
                            for k,l,c,_ in STRATA]},
          "outcomes":[]}
 for key,var,group,label,direction,default in OUTCOMES:
