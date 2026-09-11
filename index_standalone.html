@@ -444,7 +444,7 @@ function draw(){
   let lo=1,hi=1;
   F.forEach(f=>rows.forEach(k=>{const e=estIn(f,k); if(e){lo=Math.min(lo,e.lo);hi=Math.max(hi,e.hi);}}));
   lo=Math.min(lo,1/1.15); hi=Math.max(hi,1.15);
-  const W=Math.max(200,320-(F.length-1)*20), PADR=16, H=25*rows.length+76, X1=W-PADR;
+  const W=Math.max(200,320-(F.length-1)*20), PADR=16, H=25*rows.length+54, X1=W-PADR;
   const sx=v=>6+(Math.log(v)-Math.log(lo))/(Math.log(hi)-Math.log(lo))*(X1-6);
 
   F.forEach((f,ci)=>{
@@ -455,19 +455,15 @@ function draw(){
     [0.5,0.7,1,1.5,2,3].filter(t=>t>=lo*.98&&t<=hi*1.02).forEach(t=>{
       svg+=`<text x="${OX+sx(t)}" y="${H-6}" fill="${PAL.mid}" font-size="10" text-anchor="middle">${t}</text>
             <line x1="${OX+sx(t)}" y1="${H-20}" x2="${OX+sx(t)}" y2="${H-17}" stroke="${PAL.faint}"/>`;});
-    svg+=`<line x1="${OX+sx(1)}" y1="52" x2="${OX+sx(1)}" y2="${H-20}" stroke="${PAL.faint}"/>`;
-    if(ci===0){   // key: what a filled versus hollow circle means
-      svg+=`<circle cx="6" cy="20" r="4.2" fill="${PAL.priv}" stroke="${PAL.priv}" stroke-width="1.4"/>
-            <text x="15" y="23.5" fill="${PAL.mid}" font-size="10">filled — interval excludes 1</text>
-            <circle cx="6" cy="33" r="3.4" fill="${PAL.bg}" stroke="${PAL.mid}" stroke-width="1.4"/>
-            <text x="15" y="36.5" fill="${PAL.mid}" font-size="10">hollow — interval spans 1</text>`;}
+    svg+=`<line x1="${OX+sx(1)}" y1="30" x2="${OX+sx(1)}" y2="${H-20}" stroke="${PAL.faint}"/>`;
+
     rows.forEach((rk,i)=>{
-      const e=estIn(f,rk), y=62+i*25, ind=isRegime(rk)?0:12;
+      const e=estIn(f,rk), y=40+i*25, ind=isRegime(rk)?0:12;
       if(ci===0) svg+=`<text x="${ind}" y="${y+4}" fill="${isRegime(rk)?PAL.ink:PAL.mid}" font-size="${isRegime(rk)?12:11.3}">${labelOf(rk)}</text>`;
       if(!e){svg+=`<text x="${OX+sx(1)}" y="${y+4}" fill="${PAL.faint}" font-size="10" text-anchor="middle">not fielded</text>`;return;}
       const sig=!(e.lo<1&&e.hi>1), col=!sig?PAL.mid:(e.odds_ratio<1?PAL.obs:PAL.priv);
       svg+=`<line x1="${OX+sx(e.lo)}" y1="${y}" x2="${OX+sx(e.hi)}" y2="${y}" stroke="${col}" stroke-width="1.4"/>
-            <circle cx="${OX+sx(e.odds_ratio)}" cy="${y}" r="${sig?4.2:3.4}" fill="${sig?col:PAL.bg}" stroke="${col}" stroke-width="1.4"/>`;
+            <circle cx="${OX+sx(e.odds_ratio)}" cy="${y}" r="4.2" fill="${col}" stroke="${col}" stroke-width="1.4"/>`;
       if(e.restricted||isPlat(rk)) svg+=`<text x="${OX+sx(e.hi)+5}" y="${y+3.5}" fill="${PAL.faint}" font-size="9.5">6w</text>`;
     });
     d.innerHTML=`<h3>${ci===0?o.label:flabel}</h3><p class="pmeta">${
@@ -518,8 +514,8 @@ function draw(){
     regime and channel on all 15 waves, and platform (Facebook, Twitter/X, YouTube, Instagram,
     Snapchat, TikTok, Reddit, Wikipedia, Messenger, WhatsApp) on the six waves that field the
     named-platform battery. A platform row is <strong>not a decomposition of the regime row above
-    it</strong>: they are different models on different samples. Blue is below 1, purple above 1,
-    grey spans 1. Estimates from the six-wave batteries — AI Chat and every platform — are marked
+    it</strong>: they are different models on different samples. Blue is below 1, purple above 1, grey means the
+    interval spans 1. Estimates from the six-wave batteries — AI Chat and every platform — are marked
     “6w”. Trust outcomes are “a lot” or “some”; conspiracy items
     “agree” or “strongly agree”. These are cross-sectional associations confounded with selective
     exposure, not transmission rates. Built ${DATA.meta.built}. ${DATA.meta.note}`;
