@@ -57,6 +57,9 @@ input[type=checkbox],input[type=radio]{margin:3px 0 0;accent-color:var(--obs);fl
 .nrow label{flex:1;display:flex;gap:7px;align-items:center;cursor:pointer;font-size:13px}
 .kids label{font-size:12.3px;color:var(--mid)}
 .nrow .ch{color:var(--mid);font-size:11.4px}
+.grouphdr{padding:7px 0 5px}
+.grouphdr .ghl{font-size:12.4px;font-weight:600;color:var(--ink)}
+.grouphdr .ghn{margin-left:auto;font-size:10.2px;color:var(--faint);font-style:italic}
 .na{opacity:.34}
 .na label{cursor:not-allowed}
 
@@ -228,7 +231,7 @@ const DEFS=[
  ["SPM","Semi-Public Messaging","not measured",
   "Large group chats on WhatsApp, Telegram and Discord: joinable by a researcher but not countable from outside. The regime exists in the taxonomy and has no CHIP50 channel of its own, so it cannot appear in any estimate here."],
  ["CRW","Crowdsourced","Wikipedia, Reddit",
-  "Publicly logged, community-moderated content written under pseudonyms. Perfectly countable and permanently preserved, with an author beyond the reach of defamation — the clearest case of the two axes coming apart. Reddit and Wikipedia are fielded only in the named-platform battery, not the generic 24-hour one, so Crowdsourced has no regime-level estimate — but its two channels can be selected individually and are estimated on those six waves."]];
+  "Publicly logged, community-moderated content written under pseudonyms. Perfectly countable and permanently preserved, with an author beyond the reach of defamation — the clearest case of the two axes coming apart. Reddit and Wikipedia are fielded only in the named-platform battery, not the generic 24-hour one, so there is no 24-hour item to estimate: Crowdsourced appears in the selector as a heading over its two channels rather than as a regime you can check."]];
 
 function fail(msg){document.getElementById("plots").innerHTML=
   '<div style="border:1px solid #e6e9ec;border-radius:11px;padding:20px;color:#6b4c9a">'+
@@ -393,16 +396,23 @@ function renderTree(){
     const na=r&&selOut.length&&!e;          // regime not fielded for this outcome
     const node=document.createElement("div"); node.className="node";
     const soloTag=solo?` <span class="ch">(${r.channels[0].label})</span>`:"";
-    const box=r?`<input type="checkbox" data-pred="1" value="${pk}" ${selPred.has(pk)?"checked":""}${na?" disabled":""}>`
-               :`<span style="width:13px;flex:none"></span>`;
-    node.innerHTML=
-      `<div class="nrow${na?" na":""}"${na?' title="Not fielded in the waves that carry this outcome"':""}>
-         <span class="tw ${hasKids?"":"leaf"} ${open?"open":""}" data-tw="${pk}">▶</span>
-         <label>${box}<span>${labelOf(pk)}${soloTag}${
-            r?"":' <span class="ch">(6-wave battery only)</span>'}</span></label>
-         <span class="meta">${e?e.pct_occupying.toFixed(0)+"%":""}</span>
-       </div>
-       ${hasKids?`<div class="kids ${open?"open":""}" data-kids="${pk}"></div>`:""}`;
+    // A regime with no 24-hour item of its own (Crowdsourced) has nothing to check at the
+    // regime level. Draw it as a group heading rather than as a row whose checkbox is
+    // missing, which reads as broken.
+    node.innerHTML = r
+      ? `<div class="nrow${na?" na":""}"${na?' title="Not fielded in the waves that carry this outcome"':""}>
+           <span class="tw ${hasKids?"":"leaf"} ${open?"open":""}" data-tw="${pk}">▶</span>
+           <label><input type="checkbox" data-pred="1" value="${pk}" ${selPred.has(pk)?"checked":""}${na?" disabled":""}>
+             <span>${labelOf(pk)}${soloTag}</span></label>
+           <span class="meta">${e?e.pct_occupying.toFixed(0)+"%":""}</span>
+         </div>
+         ${hasKids?`<div class="kids ${open?"open":""}" data-kids="${pk}"></div>`:""}`
+      : `<div class="nrow grouphdr">
+           <span class="tw ${open?"open":""}" data-tw="${pk}">▶</span>
+           <span class="ghl">${labelOf(pk)}</span>
+           <span class="ghn">select a channel below</span>
+         </div>
+         <div class="kids ${open?"open":""}" data-kids="${pk}"></div>`;
     if(hasKids){
       const kids=node.querySelector(".kids");
       kidsList.forEach(c=>{
