@@ -96,6 +96,21 @@ tr.sep td{border-bottom:1px solid var(--faint);padding:0;height:0}
 .defs p{margin:0 0 11px;break-inside:avoid}
 .defs b{font-weight:600}
 .tabsets{border-top:1px solid var(--hair);margin-top:14px;padding-top:11px}
+.xgrid{border-collapse:separate;border-spacing:3px;width:100%;table-layout:fixed}
+.xgrid th{font-size:9.4px;letter-spacing:.07em;text-transform:uppercase;color:var(--mid);
+  font-weight:700;text-align:center;padding:0 0 2px;border:0;white-space:normal;line-height:1.25}
+.xgrid th.rowh{text-align:right;padding-right:6px;width:74px;text-transform:none;
+  letter-spacing:0;font-size:10.6px;color:var(--ink);font-weight:600}
+.xgrid td{padding:0;border:0}
+.xcell{display:block;width:100%;border:1px solid var(--hair);background:var(--bg);
+  border-radius:7px;padding:5px 2px;font-family:inherit;font-size:10px;font-weight:400;
+  color:var(--mid);cursor:pointer;line-height:1.3}
+.xcell:hover:not([disabled]){background:var(--wash);color:var(--ink)}
+.xcell.on{background:var(--ink);border-color:var(--ink);color:#fff}
+.xcell[disabled]{opacity:.3;cursor:not-allowed}
+.xcell .xn{display:block;font-size:8.8px;opacity:.72}
+.xcell.marg{background:var(--wash)}
+.xcell.marg.on{background:var(--ink)}
 .tabset{display:flex;align-items:center;gap:5px;margin-bottom:6px;flex-wrap:nowrap}
 .tlab{font-size:9px;letter-spacing:.11em;text-transform:uppercase;color:var(--mid);
   font-weight:700;width:96px;flex:none;line-height:1.25}
@@ -152,19 +167,14 @@ tr.sep td{border-bottom:1px solid var(--faint);padding:0;height:0}
         <div class="track">Forest plots</div>
         <div class="plots" id="plots"></div>
         <div class="tabsets">
-          <div class="tabset"><span class="tlab">Subgroup</span><div id="tabsAll"></div></div>
-          <div class="tabset"><span class="tlab">Party</span><div id="tabsParty"></div></div>
-          <div class="tabset"><span class="tlab">Education</span><div id="tabsEdu"></div></div>
-          <div class="tabset"><span class="tlab">Party × education</span>
-            <div id="crossParty"></div><span class="xsep">×</span><div id="tabsRepEdu"></div></div>
-          <p class="note" style="margin-top:8px">One filter at a time. Choosing a party clears
-            any education filter and the reverse, because the models are fitted separately for
-            each subgroup and no crossed cell — Republicans with a college degree, say — was
-            estimated. Each subgroup is its own model, not an interaction, and the variable
-            defining it is dropped from the controls inside it. The third row crosses the two:
-            pick a party, then an education level. Both party and education leave the controls
-            inside a crossed cell, and the cells get small at the edges — check the n on each
-            chip before reading much into one.</p>
+          <div class="track" style="margin-bottom:7px">Subgroup</div>
+          <table class="xgrid" id="xgrid"></table>
+          <p class="note" style="margin-top:9px">Click any cell. The top-left cell is every
+            respondent; the top row holds education on its own, the left column party on its own,
+            and the interior cells cross the two. Leaners fold into the party they lean toward.
+            Each cell is its own fitted model rather than an interaction term, and the variables
+            defining it leave the control set inside it. Cells thin out toward the bottom right —
+            the count is on every cell, so check it before reading much into one.</p>
         </div>
       </div>
     </div>
@@ -208,7 +218,7 @@ tr.sep td{border-bottom:1px solid var(--faint);padding:0;height:0}
 const PAL={ink:"#16181d",mid:"#71777f",faint:"#ccd1d6",hair:"#e6e9ec",
            obs:"#2f6f8f",semi:"#4f5f9e",priv:"#6b4c9a",bg:"#fff",wash:"#f4f7f9"};
 let DATA=null, QTEXT=null, selOut=[], selPred=new Set(), openNodes=new Set(),
-    selStratum="all", crossParty="rep";
+    selStratum="all";
 
 const PRIMARY=["science"];
 const DISCLOSE=[["Other science and health institutions",["cdc","fda","doctors","pharma"]],
@@ -335,54 +345,43 @@ function modelsFor(k){return O(k).models||{};}
 function facets(){
   const avail=modelsFor(selOut[0]);
   return [avail[selStratum]?selStratum:"all"];}
+const PARTY_ROWS=[["all","All parties"],["dem","Democrat"],["ind","Independent"],["rep","Republican"]];
+const EDU_COLS=[["all","All education"],["High_school_or_less","High school or less"],
+                ["Some_college","Some college"],["College_degree","College degree"],
+                ["Graduate_degree","Graduate degree"]];
+const PARTY_FULL={dem:"Democrat",ind:"Independent",rep:"Republican"};
+// every cell of the grid maps onto exactly one fitted stratum
+function cellKey(p,e){
+  if(p==="all"&&e==="all") return "all";
+  if(e==="all") return "party_"+PARTY_FULL[p];
+  if(p==="all") return "edu_"+e;
+  return "x_"+p+"_"+e;}
 function renderTabs(){
   const avail=modelsFor(selOut[0]);
-  // One filter is active at a time, so there is one control that turns it off — three
-  // per-row "off" buttons all pointed at the same state and were pure redundancy.
-  const allHost=document.getElementById("tabsAll"); allHost.innerHTML="";
-  const allBtn=document.createElement("button");
-  allBtn.className="tab off"+(selStratum==="all"?" on":"");
-  allBtn.textContent="All respondents — no filter"; allBtn.dataset.stratum="all";
-  allHost.appendChild(allBtn);
-  [["party","tabsParty"],["edu","tabsEdu"]].forEach(([kind,id])=>{
-    const host=document.getElementById(id); host.innerHTML="";
-    strata(kind).forEach(st=>{
+  const g=document.getElementById("xgrid"); g.innerHTML="";
+  const head=document.createElement("tr");
+  head.innerHTML='<th class="rowh"></th>'+EDU_COLS.map(([,l])=>`<th>${l}</th>`).join("");
+  g.appendChild(head);
+  PARTY_ROWS.forEach(([p,plab])=>{
+    const tr=document.createElement("tr");
+    tr.innerHTML=`<th class="rowh">${plab}</th>`;
+    EDU_COLS.forEach(([e])=>{
+      const key=cellKey(p,e), m=avail[key];
+      const marg=(p==="all"||e==="all");
+      const td=document.createElement("td");
       const b=document.createElement("button");
-      b.className="tab"+(selStratum===st.key?" on":"");
-      b.textContent=st.label; b.dataset.stratum=st.key;
-      if(!avail[st.key]){b.disabled=true; b.title="Not estimable for this outcome — too few respondents";}
-      else b.title=`n = ${avail[st.key].regime.n.toLocaleString()}`;
-      host.appendChild(b);
+      b.className="xcell"+(marg?" marg":"")+(selStratum===key?" on":"");
+      b.dataset.stratum=key;
+      if(!m){b.disabled=true; b.innerHTML="—"; b.title="Not estimable for this outcome";}
+      else b.innerHTML=(key==="all"?"Everyone":"&nbsp;")+
+            `<span class="xn">n = ${m.regime.n.toLocaleString()}</span>`;
+      td.appendChild(b); tr.appendChild(td);
     });
-  });
-  // Crossed row: choose a party once, then an education level. Twelve chips on one line
-  // would be unreadable, and the party choice is the thing a reader wants to switch while
-  // holding education fixed.
-  const ph=document.getElementById("crossParty"); ph.innerHTML="";
-  [["dem","Dem"],["ind","Ind"],["rep","Rep"]].forEach(([ab,lab])=>{
-    const b=document.createElement("button");
-    b.className="tab xparty"+(crossParty===ab?" on":"");
-    b.textContent=lab; b.dataset.crossparty=ab;
-    ph.appendChild(b);
-  });
-  const ch=document.getElementById("tabsRepEdu"); ch.innerHTML="";
-  strata("cross").filter(st=>st.key.startsWith("x_"+crossParty+"_")).forEach(st=>{
-    const b=document.createElement("button");
-    b.className="tab"+(selStratum===st.key?" on":"");
-    b.textContent=st.label.split(" · ")[1]; b.dataset.stratum=st.key;
-    if(!avail[st.key]){b.disabled=true; b.title="Not estimable for this outcome — too few respondents";}
-    else b.title=`n = ${avail[st.key].regime.n.toLocaleString()}`;
-    ch.appendChild(b);
+    g.appendChild(tr);
   });
 }
 document.addEventListener("click",e=>{
-  const xp=e.target.closest("[data-crossparty]");
-  if(xp){ crossParty=xp.dataset.crossparty;
-          if(selStratum.startsWith("x_")) selStratum="all";   // the old cell is a different party
-          renderTabs(); draw(); return; }
-  const b=e.target.closest(".tab"); if(!b||b.disabled)return;
-  // single select across both rows: picking a party clears any education filter and
-  // vice versa, because the crossed cell is not a model that exists
+  const b=e.target.closest(".xcell"); if(!b||b.disabled)return;
   selStratum = (selStratum===b.dataset.stratum) ? "all" : b.dataset.stratum;
   renderTabs(); draw();});
 

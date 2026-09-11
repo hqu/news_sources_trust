@@ -52,13 +52,23 @@ weighted occupancy share.
 
 ## Subgroups
 
-One subgroup filter is active at a time, so there is always exactly one forest plot. Party
-folds leaners into the party they lean toward; only pure independents are Independent.
+Subgroups are chosen from a 4 x 5 grid: party down the side, education across the top.
+Every cell is one click.
 
-The third row crosses the two: pick a party, then an education level. Twelve cells were
-fitted, and they are the only way to see an education gradient *inside* a party. They get
-thin at the edges — Independents holding a graduate degree is the smallest at about 6,000 —
-so check the n on the chip before reading much into a single cell.
+|  | All education | HS or less | Some college | College | Graduate |
+|---|---|---|---|---|---|
+| **All parties** | everyone | education alone | | | |
+| **Democrat** | party alone | crossed | crossed | crossed | crossed |
+| **Independent** | party alone | crossed | crossed | crossed | crossed |
+| **Republican** | party alone | crossed | crossed | crossed | crossed |
+
+The top-left cell is every respondent, the top row is education on its own, the left column
+is party on its own, and the twelve interior cells cross the two. Leaners fold into the
+party they lean toward; only pure independents are Independent.
+
+One cell is active at a time, so there is always exactly one forest plot. Cells thin out
+toward the bottom right — Independents holding a graduate degree is the smallest at about
+6,000 against 177,000 for Democrats overall — and the count is printed on every cell.
 
 Every subgroup is its own fitted model rather than an interaction term, and the variables
 defining it leave the control set inside it: a party model drops party, an education model
