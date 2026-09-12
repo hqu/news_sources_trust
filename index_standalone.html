@@ -58,6 +58,10 @@ input[type=checkbox],input[type=radio]{margin:3px 0 0;accent-color:var(--obs);fl
 .kids.open{display:block}
 .nrow label{flex:1;display:flex;gap:7px;align-items:center;cursor:pointer;font-size:13px}
 .kids label{font-size:12.3px;color:var(--mid)}
+.platcap{font-size:9.6px;letter-spacing:.12em;text-transform:uppercase;color:var(--mid);
+  font-weight:700;margin:7px 0 2px;padding-top:6px;border-top:1px dotted var(--faint)}
+.platcap span{display:block;letter-spacing:0;text-transform:none;font-weight:400;
+  font-size:10.2px;color:var(--faint);line-height:1.35}
 .nrow .ch{color:var(--mid);font-size:11.4px}
 .grouphdr{padding:7px 0 5px}
 .grouphdr .ghl{font-size:12.4px;font-weight:600;color:var(--ink)}
@@ -596,7 +600,15 @@ function renderTree(){
          <div class="kids ${open?"open":""}" data-kids="${pk}"></div>`;
     if(hasKids){
       const kids=node.querySelector(".kids");
+      let platHdr=false;
       kidsList.forEach(c=>{
+        if(c.six&&!platHdr){
+          platHdr=true;
+          const cap=document.createElement("div"); cap.className="platcap";
+          cap.innerHTML=`named platforms <span>separate model on 6 waves — not a breakdown of
+            ${labelOf(pk)} above</span>`;
+          kids.appendChild(cap);
+        }
         const ce=selOut.length?estOf(O(selOut[0]),c.key):null;
         const cna=selOut.length&&!ce;
         const l=document.createElement("label"); l.className="row"+(cna?" na":"");
