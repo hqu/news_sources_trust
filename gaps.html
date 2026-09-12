@@ -285,7 +285,7 @@ const PANEL_LABEL={"":"Everyone",dem:"Democrats",rep:"Republicans",
   s1_dem:"Users · Democrats",s1_rep:"Users · Republicans"};
 /* label a, label b, dot colour a, dot colour b, then the text colour for each -- the
    reference end's dot is deliberately lighter than its number. */
-const ENDS={source:()=>["Uses "+srcLabel(),"Doesn't use it","var(--use)","var(--nouse)",
+const ENDS={source:()=>["Uses "+srcLabel(),"Doesn\u2019t use "+srcLabel(),"var(--use)","var(--nouse)",
                         "var(--use)","var(--nouse-txt)"],
             party:()=>["Democrats","Republicans","var(--dem)","var(--rep)",
                        "var(--dem)","var(--rep)"],
@@ -322,7 +322,11 @@ function buildContrast(){
   h.innerHTML=`<span class="lbl">Compare</span><span class="seg">${seg}</span>
     <span class="sep"></span>
     <span class="lbl">Split the panels by</span><span class="splits">${splits}</span>`;
-  const LV={source:"people who use it for political news and people who don\u2019t",
+}
+/* Set from draw() rather than from buildContrast(), because changing the source redraws the
+   chart without rebuilding the controls and this sentence names the source. */
+function contrastNote(){
+  const LV={source:"people who use "+srcLabel()+" for political news and people who don\u2019t",
             party:"Democrats and Republicans",
             diploma:"people with a college degree or higher and people without one"};
   document.getElementById("roleNote").textContent =
@@ -379,6 +383,7 @@ function draw(){
   const host=document.getElementById("chart"); host.innerHTML="";
   const c=cell(), pk=panels(), [la,lb,ca,cb,ta,tb]=ENDS[S.compare]();
   const outcomeWord = outObj().direction==="belief" ? "believe it" : "trust them";
+  contrastNote();
   document.getElementById("chartTitle").textContent=outObj().label||"";
   document.getElementById("chartQ").textContent=outObj().q||"";
   if(!c){ host.innerHTML='<div class="note warn">No model for this source and outcome — the '+
@@ -537,9 +542,14 @@ function drawDid(){
 function drawTable(){
   const c=cell(), pk=panels(), [la,lb]=ENDS[S.compare]();
   const t=document.getElementById("tbl");
+  // The first two columns already name the source, so the count and observed columns use the
+  // short form -- "n doesn't use cable tv" lowercases a proper noun and reads like a sentence
+  // fragment in a header.
+  const SHORT={source:["users","non-users"],party:["Democrats","Republicans"],
+               diploma:["graduates","non-graduates"]}[S.compare];
   t.innerHTML=`<thead><tr><th>Group</th><th>${la}</th><th>${lb}</th><th>Gap (pts)</th>
-    <th>95% CI</th><th>n ${la.toLowerCase()}</th><th>n ${lb.toLowerCase()}</th>
-    <th>Observed ${la.toLowerCase()}</th><th>Observed ${lb.toLowerCase()}</th></tr></thead>`;
+    <th>95% CI</th><th>n ${SHORT[0]}</th><th>n ${SHORT[1]}</th>
+    <th>Observed, ${SHORT[0]}</th><th>Observed, ${SHORT[1]}</th></tr></thead>`;
   const tb=document.createElement("tbody");
   pk.forEach(k=>{ const g=gapOf(k); if(!g) return;
     const tr=document.createElement("tr");
