@@ -77,8 +77,18 @@ tbody tr:hover{background:var(--wash)}
 .tip{position:fixed;pointer-events:none;background:#16181dF2;color:#fff;border-radius:7px;
   padding:7px 10px;font-size:11.4px;line-height:1.45;z-index:99;display:none;max-width:280px}
 svg{display:block;overflow:visible}
-.did{border-left:3px solid var(--ink);padding:2px 0 2px 13px;margin-top:14px}
-.did b{font-size:15px}
+/* The gap-of-gaps read-out sat as free text behind a heavy rule, which floated away from the
+   chart it refers to. It is now a bounded block under a hairline, one card per comparison,
+   with the method sentence said once underneath instead of repeated on every card. */
+.didwrap{margin-top:15px;padding-top:13px;border-top:1px solid var(--hair)}
+.didgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(248px,1fr));gap:10px}
+.did{background:var(--wash);border-radius:9px;padding:10px 12px}
+.did .dl{font-size:9.4px;letter-spacing:.14em;text-transform:uppercase;color:var(--mid);
+  font-weight:700;margin-bottom:4px}
+.did .dv{font-size:18px;font-weight:700;letter-spacing:-.02em;line-height:1.1}
+.did .dv small{font-size:11px;font-weight:400;color:var(--mid);letter-spacing:0;margin-left:5px}
+.did p{margin:5px 0 0;font-size:11.8px;line-height:1.5;color:#3a4048}
+.didmeth{font-size:11.2px;color:var(--mid);margin:8px 0 0;line-height:1.5}
 .thin{background:repeating-linear-gradient(45deg,#0000,#0000 3px,#9a3b3022 3px,#9a3b3022 6px)}
 </style>
 </head>
@@ -379,12 +389,12 @@ function draw(){
     svg.appendChild(txt(PANEL_LABEL[k]||k,{x:M.l-14,y:y+4,"text-anchor":"end","font-size":12.4,
       "font-weight":600,fill:"var(--ink)"}));
     const bar=el("line",{x1:X(Math.min(va,vb)),x2:X(Math.max(va,vb)),y1:y,y2:y,
-      stroke:"var(--ink)","stroke-width":thin?1.4:3,opacity:thin?.35:.2,"stroke-linecap":"round"});
+      stroke:"var(--ink)","stroke-width":thin?1.6:3.4,opacity:thin?.35:.18,"stroke-linecap":"round"});
     svg.appendChild(bar);
     [[vb,cb,lb,g.nb,tb],[va,ca,la,g.na,ta]].forEach(([v,col,lab,n,tcol])=>{
       const gg=el("g");
       gg.appendChild(el("circle",{cx:X(v),cy:y,r:9,fill:"transparent","pointer-events":"all"}));
-      gg.appendChild(el("circle",{cx:X(v),cy:y,r:1.7,fill:col}));
+      gg.appendChild(el("circle",{cx:X(v),cy:y,r:4,fill:col}));
       gg.appendChild(txt(fmt(v,0)+"%",{x:X(v),y:y-12,"text-anchor":"middle","font-size":11.4,
         "font-weight":700,fill:tcol}));
       gg.appendChild(txt("n="+n.toLocaleString(),{x:X(v),y:y+17,"text-anchor":"middle",
@@ -411,7 +421,7 @@ function draw(){
   /* legend */
   const lg=el("g",{transform:`translate(${M.l},${M.t-16})`});
   [[la,ca,0],[lb,cb,190]].forEach(([t,col,dx])=>{
-    lg.appendChild(el("circle",{cx:dx+4,cy:-4,r:3.5,fill:col}));
+    lg.appendChild(el("circle",{cx:dx+4,cy:-4,r:4,fill:col}));
     lg.appendChild(txt(t,{x:dx+14,y:0,"font-size":11,fill:"var(--mid)"}));
   });
   svg.appendChild(lg);
@@ -484,17 +494,21 @@ function drawDid(){
          if(S.compare==="diploma"&&S.split.party)dims.push("party"); }
   const WORD={party:["Democrats","Republicans"],diploma:["graduates","non-graduates"],
               source:["users","non-users"]};
+  const cards=[];
   for(const dm of dims){
     const D=c.did[S.compare+"|"+dm]; if(!D) continue;
     const [wa,wb]=WORD[dm], sig=(D.lo>0||D.hi<0);
-    box.insertAdjacentHTML("beforeend",
-      `<div class="did"><b>${D.est>0?"+":""}${fmt(D.est)} points</b> —
-       the gap among <b>${wa}</b> is that much ${D.est>0?"wider":"narrower"} than the gap among
-       <b>${wb}</b>. 95% CI [${fmt(D.lo)}, ${fmt(D.hi)}], which
-       ${sig?"<b>excludes</b>":"includes"} zero.
-       <div class="note" style="margin-top:2px">A difference between two differences, estimated from
-       one model with the interaction in it rather than by comparing two separate fits.</div></div>`);
+    cards.push(`<div class="did">
+      <div class="dl">${wa} against ${wb}</div>
+      <div class="dv">${D.est>0?"+":""}${fmt(D.est)} points
+        <small>95% CI ${fmt(D.lo)} to ${fmt(D.hi)}, ${sig?"excludes":"includes"} zero</small></div>
+      <p>The gap among ${wa} is that much ${D.est>0?"wider":"narrower"} than the gap among ${wb}.</p>
+      </div>`);
   }
+  if(!cards.length) return;
+  box.innerHTML=`<div class="didwrap"><div class="didgrid">${cards.join("")}</div>
+    <p class="didmeth">Each is a difference between two differences, estimated from one model
+    carrying the interaction rather than by comparing two separately fitted numbers.</p></div>`;
 }
 function drawTable(){
   const c=cell(), pk=panels(), [la,lb]=ENDS[S.compare]();
