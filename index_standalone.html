@@ -374,7 +374,13 @@ const STEM_NOTE={
   fn:"A rotating battery; each claim runs in its own subset of waves."};
 function renderQuestions(){
   if(!QTEXT)return;
-  const item=(k,e)=>`<p class="q"><span class="qv">${k}</span>${e.text}`
+  // Which regime each answer option belongs to, read from the payload rather than written out
+  // here, so a taxonomy change reaches this section too. Only the news-source battery has one;
+  // outcomes and controls are left bare.
+  const RG={};
+  REG().forEach(r=>(r.channels||[]).forEach(c=>{RG[c.key]=r.label;}));
+  PLATS().forEach(p=>{RG[p.key]=labelOf(p.parent);});
+  const item=(k,e)=>`<p class="q"><span class="qv">${k}${RG[k]?" ("+RG[k]+")":""}</span>${e.text}`
       +(e.scale&&e.scale.length?`<br><span class="qs">${e.scale.join(" · ")}</span>`:"")+`</p>`;
   const put=(id,grp)=>{
     const host=document.getElementById(id); if(!host)return;
