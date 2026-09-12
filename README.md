@@ -4,12 +4,22 @@ An interactive view of how political news source use predicts trust in science a
 institutions, conspiracy belief, and election denial. Built for collaborators who want to
 explore the estimates without touching the underlying survey.
 
-There are **two pages**, both reading the same `data.json`:
+There are **three pages**:
 
-| page | question it answers |
-|---|---|
-| `index.html` | For a given outcome, how do the news-source regimes rank? Forest plot, live multivariate model, party and education subgroups. |
-| `explorer.html` | How does that ranking **change with how widely the belief is held**? Guided walkthrough of the two headline results, then a prevalence-window explorer. |
+| page | data | question it answers |
+|---|---|---|
+| `index.html` | `data.json` | For a given outcome, how do the news-source regimes rank? Forest plot, live multivariate model, party and diploma-divide subgroups. |
+| `explorer.html` | `data.json` | How does that ranking **change with how widely the belief is held**? Guided walkthrough of the two headline results, then a prevalence-window explorer. |
+| `gaps.html` | `gap_data.json` | **Who the gap belongs to.** The same associations as a difference between two groups of people, in percentage points — Democrats vs Republicans, graduates vs non-graduates, or users vs non-users of a source. Modelled on Paper 1. |
+
+## Access word
+
+All three pages sit behind a shared word. **This is a deterrent, not security.** The pages are
+served from a public URL, the check runs in the reader's browser, and `data.json` and
+`gap_data.json` can be requested directly without going through the dialog. It keeps unfinished
+work from being stumbled on or indexed; it protects nothing. Real access control needs a server
+that checks before it serves — Netlify or Vercel password protection, or Cloudflare Access.
+Nothing served here is respondent-level, which is why a soft gate is adequate for now.
 
 `explorer.html` orients every outcome to the **adverse direction** — believing the claim, or
 *distrusting* the institution — and puts all eighteen on one axis, "% of the population in the
@@ -24,7 +34,7 @@ user who narrows to three points would otherwise get a correlation near ±1 that
 
 ## Running it
 
-**Just open `index_standalone.html`** (or `explorer_standalone.html`). It has the data built in, needs no server, and works
+**Just open `index_standalone.html`** (or `explorer_standalone.html`, or `gaps_standalone.html`). It has the data built in, needs no server, and works
 from a double-click or as an email attachment. That is the file to send to collaborators.
 
 `index.html` + `data.json` is the version to use while iterating — it reads the JSON at load
@@ -33,10 +43,16 @@ browsers block a `file://` page from reading a sibling file:
 
     python3 -m http.server 8000
 
-After rebuilding `data.json`, regenerate both shareable copies:
+After rebuilding a payload, regenerate the shareable copies:
 
-    python3 embed_data.py
-    python3 embed_explorer.py
+    python3 embed_data.py       # index_standalone.html
+    python3 embed_explorer.py   # explorer_standalone.html
+    python3 embed_gaps.py       # gaps_standalone.html
+
+`gap_data.json` comes from its own build, which fits one model per outcome-by-source rather than
+one per outcome, and takes about ten minutes:
+
+    python3 build_gap_data.py
 
 No external dependencies, no CDN, no build step beyond that.
 

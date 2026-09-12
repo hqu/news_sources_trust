@@ -116,6 +116,62 @@ svg{display:block;overflow:visible}
 </style>
 </head>
 <body>
+<!-- ============================ access gate ============================
+     A SHARED WORD, NOT SECURITY. This page is served from a public URL and its data file
+     can be fetched directly without going through this dialog, so the gate keeps the work
+     from being stumbled on or indexed; it does not protect anything. Real access control
+     needs a server that checks before it serves. The dialog says so too, rather than
+     implying a protection that is not there. -->
+<div id="gate">
+  <form id="gateform" autocomplete="off">
+    <div class="gt">CHIP50 · Civic Health and Institutions Project</div>
+    <h2>This dashboard is not public yet.</h2>
+    <p>Enter the shared access word to continue.</p>
+    <input type="password" id="gatepw" aria-label="Access word" autocomplete="current-password">
+    <button type="submit">Open</button>
+    <p id="gateerr"></p>
+    <p class="gatenote">A deterrent, not a protection: the page is served from a public URL
+      and its aggregated data file can be requested directly. Nothing here is respondent-level.</p>
+  </form>
+</div>
+<style>
+#gate{position:fixed;inset:0;background:#fff;z-index:9999;display:none;
+  align-items:center;justify-content:center;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif}
+#gate form{max-width:400px;padding:30px 32px;border:1px solid #e6e9ec;border-radius:14px}
+#gate .gt{letter-spacing:.19em;text-transform:uppercase;font-size:10px;font-weight:700;color:#71777f}
+#gate h2{font-size:19px;margin:9px 0 6px;color:#16181d}
+#gate p{font-size:13px;color:#71777f;margin:0 0 14px;line-height:1.55}
+#gate input{width:100%;font:inherit;font-size:14px;padding:8px 10px;border:1px solid #ccd1d6;
+  border-radius:8px;margin-bottom:9px}
+#gate input:focus{outline:none;border-color:#16181d}
+#gate button{font:inherit;font-size:13px;padding:7px 16px;border-radius:8px;border:1px solid #16181d;
+  background:#16181d;color:#fff;cursor:pointer}
+#gate #gateerr{color:#9a3b30;font-size:12.5px;margin:10px 0 0;min-height:16px}
+#gate .gatenote{font-size:11.2px;margin-top:14px;color:#a3a9b0}
+</style>
+<script>
+/* FNV-1a of the shared word. Hashing keeps the literal out of the source; it does not make
+   the gate secure, because the check runs on the reader's machine either way. */
+window.__unlock=function(run){
+  var KEY="chip50_open", WANT=3176098963;
+  function h(s){var x=0x811c9dc5;for(var i=0;i<s.length;i++){x^=s.charCodeAt(i);x=Math.imul(x,0x01000193)>>>0;}return x>>>0;}
+  var g=document.getElementById("gate");
+  if(sessionStorage.getItem(KEY)==="1"){ g.remove(); run(); return; }
+  g.style.display="flex";
+  document.getElementById("gateform").addEventListener("submit",function(e){
+    e.preventDefault();
+    if(h(document.getElementById("gatepw").value.trim())===WANT){
+      sessionStorage.setItem(KEY,"1"); g.remove(); run();
+    } else {
+      document.getElementById("gateerr").textContent="That is not the word.";
+      document.getElementById("gatepw").select();
+    }
+  });
+  document.getElementById("gatepw").focus();
+};
+</script>
+<!-- ========================== end access gate ========================== -->
+
 <div class="wrap">
 
 <h1>Rare beliefs and common beliefs go with different news sources</h1>
@@ -293,7 +349,7 @@ prevalence window. Everything below recomputes from the same fitted models — n
 
 <script id="payload" type="application/json">{
  "meta": {
-  "built": "2026-09-11",
+  "built": "2026-09-12",
   "source": "CHIP50 / Civic Health and Institutions Project",
   "note": "Aggregated model output only. No respondent-level data is present in this file.",
   "regimes": [
@@ -432,7 +488,7 @@ prevalence window. Everything below recomputes from the same fitted models — n
    {
     "key": "pol_news2_6",
     "label": "Snapchat",
-    "parent": "VLP"
+    "parent": "PVT"
    },
    {
     "key": "pol_news2_10",
@@ -165354,7 +165410,7 @@ function wire(){
 }
 
 /* ---- boot (last, so every const above is initialised) ---- */
-(function boot(){
+__unlock(function boot(){
   const inline=document.getElementById("payload").textContent.trim();
   const go=raw=>{
     prepare(raw);
@@ -165373,7 +165429,7 @@ function wire(){
        the fetch. Use <code>explorer_standalone.html</code>, or serve the folder with
        <code>python3 -m http.server</code>. <br><small>${err.message}</small></div>`);
   });
-})();
+});
 </script>
 </body>
 </html>

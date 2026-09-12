@@ -6,3 +6,4 @@ CSP_W*
 .DS_Store
 *.bak_*
 dashboard_*.html
+!gap_data.json

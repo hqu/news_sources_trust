@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Who the gap belongs to — CHIP50</title>
+<style>
+:root{--ink:#16181d;--mid:#71777f;--faint:#ccd1d6;--hair:#e6e9ec;--bg:#fff;--wash:#f4f7f9;
+      --dem:#0047ab;--rep:#b3003c;--deg:#1b7f3b;--nodeg:#e08214;
+      --use:#b3003c;--nouse:#6b7078}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;font-size:14px;line-height:1.5}
+.wrap{max-width:1440px;margin:0 auto;padding:34px 30px 70px}
+h1{font-size:25px;font-weight:700;margin:0 0 5px;letter-spacing:-.01em}
+.sub{color:var(--mid);font-size:14px;margin:0;max-width:940px}
+.track{letter-spacing:.19em;text-transform:uppercase;font-size:10.5px;font-weight:700;color:var(--mid)}
+.rule{height:1px;background:var(--hair);margin:20px 0 22px}
+.panel{border:1px solid var(--hair);border-radius:11px;padding:15px 16px}
+.panel+.panel{margin-top:14px}
+.btn{border:1px solid var(--faint);background:#fff;border-radius:7px;padding:4px 10px;
+  font:inherit;font-size:11.5px;color:var(--ink);cursor:pointer}
+.btn:hover{background:var(--wash)}
+.btn.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.btn[disabled]{opacity:.32;cursor:not-allowed}
+.note{color:var(--mid);font-size:11.8px;line-height:1.65;margin-top:9px}
+.warn{color:#9a3b30}
+.cols{display:grid;grid-template-columns:292px minmax(0,1fr);gap:24px;align-items:start}
+@media(max-width:1040px){.cols{grid-template-columns:1fr}}
+/* contrast builder */
+.roles{display:grid;grid-template-columns:132px repeat(3,1fr);gap:6px;align-items:center;
+  font-size:12.4px;margin-bottom:6px}
+.roles .rl{font-weight:600}
+.roles .hdr{font-size:9.6px;letter-spacing:.14em;text-transform:uppercase;color:var(--mid);
+  font-weight:700;text-align:center}
+.roles .lv{grid-column:1/-1;font-size:11.2px;color:var(--mid);margin:-2px 0 6px 0}
+label.row{display:flex;gap:8px;align-items:flex-start;padding:3px 0;cursor:pointer;font-size:12.6px}
+input[type=radio]{margin:3px 0 0;accent-color:var(--dem);flex:none}
+.meta{color:var(--mid);font-size:10.6px;margin-left:auto;padding-left:8px;white-space:nowrap}
+.grp{border-top:1px solid var(--hair);padding-top:7px;margin-top:7px}
+.grp:first-child{border-top:none;margin-top:0;padding-top:0}
+.grph{font-size:12.4px;font-weight:600;padding:3px 0}
+.kids{padding-left:19px}
+.kids label{font-size:11.8px;color:var(--mid)}
+table{border-collapse:collapse;width:100%;font-size:12.2px;margin-top:8px}
+th,td{text-align:right;padding:4.5px 9px;border-bottom:1px solid var(--hair);white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+th{color:var(--mid);font-weight:600;font-size:10.4px;letter-spacing:.05em;text-transform:uppercase}
+tbody tr:hover{background:var(--wash)}
+.tip{position:fixed;pointer-events:none;background:#16181dF2;color:#fff;border-radius:7px;
+  padding:7px 10px;font-size:11.4px;line-height:1.45;z-index:99;display:none;max-width:280px}
+svg{display:block;overflow:visible}
+.did{border-left:3px solid var(--ink);padding:2px 0 2px 13px;margin-top:14px}
+.did b{font-size:15px}
+.thin{background:repeating-linear-gradient(45deg,#0000,#0000 3px,#9a3b3022 3px,#9a3b3022 6px)}
+</style>
+</head>
+<body>
+<!-- ============================ access gate ============================
+     A SHARED WORD, NOT SECURITY. This page is served from a public URL and its data file
+     can be fetched directly without going through this dialog, so the gate keeps the work
+     from being stumbled on or indexed; it does not protect anything. Real access control
+     needs a server that checks before it serves. The dialog says so too, rather than
+     implying a protection that is not there. -->
+<div id="gate">
+  <form id="gateform" autocomplete="off">
+    <div class="gt">CHIP50 · Civic Health and Institutions Project</div>
+    <h2>This dashboard is not public yet.</h2>
+    <p>Enter the shared access word to continue.</p>
+    <input type="password" id="gatepw" aria-label="Access word" autocomplete="current-password">
+    <button type="submit">Open</button>
+    <p id="gateerr"></p>
+    <p class="gatenote">A deterrent, not a protection: the page is served from a public URL
+      and its aggregated data file can be requested directly. Nothing here is respondent-level.</p>
+  </form>
+</div>
+<style>
+#gate{position:fixed;inset:0;background:#fff;z-index:9999;display:none;
+  align-items:center;justify-content:center;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif}
+#gate form{max-width:400px;padding:30px 32px;border:1px solid #e6e9ec;border-radius:14px}
+#gate .gt{letter-spacing:.19em;text-transform:uppercase;font-size:10px;font-weight:700;color:#71777f}
+#gate h2{font-size:19px;margin:9px 0 6px;color:#16181d}
+#gate p{font-size:13px;color:#71777f;margin:0 0 14px;line-height:1.55}
+#gate input{width:100%;font:inherit;font-size:14px;padding:8px 10px;border:1px solid #ccd1d6;
+  border-radius:8px;margin-bottom:9px}
+#gate input:focus{outline:none;border-color:#16181d}
+#gate button{font:inherit;font-size:13px;padding:7px 16px;border-radius:8px;border:1px solid #16181d;
+  background:#16181d;color:#fff;cursor:pointer}
+#gate #gateerr{color:#9a3b30;font-size:12.5px;margin:10px 0 0;min-height:16px}
+#gate .gatenote{font-size:11.2px;margin-top:14px;color:#a3a9b0}
+</style>
+<script>
+/* FNV-1a of the shared word. Hashing keeps the literal out of the source; it does not make
+   the gate secure, because the check runs on the reader's machine either way. */
+window.__unlock=function(run){
+  var KEY="chip50_open", WANT=3176098963;
+  function h(s){var x=0x811c9dc5;for(var i=0;i<s.length;i++){x^=s.charCodeAt(i);x=Math.imul(x,0x01000193)>>>0;}return x>>>0;}
+  var g=document.getElementById("gate");
+  if(sessionStorage.getItem(KEY)==="1"){ g.remove(); run(); return; }
+  g.style.display="flex";
+  document.getElementById("gateform").addEventListener("submit",function(e){
+    e.preventDefault();
+    if(h(document.getElementById("gatepw").value.trim())===WANT){
+      sessionStorage.setItem(KEY,"1"); g.remove(); run();
+    } else {
+      document.getElementById("gateerr").textContent="That is not the word.";
+      document.getElementById("gatepw").select();
+    }
+  });
+  document.getElementById("gatepw").focus();
+};
+</script>
+<!-- ========================== end access gate ========================== -->
+
+<div class="wrap">
+<h1>Who the gap belongs to</h1>
+<p class="sub">The same survey, asked as a difference between people rather than a coefficient.
+Pick any two groups — <b>Democrats and Republicans</b>, <b>graduates and non-graduates</b>, or
+<b>people who use a news source and people who don't</b> — and see the share of each who hold a
+belief or trust an institution, and how far apart they are in percentage points.
+<span style="color:var(--ink)">Modelled on Paper 1, which put the private-messaging contrast at
+42% against 73% among Democrats — a 31-point difference.</span></p>
+<div class="rule"></div>
+
+<div class="cols">
+ <div>
+  <div class="panel">
+    <div class="track" style="margin-bottom:9px">The contrast</div>
+    <div class="roles" id="roles"></div>
+    <div class="note" id="roleNote"></div>
+  </div>
+  <div class="panel">
+    <div class="track" style="margin-bottom:8px">News source</div>
+    <div id="srcTree"></div>
+  </div>
+  <div class="panel">
+    <div class="track" style="margin-bottom:8px">Outcome</div>
+    <div id="outTree"></div>
+  </div>
+ </div>
+
+ <div>
+  <div class="panel" style="border:2.5px solid var(--ink);border-radius:13px">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px">
+      <span class="track" id="chartTitle"></span>
+      <span style="margin-left:auto">
+        <button class="btn on" id="bAdj">Model-adjusted</button>
+        <button class="btn" id="bRaw">As observed</button>
+      </span>
+    </div>
+    <div class="note" style="margin:0 0 10px" id="chartSub"></div>
+    <div id="chart"></div>
+    <div id="didbox"></div>
+  </div>
+
+  <div class="panel">
+    <div style="display:flex;align-items:center">
+      <span class="track">Every cell drawn above</span>
+      <button class="btn" id="csv" style="margin-left:auto">Download CSV</button>
+    </div>
+    <table id="tbl"></table>
+    <div class="note" id="foot"></div>
+  </div>
+ </div>
+</div>
+</div>
+<div class="tip" id="tip"></div>
+
+<script id="payload" type="application/json">__PAYLOAD__</script>
+<script>
+"use strict";
+let DATA=null, OUT=[], SRC=[], REG=[];
+const DIMS=[["party","Party","Democrat vs Republican"],
+            ["diploma","Diploma divide","College degree or higher vs no college degree"],
+            ["source","Source use","uses this source for political news vs doesn't"]];
+const S={compare:"source", split:{party:true, diploma:false, source:true},
+         source:"PVT", outcome:"denial", adjusted:true};
+const PANEL_LABEL={"":"Everyone",dem:"Democrats",rep:"Republicans",
+  deg:"College degree or higher",nodeg:"No college degree",
+  dem_deg:"Democrats · degree",dem_nodeg:"Democrats · no degree",
+  rep_deg:"Republicans · degree",rep_nodeg:"Republicans · no degree",
+  s0:"Non-users",s1:"Users",
+  s0_deg:"Non-users · degree",s0_nodeg:"Non-users · no degree",
+  s1_deg:"Users · degree",s1_nodeg:"Users · no degree",
+  s0_dem:"Non-users · Democrats",s0_rep:"Non-users · Republicans",
+  s1_dem:"Users · Democrats",s1_rep:"Users · Republicans"};
+const ENDS={source:()=>["Uses "+srcLabel(),"Doesn't use it",  "var(--use)","var(--nouse)"],
+            party:()=>["Democrats","Republicans",             "var(--dem)","var(--rep)"],
+            diploma:()=>["College degree or higher","No college degree","var(--deg)","var(--nodeg)"]};
+const srcLabel=()=>(SRC.find(s=>s.key===S.source)||{label:S.source}).label;
+const outObj =()=>OUT.find(o=>o.key===S.outcome)||{};
+const cell   =()=>DATA.cells[S.outcome+"|"+S.source];
+const fmt=(x,d=1)=>x==null||!isFinite(x)?"—":x.toFixed(d);
+
+/* which panels the current roles produce. Source use is always a panel when it is not the
+   comparison: "the party gap, pooled over whether people use the source" is not a quantity
+   this model estimates, and inventing it would be worse than not offering it. */
+function panels(){
+  const c=S.compare, p=S.split.party, e=S.split.diploma;
+  if(c==="source") return p&&e ? ["dem_deg","dem_nodeg","rep_deg","rep_nodeg"]
+                    : p ? ["dem","rep"] : e ? ["deg","nodeg"] : [""];
+  if(c==="party")   return e ? ["s1_deg","s1_nodeg","s0_deg","s0_nodeg"] : ["s1","s0"];
+  return p ? ["s1_dem","s1_rep","s0_dem","s0_rep"] : ["s1","s0"];
+}
+function gapOf(pk){ const c=cell(); return c ? c.g[S.compare+"|"+pk] : null; }
+
+/* ------------------------------------------------ controls */
+function buildRoles(){
+  const h=document.getElementById("roles");
+  h.innerHTML='<div></div><div class="hdr">Compare</div><div class="hdr">Split by</div><div class="hdr">Pool</div>';
+  for(const [k,lab,levels] of DIMS){
+    const isC=S.compare===k, isS=!isC&&S.split[k], isP=!isC&&!S.split[k];
+    const lockPool = k==="source" && !isC;   /* see panels() */
+    h.insertAdjacentHTML("beforeend",
+      `<div class="rl">${lab}</div>
+       <div style="text-align:center"><button class="btn${isC?" on":""}" data-role="compare" data-dim="${k}">●</button></div>
+       <div style="text-align:center"><button class="btn${isS?" on":""}" data-role="split" data-dim="${k}"${isC?" disabled":""}>●</button></div>
+       <div style="text-align:center"><button class="btn${isP?" on":""}" data-role="pool" data-dim="${k}"${isC||lockPool?" disabled":""}>●</button></div>
+       <div class="lv">${levels}</div>`);
+  }
+  document.getElementById("roleNote").innerHTML =
+    S.compare==="source"
+      ? "The gap is between people who use the source and people who don't — Paper 1's contrast."
+      : `The gap is between ${S.compare==="party"?"the two parties":"graduates and non-graduates"}, shown separately for
+         users and non-users of the source. Pooling over source use is disabled because a gap
+         averaged over a variable the model interacts with is not an estimate this fit produces.`;
+}
+function buildSrcTree(){
+  const h=document.getElementById("srcTree"); h.innerHTML="";
+  for(const r of REG){
+    const kids=SRC.filter(s=>s.kind==="channel"&&s.parent===r.key);
+    const solo=kids.length===1;
+    const d=document.createElement("div"); d.className="grp";
+    d.innerHTML=`<label class="row"><input type="radio" name="src" value="${r.key}"
+      ${S.source===r.key?"checked":""}><span style="font-weight:600">${r.label}</span>
+      ${solo?`<span class="meta">${kids[0].label} only</span>`:""}</label>`;
+    if(!solo&&kids.length){
+      const k=document.createElement("div"); k.className="kids";
+      kids.forEach(c=>k.insertAdjacentHTML("beforeend",
+        `<label class="row"><input type="radio" name="src" value="${c.key}"
+          ${S.source===c.key?"checked":""}><span>${c.label}</span></label>`));
+      d.appendChild(k);
+    }
+    h.appendChild(d);
+  }
+}
+function buildOutTree(){
+  const h=document.getElementById("outTree"); h.innerHTML="";
+  for(const g of ["Trust","Conspiracy","Outlier"]){
+    const list=OUT.filter(o=>o.group===g); if(!list.length) continue;
+    const d=document.createElement("div"); d.className="grp";
+    const title={Trust:"Trust in institutions",Conspiracy:"Conspiracy belief",
+                 Outlier:"The two outliers"}[g];
+    d.innerHTML=`<div class="grph">${title}</div>`;
+    const k=document.createElement("div"); k.className="kids";
+    list.forEach(o=>k.insertAdjacentHTML("beforeend",
+      `<label class="row"><input type="radio" name="out" value="${o.key}"
+        ${S.outcome===o.key?"checked":""}><span>${o.label}</span></label>`));
+    d.appendChild(k); h.appendChild(d);
+  }
+}
+
+/* ------------------------------------------------ the dumbbells */
+const NS="http://www.w3.org/2000/svg";
+function el(t,a={}){const n=document.createElementNS(NS,t);for(const k in a)n.setAttribute(k,a[k]);return n;}
+function txt(s,a={}){const n=el("text",a);n.textContent=s;return n;}
+function tip(node,html){
+  node.addEventListener("mousemove",ev=>{const t=document.getElementById("tip");
+    t.innerHTML=html;t.style.display="block";
+    t.style.left=Math.min(ev.clientX+14,innerWidth-300)+"px";t.style.top=(ev.clientY+16)+"px";});
+  node.addEventListener("mouseleave",()=>{document.getElementById("tip").style.display="none";});
+}
+function draw(){
+  const host=document.getElementById("chart"); host.innerHTML="";
+  const c=cell(), pk=panels(), [la,lb,ca,cb]=ENDS[S.compare]();
+  const outcomeWord = outObj().direction==="belief" ? "believe it" : "trust them";
+  document.getElementById("chartTitle").textContent=outObj().label||"";
+  if(!c){ host.innerHTML='<div class="note warn">No model for this source and outcome — the '+
+    'source battery and this question were never fielded in the same wave.</div>';
+    document.getElementById("chartSub").textContent=""; document.getElementById("didbox").innerHTML="";
+    document.getElementById("tbl").innerHTML=""; return; }
+  document.getElementById("chartSub").innerHTML =
+    `${c.n.toLocaleString()} Democrats and Republicans over ${c.waves} waves. `+
+    `Dots are the share who ${outcomeWord}; the bar is the difference between them in percentage points`+
+    (S.adjusted?", adjusted for the other sources, age, income, gender and wave.":", as observed, with no adjustment.");
+
+  const rows=pk.map(k=>[k,gapOf(k)]).filter(([,g])=>g);
+  if(!rows.length){ host.innerHTML='<div class="note warn">Too few respondents in these cells.</div>'; return; }
+  const W=host.clientWidth||760, RH=62, M={t:26,r:26,b:30,l:186};
+  const H=M.t+rows.length*RH+M.b;
+  const svg=el("svg",{width:W,height:H,viewBox:`0 0 ${W} ${H}`}); host.appendChild(svg);
+  const iw=W-M.l-M.r, X=v=>M.l+iw*v/100;
+  [0,25,50,75,100].forEach(v=>{
+    svg.appendChild(el("line",{x1:X(v),x2:X(v),y1:M.t-8,y2:M.t+rows.length*RH-14,stroke:"var(--hair)"}));
+    svg.appendChild(txt(v+"%",{x:X(v),y:H-12,"text-anchor":"middle",fill:"var(--mid)","font-size":10.5}));
+  });
+  rows.forEach(([k,g],i)=>{
+    const y=M.t+i*RH+12;
+    const va=S.adjusted?g.pa:g.ra, vb=S.adjusted?g.pb:g.rb;
+    if(va==null||vb==null) return;
+    const thin=Math.min(g.na,g.nb)<100;
+    svg.appendChild(txt(PANEL_LABEL[k]||k,{x:M.l-14,y:y+4,"text-anchor":"end","font-size":12.4,
+      "font-weight":600,fill:"var(--ink)"}));
+    const bar=el("line",{x1:X(Math.min(va,vb)),x2:X(Math.max(va,vb)),y1:y,y2:y,
+      stroke:"var(--ink)","stroke-width":thin?2:5,opacity:thin?.3:.14,"stroke-linecap":"round"});
+    svg.appendChild(bar);
+    [[vb,cb,lb,g.nb],[va,ca,la,g.na]].forEach(([v,col,lab,n])=>{
+      const gg=el("g");
+      gg.appendChild(el("circle",{cx:X(v),cy:y,r:6.5,fill:col}));
+      gg.appendChild(txt(fmt(v,0)+"%",{x:X(v),y:y-12,"text-anchor":"middle","font-size":11.4,
+        "font-weight":700,fill:col}));
+      gg.appendChild(txt("n="+n.toLocaleString(),{x:X(v),y:y+17,"text-anchor":"middle",
+        "font-size":9.4,fill:"var(--mid)"}));
+      tip(gg,`<b>${lab}</b> · ${PANEL_LABEL[k]||k}<br>
+        ${S.adjusted?"model-adjusted":"observed"} share who ${outcomeWord}: <b>${fmt(v,1)}%</b><br>
+        n = ${n.toLocaleString()}`);
+      svg.appendChild(gg);
+    });
+    /* the gap, with its interval, to the right of the two dots */
+    const gx=X(Math.max(va,vb))+16, sign=g.gap>0?"+":"";
+    const gt=el("g");
+    gt.appendChild(txt(`${sign}${fmt(g.gap)} pts`,{x:gx,y:y+1,"font-size":12.6,"font-weight":700,
+      fill:S.adjusted?"var(--ink)":"var(--mid)"}));
+    if(S.adjusted)
+      gt.appendChild(txt(`[${fmt(g.lo)}, ${fmt(g.hi)}]`,{x:gx,y:y+14,"font-size":10.2,fill:"var(--mid)"}));
+    tip(gt,`<b>${la} − ${lb}</b><br>${sign}${fmt(g.gap,1)} percentage points`+
+      (S.adjusted?`<br>95% CI [${fmt(g.lo,1)}, ${fmt(g.hi,1)}]<br>
+        <span style="opacity:.8">${(g.lo>0||g.hi<0)?"interval excludes zero":"interval includes zero"}</span>`:""));
+    svg.appendChild(gt);
+    if(thin) svg.appendChild(txt("⚠ thin cell",{x:M.l-14,y:y+18,"text-anchor":"end","font-size":9.6,
+      fill:"#9a3b30"}));
+  });
+  /* legend */
+  const lg=el("g",{transform:`translate(${M.l},${M.t-16})`});
+  [[la,ca,0],[lb,cb,190]].forEach(([t,col,dx])=>{
+    lg.appendChild(el("circle",{cx:dx+4,cy:-4,r:5,fill:col}));
+    lg.appendChild(txt(t,{x:dx+14,y:0,"font-size":11,fill:"var(--mid)"}));
+  });
+  svg.appendChild(lg);
+  drawDid(); drawTable();
+}
+function drawDid(){
+  const box=document.getElementById("didbox"); box.innerHTML="";
+  const c=cell(); if(!c) return;
+  const dims=[];
+  if(S.compare==="source"){ if(S.split.party)dims.push("party"); if(S.split.diploma)dims.push("diploma"); }
+  else { dims.push("source"); if(S.compare==="party"&&S.split.diploma)dims.push("diploma");
+         if(S.compare==="diploma"&&S.split.party)dims.push("party"); }
+  const WORD={party:["Democrats","Republicans"],diploma:["graduates","non-graduates"],
+              source:["users","non-users"]};
+  for(const dm of dims){
+    const D=c.did[S.compare+"|"+dm]; if(!D) continue;
+    const [wa,wb]=WORD[dm], sig=(D.lo>0||D.hi<0);
+    box.insertAdjacentHTML("beforeend",
+      `<div class="did"><b>${D.est>0?"+":""}${fmt(D.est)} points</b> —
+       the gap among <b>${wa}</b> is that much ${D.est>0?"wider":"narrower"} than the gap among
+       <b>${wb}</b>. 95% CI [${fmt(D.lo)}, ${fmt(D.hi)}], which
+       ${sig?"<b>excludes</b>":"includes"} zero.
+       <div class="note" style="margin-top:2px">A difference between two differences, estimated from
+       one model with the interaction in it rather than by comparing two separate fits.</div></div>`);
+  }
+}
+function drawTable(){
+  const c=cell(), pk=panels(), [la,lb]=ENDS[S.compare]();
+  const t=document.getElementById("tbl");
+  t.innerHTML=`<thead><tr><th>Group</th><th>${la}</th><th>${lb}</th><th>Gap (pts)</th>
+    <th>95% CI</th><th>n ${la.toLowerCase()}</th><th>n ${lb.toLowerCase()}</th>
+    <th>Observed ${la.toLowerCase()}</th><th>Observed ${lb.toLowerCase()}</th></tr></thead>`;
+  const tb=document.createElement("tbody");
+  pk.forEach(k=>{ const g=gapOf(k); if(!g) return;
+    const tr=document.createElement("tr");
+    tr.innerHTML=`<td>${PANEL_LABEL[k]||k}</td><td>${fmt(g.pa)}%</td><td>${fmt(g.pb)}%</td>
+      <td><b>${g.gap>0?"+":""}${fmt(g.gap)}</b></td><td>[${fmt(g.lo)}, ${fmt(g.hi)}]</td>
+      <td>${g.na.toLocaleString()}</td><td>${g.nb.toLocaleString()}</td>
+      <td>${fmt(g.ra)}%</td><td>${fmt(g.rb)}%</td>`;
+    tb.appendChild(tr); });
+  t.appendChild(tb);
+  document.getElementById("foot").innerHTML=
+   `Columns 2 and 3 are <b>model-adjusted predicted probabilities</b>: every respondent in the group
+    is predicted under both settings of the comparison and averaged with survey weights, so the two
+    numbers describe the same people under two conditions rather than two different sets of people.
+    The last two columns are the <b>observed weighted rates</b> in each arm, unadjusted — the gap
+    between them is usually wider. Intervals are delta-method on the fitted covariance.
+    The odds ratio for this source is ${c&&c.or_?`<b>${c.or_.toFixed(2)}</b> [${c.or_lo.toFixed(2)}, ${c.or_hi.toFixed(2)}]`:"—"},
+    reported because it answers a different question: odds ratios are not collapsible, so a group with
+    a wider point gap can have a smaller odds ratio purely because its base rate sits nearer 50%.
+    Sample is Democrats and Republicans with leaners folded by lean; pure independents are excluded.
+    <b>These are associations, not causes</b> — people choose their news as well as being shaped by it,
+    and a gap between users and non-users is a gap between people who differ in many ways.
+    Built ${DATA.meta.built} from ${DATA.meta.source}.`;
+}
+function downloadCSV(){
+  const c=cell(), pk=panels(), [la,lb]=ENDS[S.compare]();
+  const head=["outcome","source","comparison","group",`p_${la}`,`p_${lb}`,"gap_pts","lo","hi",
+              "n_a","n_b","observed_a","observed_b"];
+  const rows=pk.map(k=>{const g=gapOf(k); if(!g) return null;
+    return [`"${outObj().label}"`,`"${srcLabel()}"`,S.compare,`"${PANEL_LABEL[k]||k}"`,
+            g.pa,g.pb,g.gap,g.lo,g.hi,g.na,g.nb,g.ra,g.rb].join(",");}).filter(Boolean);
+  const b=new Blob([[head.join(",")].concat(rows).join("\n")],{type:"text/csv"});
+  const a=document.createElement("a"); a.href=URL.createObjectURL(b);
+  a.download="chip50_gaps.csv"; a.click();
+}
+function render(){ buildRoles(); buildSrcTree(); buildOutTree(); draw(); }
+
+function wire(){
+  document.addEventListener("click",e=>{
+    const b=e.target.closest("[data-role]"); if(!b||b.disabled) return;
+    const dim=b.dataset.dim, role=b.dataset.role;
+    if(role==="compare"){
+      S.compare=dim; S.split[dim]=false;
+      if(dim!=="source") S.split.source=true;      /* see panels() */
+    } else S.split[dim]=(role==="split");
+    render();
+  });
+  document.getElementById("srcTree").addEventListener("change",e=>{
+    if(e.target.name==="src"){ S.source=e.target.value; draw(); }});
+  document.getElementById("outTree").addEventListener("change",e=>{
+    if(e.target.name==="out"){ S.outcome=e.target.value; draw(); }});
+  document.getElementById("bAdj").addEventListener("click",()=>{S.adjusted=true;
+    document.getElementById("bAdj").classList.add("on");
+    document.getElementById("bRaw").classList.remove("on"); draw();});
+  document.getElementById("bRaw").addEventListener("click",()=>{S.adjusted=false;
+    document.getElementById("bRaw").classList.add("on");
+    document.getElementById("bAdj").classList.remove("on"); draw();});
+  document.getElementById("csv").addEventListener("click",downloadCSV);
+  let rt=null; addEventListener("resize",()=>{clearTimeout(rt);rt=setTimeout(draw,180);});
+}
+
+__unlock(function(){
+  const go=raw=>{
+    DATA=raw; OUT=raw.outcomes; SRC=raw.meta.sources; REG=raw.meta.regimes;
+    if(!DATA.cells[S.outcome+"|"+S.source]) S.source=REG[0].key;
+    wire(); render();
+  };
+  const inline=document.getElementById("payload").textContent.trim();
+  if(inline && inline!=="__PAY"+"LOAD__"){ go(JSON.parse(inline)); return; }
+  fetch("gap_data.json").then(r=>{ if(!r.ok) throw new Error("HTTP "+r.status); return r.json(); })
+   .then(go).catch(err=>{
+     document.querySelector(".wrap").insertAdjacentHTML("afterbegin",
+      `<div class="panel" style="border-color:#b3003c;color:#9a3b30"><b>Could not load
+       gap_data.json.</b> Opening this file with <code>file://</code> blocks the fetch — use
+       <code>gaps_standalone.html</code>, or serve the folder with
+       <code>python3 -m http.server</code>.<br><small>${err.message}</small></div>`);
+   });
+});
+</script>
+</body>
+</html>
