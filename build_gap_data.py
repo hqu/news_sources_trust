@@ -240,12 +240,8 @@ for o in payload["outcomes"]:
                 def arm(mask, s_state):
                     """Observed rate and count among the people the panel is about.
 
-                    The predicted probability is a g-computation: everyone in the group is
-                    predicted under the stated source setting, so it averages over the whole
-                    group. The COUNT reported beside it is the number who are actually in that
-                    state, which is the number a reader needs to judge whether to believe the
-                    estimate. A gap resting on a few dozen people is not the same object as one
-                    resting on thousands, and only the count says which it is."""
+                    The predicted probability is a g-computation and averages over the whole
+                    group; the count reported beside it is the number actually in that state."""
                     sel = mask & (S == s_state)
                     n=int(sel.sum())
                     if n==0: return None,0
