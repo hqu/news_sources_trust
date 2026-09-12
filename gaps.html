@@ -105,6 +105,16 @@ svg{display:block;overflow:visible}
   font-weight:700;margin-bottom:4px}
 .did .dv{font-size:18px;font-weight:700;letter-spacing:-.02em;line-height:1.1}
 .did .dv small{font-size:11px;font-weight:400;color:var(--mid);letter-spacing:0;margin-left:5px}
+/* The key was two 4px circles floating inside the plot area in the same grey as the axis. It
+   is now a strip above the chart, with the marks at a size they can be read at, and it names
+   the third thing on the chart -- the bar between the dots -- which the old one left out. */
+.key{display:flex;flex-wrap:wrap;align-items:center;gap:6px 20px;background:var(--wash);
+  border:1px solid var(--hair);border-radius:9px;padding:8px 12px;margin:0 0 13px;font-size:12.3px}
+.key span{display:inline-flex;align-items:center}
+.key i{width:11px;height:11px;border-radius:50%;margin-right:8px;flex:none}
+.key .gapkey{color:var(--mid)}
+.key .gapbar{display:inline-block;width:36px;height:4px;border-radius:2px;
+  background:var(--ink);opacity:.2;margin-right:8px;flex:none}
 .did p{margin:5px 0 0;font-size:11.8px;line-height:1.5;color:#3a4048}
 .didmeth{font-size:11.2px;color:var(--mid);margin:8px 0 0;line-height:1.5}
 .thin{background:repeating-linear-gradient(45deg,#0000,#0000 3px,#9a3b3022 3px,#9a3b3022 6px)}
@@ -237,6 +247,7 @@ read; an odds ratio of 3.9 is not.</span></p>
     </div>
     <p id="chartQ"></p>
     <div class="note" style="margin:0 0 10px" id="chartSub"></div>
+    <div class="key" id="chartKey"></div>
     <div id="chart"></div>
     <div id="didbox"></div>
   </div>
@@ -409,9 +420,14 @@ function draw(){
         : " and the four conspiracy items.")
       :", as observed, with no adjustment.");
 
+  document.getElementById("chartKey").innerHTML =
+    `<span><i style="background:${ca}"></i><b>${la}</b></span>
+     <span><i style="background:${cb}"></i><b>${lb}</b></span>
+     <span class="gapkey"><span class="gapbar"></span>the distance between the two dots is the
+       gap, printed at the right of each row with its 95% interval</span>`;
   const rows=pk.map(k=>[k,gapOf(k)]).filter(([,g])=>g);
   if(!rows.length){ host.innerHTML='<div class="note warn">Too few respondents in these cells.</div>'; return; }
-  const W=host.clientWidth||760, RH=62, M={t:26,r:26,b:46,l:186};
+  const W=host.clientWidth||760, RH=62, M={t:14,r:26,b:46,l:186};
   const H=M.t+rows.length*RH+M.b;
   const svg=el("svg",{width:W,height:H,viewBox:`0 0 ${W} ${H}`}); host.appendChild(svg);
   const iw=W-M.l-M.r, X=v=>M.l+iw*v/100;
@@ -460,13 +476,6 @@ function draw(){
     if(thin) svg.appendChild(txt("⚠ thin cell",{x:M.l-14,y:y+18,"text-anchor":"end","font-size":9.6,
       fill:"#9a3b30"}));
   });
-  /* legend */
-  const lg=el("g",{transform:`translate(${M.l},${M.t-16})`});
-  [[la,ca,0],[lb,cb,190]].forEach(([t,col,dx])=>{
-    lg.appendChild(el("circle",{cx:dx+4,cy:-4,r:4,fill:col}));
-    lg.appendChild(txt(t,{x:dx+14,y:0,"font-size":11,fill:"var(--mid)"}));
-  });
-  svg.appendChild(lg);
   drawDid(); drawRanking(); drawTable();
 }
 /* Every news source for the chosen outcome, ranked by the gap between people who use it and
