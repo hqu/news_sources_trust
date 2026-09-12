@@ -402,14 +402,18 @@ function draw(){
 
   const rows=pk.map(k=>[k,gapOf(k)]).filter(([,g])=>g);
   if(!rows.length){ host.innerHTML='<div class="note warn">Too few respondents in these cells.</div>'; return; }
-  const W=host.clientWidth||760, RH=62, M={t:26,r:26,b:30,l:186};
+  const W=host.clientWidth||760, RH=62, M={t:26,r:26,b:46,l:186};
   const H=M.t+rows.length*RH+M.b;
   const svg=el("svg",{width:W,height:H,viewBox:`0 0 ${W} ${H}`}); host.appendChild(svg);
   const iw=W-M.l-M.r, X=v=>M.l+iw*v/100;
   [0,25,50,75,100].forEach(v=>{
     svg.appendChild(el("line",{x1:X(v),x2:X(v),y1:M.t-8,y2:M.t+rows.length*RH-14,stroke:"var(--hair)"}));
-    svg.appendChild(txt(v+"%",{x:X(v),y:H-12,"text-anchor":"middle",fill:"var(--mid)","font-size":10.5}));
+    svg.appendChild(txt(v+"%",{x:X(v),y:H-26,"text-anchor":"middle",fill:"var(--mid)","font-size":10.5}));
   });
+  // The axis is a share, and which share depends on the question, so it is named rather than
+  // left to the reader to infer from the dots.
+  svg.appendChild(txt(`share of each group who ${outcomeWord}`,
+    {x:M.l+iw/2,y:H-7,"text-anchor":"middle",fill:"var(--mid)","font-size":11.2}));
   rows.forEach(([k,g],i)=>{
     const y=M.t+i*RH+12;
     const va=S.adjusted?g.pa:g.ra, vb=S.adjusted?g.pb:g.rb;
