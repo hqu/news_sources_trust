@@ -430,7 +430,7 @@ function draw(){
     `<span><i style="background:${ca}"></i><b>${la}</b></span>
      <span><i style="background:${cb}"></i><b>${lb}</b></span>
      <span class="gapkey"><span class="gapbar"></span>the distance between the two dots is the
-       gap, printed at the right of each row with its 95% interval</span>`;
+       gap</span>`;
   const rows=pk.map(k=>[k,gapOf(k)]).filter(([,g])=>g);
   if(!rows.length){ host.innerHTML='<div class="note warn">Too few respondents in these cells.</div>'; return; }
   const W=host.clientWidth||760, RH=62, M={t:14,r:26,b:46,l:186};
@@ -455,14 +455,22 @@ function draw(){
     const bar=el("line",{x1:X(Math.min(va,vb)),x2:X(Math.max(va,vb)),y1:y,y2:y,
       stroke:"var(--ink)","stroke-width":thin?1.6:3.4,opacity:thin?.35:.18,"stroke-linecap":"round"});
     svg.appendChild(bar);
-    [[vb,cb,lb,g.nb,tb],[va,ca,la,g.na,ta]].forEach(([v,col,lab,n,tcol])=>{
+    /* Two dots can land almost on top of each other -- a one-point gap is under 5px on a
+       0-100 axis -- and their counts then print over one another. When they are closer than
+       the labels are wide, each count is anchored on its own side and pushed outward instead
+       of being centred under its dot. */
+    const ends=[[vb,cb,lb,g.nb,tb],[va,ca,la,g.na,ta]];
+    const leftIdx = (vb<=va) ? 0 : 1;
+    const crowded = Math.abs(X(va)-X(vb)) < 58;
+    ends.forEach((e,i)=>{
+      const [v,col,lab,n,tcol]=e, isLeft = i===leftIdx;
       const gg=el("g");
       gg.appendChild(el("circle",{cx:X(v),cy:y,r:9,fill:"transparent","pointer-events":"all"}));
       gg.appendChild(el("circle",{cx:X(v),cy:y,r:4,fill:col}));
-      gg.appendChild(txt(fmt(v,0)+"%",{x:X(v),y:y-12,"text-anchor":"middle","font-size":11.4,
-        "font-weight":700,fill:tcol}));
-      gg.appendChild(txt("n="+n.toLocaleString(),{x:X(v),y:y+17,"text-anchor":"middle",
-        "font-size":9.4,fill:"var(--mid)"}));
+      gg.appendChild(txt("n="+n.toLocaleString(),
+        {x: crowded ? X(v)+(isLeft?-8:8) : X(v), y:y+17,
+         "text-anchor": crowded ? (isLeft?"end":"start") : "middle",
+         "font-size":9.4,fill:"var(--mid)"}));
       tip(gg,`<b>${lab}</b> · ${PANEL_LABEL[k]||k}<br>
         ${S.adjusted?"model-adjusted":"observed"} share who ${outcomeWord}: <b>${fmt(v,1)}%</b><br>
         n = ${n.toLocaleString()}`);
