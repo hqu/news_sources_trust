@@ -654,7 +654,7 @@ function draw(){
   let lo=1,hi=1;
   F.forEach(f=>rows.forEach(k=>{const e=estIn(f,k); if(e){lo=Math.min(lo,e.lo);hi=Math.max(hi,e.hi);}}));
   lo=Math.min(lo,1/1.15); hi=Math.max(hi,1.15);
-  const W=340, PADR=16, H=25*rows.length+54, X1=W-PADR;
+  const W=340, PADR=16, H=25*rows.length+80, X1=W-PADR;
   const sx=v=>6+(Math.log(v)-Math.log(lo))/(Math.log(hi)-Math.log(lo))*(X1-6);
 
   F.forEach((f,ci)=>{
@@ -663,9 +663,20 @@ function draw(){
     const d=document.createElement("div"); d.className="plot";
     let svg=`<svg width="${W+OX}" height="${H}" font-family="Helvetica Neue,Helvetica,Arial">`;
     [0.5,0.7,1,1.5,2,3].filter(t=>t>=lo*.98&&t<=hi*1.02).forEach(t=>{
-      svg+=`<text x="${OX+sx(t)}" y="${H-6}" fill="${PAL.mid}" font-size="10" text-anchor="middle">${t}</text>
-            <line x1="${OX+sx(t)}" y1="${H-20}" x2="${OX+sx(t)}" y2="${H-17}" stroke="${PAL.faint}"/>`;});
-    svg+=`<line x1="${OX+sx(1)}" y1="30" x2="${OX+sx(1)}" y2="${H-20}" stroke="${PAL.faint}"/>`;
+      svg+=`<text x="${OX+sx(t)}" y="${H-32}" fill="${PAL.mid}" font-size="10" text-anchor="middle">${t}</text>
+            <line x1="${OX+sx(t)}" y1="${H-46}" x2="${OX+sx(t)}" y2="${H-43}" stroke="${PAL.faint}"/>`;});
+    svg+=`<line x1="${OX+sx(1)}" y1="30" x2="${OX+sx(1)}" y2="${H-46}" stroke="${PAL.faint}"/>`;
+    // Which side of 1 is the bad side depends on the outcome: for a trust question an odds
+    // ratio below 1 means less trust, for a belief question it means less belief. So the two
+    // words swap, and they are coloured to match the marks, which are keyed to the number
+    // rather than to the valence.
+    {const tr=o.direction==="trust";
+     const L=tr?["adverse","less trust",PAL.obs]:["protective","less belief",PAL.obs];
+     const R=tr?["protective","more trust",PAL.priv]:["adverse","more belief",PAL.priv];
+     svg+=`<text x="${OX+6}" y="${H-15}" fill="${L[2]}" font-size="10" font-weight="600">← ${L[0]}</text>
+           <text x="${OX+6}" y="${H-4}" fill="${PAL.faint}" font-size="9">${L[1]}</text>
+           <text x="${OX+X1}" y="${H-15}" fill="${R[2]}" font-size="10" font-weight="600" text-anchor="end">${R[0]} →</text>
+           <text x="${OX+X1}" y="${H-4}" fill="${PAL.faint}" font-size="9" text-anchor="end">${R[1]}</text>`;}
 
     rows.forEach((rk,i)=>{
       const e=estIn(f,rk), y=40+i*25, ind=isRegime(rk)?0:12;

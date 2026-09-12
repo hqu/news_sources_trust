@@ -219,86 +219,13 @@ direction</b> — believing the claim, or <em>distrusting</em> the institution. 
 causes: people choose their news as well as being shaped by it.</span></p>
 <div class="rule"></div>
 
-<!-- ========================= SCROLLYTELLING ========================= -->
-<section id="story">
-  <div class="storygrid">
-    <div class="panes" id="panes">
-      <div class="pane" data-step="0"><div class="card">
-        <div class="step">Start here</div>
-        <h3>Eighteen outcomes, eight ways of getting political news.</h3>
-        <p>Each dot is one regime's association with one outcome. Its position across is the odds
-        ratio; to the <b>right</b> of the heavy line means the regime predicts the adverse direction —
-        believing a false or conspiratorial claim, or distrusting an institution.</p>
-        <p>How far <b>up</b> a dot sits is how much of the population is already in that adverse state.
-        Reading the chart bottom to top is watching a belief spread, and that axis turns out to matter
-        more than the topic does.</p>
-      </div></div>
-
-      <div class="pane" data-step="1"><div class="card">
-        <div class="step">Takeaway 1</div>
-        <h3>Podcasts are the strongest predictor in the taxonomy.</h3>
-        <div class="big">15 of 18</div>
-        <p class="bigsub">outcomes where podcasts rank first. No other news source leads more than twice.</p>
-        <p>It leads every one of the six misinformation claims, three of the four conspiracy items,
-        and six of the eight institutional-trust outcomes — a mean rank of 1.4 out of 7, more than two
-        full places clear of the next regime.</p>
-      </div></div>
-
-      <div class="pane" data-step="2"><div class="card">
-        <div class="step">Takeaway 1, continued</div>
-        <h3>But it is substitution, not cynicism.</h3>
-        <div class="big">1.97×</div>
-        <p class="bigsub">gap between how podcasts track the establishment and how they track its challengers.</p>
-        <p>Podcast listening predicts distrust of the CDC, FDA, doctors, scientists, pharma and Fauci —
-        and it <b>reverses</b> for Robert F.&nbsp;Kennedy&nbsp;Jr. and Elon Musk, where listeners are
-        1.40× and 1.59× <em>more</em> trusting. Every other regime sits between 0.62 and 1.33 on that ratio.</p>
-        <p>The sign is identical in all three parties, the reversal included among Democrats.</p>
-      </div></div>
-
-      <div class="pane" data-step="3"><div class="card">
-        <div class="step">Takeaway 2</div>
-        <h3>Private messaging predicts the claims a minority holds — and nothing once a claim is common.</h3>
-        <div class="big">r = −0.855</div>
-        <p class="bigsub">correlation between how widely a claim is believed and private messaging's log odds ratio.</p>
-        <p>It is the strongest predictor of the CIA&nbsp;9/11 claim (22% believed), election denial (31%)
-        and wind turbines (15%) — and is <em>negatively</em> associated with the two most widely
-        believed items in the battery.</p>
-        <p><b>Very Large Platform runs the opposite way, at r&nbsp;=&nbsp;+0.953.</b> Because the signs
-        differ across regimes, this cannot be the odds scale compressing near saturation — that would
-        move every regime the same way.</p>
-      </div></div>
-
-      <div class="pane" data-step="4"><div class="card">
-        <div class="step">Takeaway 2, continued</div>
-        <h3>One behaves like transmission. The other like a milieu.</h3>
-        <p>Private messaging discriminates while a claim is still confined to a minority and adds
-        nothing once it is widespread. Very Large Platform is strongest precisely on the attitudes most
-        people already hold — ambient exposure, not transmission.</p>
-        <p>Holding all four conspiracy items fixed does not flatten this. The gradient <em>steepens</em>,
-        to r&nbsp;=&nbsp;−0.890, so conspiracy predisposition explains part of the level and none of the pattern.</p>
-      </div></div>
-
-    </div>
-
-    <div class="sticky">
-      <div class="storybar">
-        <span class="track" id="storyTitle">The full picture</span>
-        <button class="btn" id="skip">Skip to the explorer ↓</button>
-        <button class="btn" id="replay">Replay</button>
-        <div class="dots" id="dots"></div>
-      </div>
-      <div id="storyChart" style="flex:1;min-height:0"></div>
-    </div>
-  </div>
-</section>
-
-<div class="rule"></div>
-
 <!-- ========================= EXPLORER ========================= -->
 <section id="explore">
 <h2>Explore it yourself</h2>
 <p class="sub" style="margin-bottom:16px">Pick outcomes individually or by family, then narrow the
-prevalence window. Everything below recomputes from the same fitted models — nothing is re-estimated.</p>
+prevalence window. Everything below recomputes from the same fitted models — nothing is re-estimated.
+<b>New here?</b> <a href="#story" style="color:var(--vlp)">The walkthrough underneath</a> explains the
+two results in about two minutes.</p>
 
 <div class="cols">
   <div>
@@ -379,6 +306,84 @@ prevalence window. Everything below recomputes from the same fitted models — n
   </div>
 </div>
 </section>
+<div class="rule"></div>
+
+<!-- ========================= SCROLLYTELLING ========================= -->
+<section id="story">
+  <h2>The two results, in six steps</h2>
+  <p class="sub" style="margin-bottom:14px">Scroll the panes on the left; the chart on the right
+  follows along. Everything it shows is also reachable by hand in the explorer above.</p>
+  <div class="storygrid">
+    <div class="panes" id="panes">
+      <div class="pane" data-step="0"><div class="card">
+        <div class="step">Start here</div>
+        <h3>Eighteen outcomes, eight ways of getting political news.</h3>
+        <p>Each dot is one regime's association with one outcome. Its position across is the odds
+        ratio; to the <b>right</b> of the heavy line means the regime predicts the adverse direction —
+        believing a false or conspiratorial claim, or distrusting an institution.</p>
+        <p>How far <b>up</b> a dot sits is how much of the population is already in that adverse state.
+        Reading the chart bottom to top is watching a belief spread, and that axis turns out to matter
+        more than the topic does.</p>
+      </div></div>
+
+      <div class="pane" data-step="1"><div class="card">
+        <div class="step">Takeaway 1</div>
+        <h3>Podcasts are the strongest predictor in the taxonomy.</h3>
+        <div class="big">15 of 18</div>
+        <p class="bigsub">outcomes where podcasts rank first. No other news source leads more than twice.</p>
+        <p>It leads every one of the six misinformation claims, three of the four conspiracy items,
+        and six of the eight institutional-trust outcomes — a mean rank of 1.4 out of 7, more than two
+        full places clear of the next regime.</p>
+      </div></div>
+
+      <div class="pane" data-step="2"><div class="card">
+        <div class="step">Takeaway 1, continued</div>
+        <h3>But it is substitution, not cynicism.</h3>
+        <div class="big">1.97×</div>
+        <p class="bigsub">gap between how podcasts track the establishment and how they track its challengers.</p>
+        <p>Podcast listening predicts distrust of the CDC, FDA, doctors, scientists, pharma and Fauci —
+        and it <b>reverses</b> for Robert F.&nbsp;Kennedy&nbsp;Jr. and Elon Musk, where listeners are
+        1.40× and 1.59× <em>more</em> trusting. Every other regime sits between 0.62 and 1.33 on that ratio.</p>
+        <p>The sign is identical in all three parties, the reversal included among Democrats.</p>
+      </div></div>
+
+      <div class="pane" data-step="3"><div class="card">
+        <div class="step">Takeaway 2</div>
+        <h3>Private messaging predicts the claims a minority holds — and nothing once a claim is common.</h3>
+        <div class="big">r = −0.855</div>
+        <p class="bigsub">correlation between how widely a claim is believed and private messaging's log odds ratio.</p>
+        <p>It is the strongest predictor of the CIA&nbsp;9/11 claim (22% believed), election denial (31%)
+        and wind turbines (15%) — and is <em>negatively</em> associated with the two most widely
+        believed items in the battery.</p>
+        <p><b>Very Large Platform runs the opposite way, at r&nbsp;=&nbsp;+0.953.</b> Because the signs
+        differ across regimes, this cannot be the odds scale compressing near saturation — that would
+        move every regime the same way.</p>
+      </div></div>
+
+      <div class="pane" data-step="4"><div class="card">
+        <div class="step">Takeaway 2, continued</div>
+        <h3>One behaves like transmission. The other like a milieu.</h3>
+        <p>Private messaging discriminates while a claim is still confined to a minority and adds
+        nothing once it is widespread. Very Large Platform is strongest precisely on the attitudes most
+        people already hold — ambient exposure, not transmission.</p>
+        <p>Holding all four conspiracy items fixed does not flatten this. The gradient <em>steepens</em>,
+        to r&nbsp;=&nbsp;−0.890, so conspiracy predisposition explains part of the level and none of the pattern.</p>
+      </div></div>
+
+    </div>
+
+    <div class="sticky">
+      <div class="storybar">
+        <span class="track" id="storyTitle">The full picture</span>
+        <button class="btn" id="skip">Back to the explorer ↑</button>
+        <button class="btn" id="replay">Replay</button>
+        <div class="dots" id="dots"></div>
+      </div>
+      <div id="storyChart" style="flex:1;min-height:0"></div>
+    </div>
+  </div>
+</section>
+
 </div>
 <div class="tip" id="tip"></div>
 
