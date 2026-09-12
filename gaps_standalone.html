@@ -7,7 +7,12 @@
 <style>
 :root{--ink:#16181d;--mid:#71777f;--faint:#ccd1d6;--hair:#e6e9ec;--bg:#fff;--wash:#f4f7f9;
       --dem:#0047ab;--rep:#b3003c;--deg:#1b7f3b;--nodeg:#e08214;
-      --use:#b3003c;--nouse:#6b7078}
+      /* The two ends of a gap differed in hue but not in lightness -- crimson against slate is
+         a WCAG ratio of 1.41, which is no difference at all on a 1.7px dot. The reference end
+         is now light, taking the pair to 3.30, and carries a darker variant for its number so
+         the text stays readable. Lab distance improves on every vision type, worst case 37 to
+         60 under protanopia. */
+      --use:#b3003c;--nouse:#a8b3bc;--nouse-txt:#6b7078}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);
   font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;font-size:14px;line-height:1.5}
@@ -229,9 +234,14 @@ const PANEL_LABEL={"":"Everyone",dem:"Democrats",rep:"Republicans",
   s1_deg:"Users · degree",s1_nodeg:"Users · no degree",
   s0_dem:"Non-users · Democrats",s0_rep:"Non-users · Republicans",
   s1_dem:"Users · Democrats",s1_rep:"Users · Republicans"};
-const ENDS={source:()=>["Uses "+srcLabel(),"Doesn't use it",  "var(--use)","var(--nouse)"],
-            party:()=>["Democrats","Republicans",             "var(--dem)","var(--rep)"],
-            diploma:()=>["College degree or higher","No college degree","var(--deg)","var(--nodeg)"]};
+/* label a, label b, dot colour a, dot colour b, then the text colour for each -- the
+   reference end's dot is deliberately lighter than its number. */
+const ENDS={source:()=>["Uses "+srcLabel(),"Doesn't use it","var(--use)","var(--nouse)",
+                        "var(--use)","var(--nouse-txt)"],
+            party:()=>["Democrats","Republicans","var(--dem)","var(--rep)",
+                       "var(--dem)","var(--rep)"],
+            diploma:()=>["College degree or higher","No college degree","var(--deg)","var(--nodeg)",
+                         "var(--deg)","var(--nodeg)"]};
 const srcLabel=()=>(SRC.find(s=>s.key===S.source)||{label:S.source}).label;
 const outObj =()=>OUT.find(o=>o.key===S.outcome)||{};
 const cell   =()=>DATA.cells[S.outcome+"|"+S.source];
@@ -317,7 +327,7 @@ function tip(node,html){
 }
 function draw(){
   const host=document.getElementById("chart"); host.innerHTML="";
-  const c=cell(), pk=panels(), [la,lb,ca,cb]=ENDS[S.compare]();
+  const c=cell(), pk=panels(), [la,lb,ca,cb,ta,tb]=ENDS[S.compare]();
   const outcomeWord = outObj().direction==="belief" ? "believe it" : "trust them";
   document.getElementById("chartTitle").textContent=outObj().label||"";
   document.getElementById("chartQ").textContent=outObj().q||"";
@@ -350,12 +360,12 @@ function draw(){
     const bar=el("line",{x1:X(Math.min(va,vb)),x2:X(Math.max(va,vb)),y1:y,y2:y,
       stroke:"var(--ink)","stroke-width":thin?1.4:3,opacity:thin?.35:.2,"stroke-linecap":"round"});
     svg.appendChild(bar);
-    [[vb,cb,lb,g.nb],[va,ca,la,g.na]].forEach(([v,col,lab,n])=>{
+    [[vb,cb,lb,g.nb,tb],[va,ca,la,g.na,ta]].forEach(([v,col,lab,n,tcol])=>{
       const gg=el("g");
       gg.appendChild(el("circle",{cx:X(v),cy:y,r:9,fill:"transparent","pointer-events":"all"}));
       gg.appendChild(el("circle",{cx:X(v),cy:y,r:1.7,fill:col}));
       gg.appendChild(txt(fmt(v,0)+"%",{x:X(v),y:y-12,"text-anchor":"middle","font-size":11.4,
-        "font-weight":700,fill:col}));
+        "font-weight":700,fill:tcol}));
       gg.appendChild(txt("n="+n.toLocaleString(),{x:X(v),y:y+17,"text-anchor":"middle",
         "font-size":9.4,fill:"var(--mid)"}));
       tip(gg,`<b>${lab}</b> · ${PANEL_LABEL[k]||k}<br>
