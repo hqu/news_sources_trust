@@ -265,8 +265,26 @@ two results in about two minutes.</p>
 
   <div>
     <div class="panel" style="border:2.5px solid var(--ink);border-radius:13px">
+            <div class="charts" style="margin-top:14px">
+        <div>
+          <div class="track" style="margin-bottom:2px">How strongly each news source goes with the belief</div>
+          <p class="note" style="margin:0 0 9px">Each dot is one news source on one question.
+          <b>Further right</b> means people who use that source are more likely to hold the belief:
+          1.5 means their odds are about half again as high as non-users', 2.0 means double, and
+          <b>1.0 means no difference</b> — with party, education, age, income, gender and survey
+          date held equal. <b>Higher up</b> means more of the country already holds it.</p>
+          <div id="scatter"></div>
+        </div>
+        <div>
+          <div class="track" style="margin-bottom:6px">Ranked, for the beliefs in view</div>
+          <div id="rank"></div>
+          <div class="track" style="margin:16px 0 6px">Goes with belief <i>and</i> with distrust?</div>
+          <div id="quad"></div>
+        </div>
+      </div>
+      <div class="rule" style="margin:16px 0 12px"></div>
       <div class="ctlrow" style="margin-bottom:2px">
-        <span class="track">% of the population in the adverse state</span>
+        <span class="track">Narrow the chart to beliefs held by this much of the country</span>
         <span style="margin-left:auto;font-size:11.5px;color:var(--mid)" id="winLabel"></span>
       </div>
       <div class="slider">
@@ -284,18 +302,6 @@ two results in about two minutes.</p>
         <span style="margin-left:auto;font-size:11.5px;color:var(--mid)" id="inView"></span>
       </div>
 
-      <div class="charts" style="margin-top:14px">
-        <div>
-          <div class="track" style="margin-bottom:6px">Association against how widely the belief is held</div>
-          <div id="scatter"></div>
-        </div>
-        <div>
-          <div class="track" style="margin-bottom:6px">Ranking in this window</div>
-          <div id="rank"></div>
-          <div class="track" style="margin:16px 0 6px">Adverse on both families?</div>
-          <div id="quad"></div>
-        </div>
-      </div>
     </div>
 
     <div class="panel">
