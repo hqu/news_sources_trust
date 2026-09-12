@@ -76,6 +76,8 @@ h2{font-size:19px;font-weight:700;margin:0 0 8px;letter-spacing:-.01em}
 .contrast .splits input{margin:0;accent-color:var(--ink)}
 .contrast .sep{width:1px;align-self:stretch;background:var(--hair)}
 label.row{display:flex;gap:8px;align-items:flex-start;padding:3px 0;cursor:pointer;font-size:12.6px}
+label.row.na{opacity:.34;cursor:not-allowed}
+label.row.na input{cursor:not-allowed}
 input[type=radio]{margin:3px 0 0;accent-color:var(--dem);flex:none}
 .meta{color:var(--mid);font-size:10.6px;margin-left:auto;padding-left:8px;white-space:nowrap}
 .grp{border-top:1px solid var(--hair);padding-top:7px;margin-top:7px}
@@ -352,6 +354,7 @@ function contrastNote(){
   document.getElementById("roleNote").textContent =
     "Each row below is the gap between "+LV[S.compare]+".";
 }
+const NA_NOTE="Not fielded in the waves that carry this question, so there is no model for it.";
 function buildSrcTree(){
   const h=document.getElementById("srcTree"); h.innerHTML="";
   for(const r of REG){
@@ -364,14 +367,22 @@ function buildSrcTree(){
     // only", "Search Engine / Search engine only".
     const same = solo && kids[0].label.toLowerCase()===r.label.toLowerCase();
     const sub = (solo && !same) ? `<span class="chsub">${kids[0].label}</span>` : "";
-    d.innerHTML=`<label class="row"><input type="radio" name="src" value="${r.key}"
-      ${S.source===r.key?"checked":""}><span class="srcname"><span
+    // A source is only offered where it was actually fitted for the chosen question. AI Chat
+    // runs in six waves, so on a question asked outside them there is no model to show and the
+    // row is greyed rather than left clickable and then apologised for.
+    const na = !DATA.cells[S.outcome+"|"+r.key];
+    d.innerHTML=`<label class="row${na?" na":""}"${na?' title="'+NA_NOTE+'"':""}>
+      <input type="radio" name="src" value="${r.key}"
+      ${S.source===r.key?"checked":""}${na?" disabled":""}><span class="srcname"><span
       style="font-weight:600">${r.label}</span>${sub}</span></label>`;
     if(!solo&&kids.length){
       const k=document.createElement("div"); k.className="kids";
-      kids.forEach(c=>k.insertAdjacentHTML("beforeend",
-        `<label class="row"><input type="radio" name="src" value="${c.key}"
-          ${S.source===c.key?"checked":""}><span>${c.label}</span></label>`));
+      kids.forEach(c=>{
+        const cna = !DATA.cells[S.outcome+"|"+c.key];
+        k.insertAdjacentHTML("beforeend",
+          `<label class="row${cna?" na":""}"${cna?' title="'+NA_NOTE+'"':""}>
+            <input type="radio" name="src" value="${c.key}"
+            ${S.source===c.key?"checked":""}${cna?" disabled":""}><span>${c.label}</span></label>`);});
       d.appendChild(k);
     }
     h.appendChild(d);
@@ -628,7 +639,15 @@ function wire(){
   document.getElementById("srcTree").addEventListener("change",e=>{
     if(e.target.name==="src"){ S.source=e.target.value; draw(); }});
   document.getElementById("outTree").addEventListener("change",e=>{
-    if(e.target.name==="out"){ S.outcome=e.target.value; draw(); }});
+    if(e.target.name!=="out") return;
+    S.outcome=e.target.value;
+    /* If the selected source is not fitted for the new question, move to one that is rather
+       than leaving a disabled radio checked over an empty chart. */
+    if(!DATA.cells[S.outcome+"|"+S.source]){
+      const first=SRC.find(x=>DATA.cells[S.outcome+"|"+x.key]);
+      if(first) S.source=first.key;
+    }
+    buildSrcTree(); draw();});
   document.getElementById("bAdj").addEventListener("click",()=>{S.adjusted=true;
     document.getElementById("bAdj").classList.add("on");
     document.getElementById("bRaw").classList.remove("on"); draw();});
