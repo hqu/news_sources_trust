@@ -31,6 +31,9 @@ h2{font-size:17px;font-weight:700;margin:0 0 8px}
 .sub{color:var(--mid);font-size:14px;margin:0;max-width:900px}
 .track{letter-spacing:.19em;text-transform:uppercase;font-size:10.5px;font-weight:700;color:var(--mid)}
 .rule{height:1px;background:var(--hair);margin:20px 0 24px}
+.sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;
+  clip:rect(0 0 0 0);white-space:nowrap;border:0}
+.dag{color:#9a3b30;font-weight:700;cursor:help}
 .panel{border:1px solid var(--hair);border-radius:11px;padding:15px 16px}
 .panel+.panel{margin-top:14px}
 button{font:inherit;cursor:pointer}
@@ -755,8 +758,12 @@ function buildOutcomeTree(){
     const kids=document.createElement("div"); kids.className="kids";
     for(const o of list){
       const l=document.createElement("label"); l.className="row";
+      if(o.consp===false) l.title="Asked in waves the conspiracy battery does not cover, so "
+        +"the four conspiracy items are not held fixed for this outcome.";
       l.innerHTML=`<input type="checkbox" data-out="${o.key}">
-        <span>${o.label}${o.consp===false?' <span title="Asked in waves the conspiracy battery does not cover, so the four conspiracy items are not held fixed for this outcome.">†</span>':''}</span>
+        <span>${o.label}${o.consp===false
+          ?' <span class="dag" aria-hidden="true">†</span>'
+           +'<span class="sr"> — conspiracy items not held fixed for this outcome</span>':''}</span>
         <span class="meta">${o.adverse.toFixed(0)}%</span>`;
       kids.appendChild(l);
     }

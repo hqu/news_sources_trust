@@ -40,6 +40,9 @@ h1{font-size:25px;font-weight:700;margin:0 0 5px}
 .a-outcome input[type=checkbox],.a-outcome input[type=radio]{margin-top:2px;transform:scale(.88);transform-origin:left center}
 .xgrid th.axh{font-size:9.6px;letter-spacing:.16em;text-transform:uppercase;color:var(--mid);
   font-weight:700;padding-bottom:3px;border-bottom:1px solid var(--hair)}
+.sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;
+  clip:rect(0 0 0 0);white-space:nowrap;border:0}
+.dag{color:#9a3b30;font-weight:700;cursor:help}
 .panel{border:1px solid var(--hair);border-radius:11px;padding:15px 16px}
 .panel+.panel{margin-top:16px}
 label.row{display:flex;gap:8px;align-items:flex-start;padding:3.5px 0;cursor:pointer;font-size:13px}
@@ -577,9 +580,15 @@ function outRow(k){const o=O(k);
   const l=document.createElement("label"); l.className="row";
   const pct=o.regime.prevalence;
   const exempt = o.consp_control===false;
+  // The dagger is a sighted marker only: hidden from assistive technology, which gets the
+  // sentence instead, and the hover title sits on the row rather than on the glyph so there is
+  // one tooltip target rather than a 6px one nested inside a larger one.
+  const dag = exempt ? ' <span class="dag" aria-hidden="true">†</span>'
+                     + '<span class="sr"> — conspiracy items not held fixed for this outcome</span>' : '';
   l.innerHTML=`<input type="radio" name="outcome" data-out="1" value="${k}">
-               <span>${o.label}${exempt?' <span title="'+DAGGER+'">†</span>':''}</span>
+               <span>${o.label}${dag}</span>
                <span class="meta">${pct.toFixed(0)}%</span>`;
+  if(exempt) l.title=DAGGER;
   return l;}
 
 // ---------- news-source tree ----------
