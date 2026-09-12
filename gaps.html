@@ -240,7 +240,9 @@ read; an odds ratio of 3.9 is not.</span></p>
 
  <div class="a-out">
   <div class="panel">
-    <div class="track" style="margin-bottom:8px">Outcome</div>
+    <div class="track" style="margin-bottom:3px">Outcome</div>
+    <p class="note" style="margin:0 0 8px">The figure beside each is the share of Democrats and
+      Republicans who agree with the claim, or who trust the institution.</p>
     <div id="outTree"></div>
   </div>
  </div>
@@ -340,8 +342,10 @@ function buildOutTree(){
     d.innerHTML=`<div class="grph">${title}</div>`;
     const k=document.createElement("div"); k.className="kids";
     list.forEach(o=>k.insertAdjacentHTML("beforeend",
-      `<label class="row"><input type="radio" name="out" value="${o.key}"
-        ${S.outcome===o.key?"checked":""}><span>${o.label}</span></label>`));
+      `<label class="row" title="${o.direction==="belief"?"share who agree":"share who trust them"}">
+        <input type="radio" name="out" value="${o.key}" ${S.outcome===o.key?"checked":""}>
+        <span>${o.label}</span>
+        <span class="meta">${o.prev==null?"":o.prev+"%"}</span></label>`));
     d.appendChild(k); h.appendChild(d);
   }
 }

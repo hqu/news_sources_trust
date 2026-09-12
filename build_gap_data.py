@@ -252,6 +252,8 @@ t0=time.time(); done=0; total=len(payload["outcomes"])*len(SOURCES)
 for o in payload["outcomes"]:
     y=y_of(VARS[o["key"]])
     o["consp_control"]=consp_viable(y)
+    dr=d["weight"].notna() & y.notna()
+    o["prev"]=round(float(100*(d["weight"][dr]*y[dr]).sum()/d["weight"][dr].sum()),1)
     base = BASE if o["consp_control"] else BASE_CTRL
     print(f"  {o['key']:<10}conspiracy control="
           f"{'yes' if o['consp_control'] else 'NO (exempt)'}",flush=True)
