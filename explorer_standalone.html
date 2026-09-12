@@ -182208,7 +182208,7 @@ function drawScatter(host,state,opts={}){
   /* points */
   for(const c of C){
     const o=dim(c.regime)?.13:(opts.faint?.55:.95), col=RC[c.regime];
-    const g=el("g",{opacity:o,"data-rk":c.regime});
+    const g=el("g",{opacity:o,"data-rk":c.regime,"data-ok":c.o.key});
     g.appendChild(el("line",{y1:Y(c.o.adverse),y2:Y(c.o.adverse),
       x1:X(Math.max(xlo,c.lo)),x2:X(Math.min(xhi,c.hi)),stroke:col,"stroke-width":1.1,opacity:.4}));
     const fam=c.o.fam, cx=X(c.or), cy=Y(c.o.adverse), s=4.2;
@@ -182246,21 +182246,28 @@ function drawScatter(host,state,opts={}){
    restyling the existing nodes rather than re-rendering, so the scatter's own tooltips and
    hit targets survive the hover. Inline `style` wins over the presentation attribute, and
    clearing it restores whatever the draw function set. */
-function crossHighlight(rg){
+/* One isolation routine. `pred` picks the nodes to keep; null restores whatever the draw
+   function set, which is what preserves the opening emphasis on podcasts. Regime hover comes
+   from the rank bars and the quadrant, outcome hover from the ticks under the slider. */
+function isolate(pred){
   const host=document.getElementById("scatter"); if(!host) return;
   host.querySelectorAll("[data-rk]").forEach(n=>{
-    const on = !rg || n.dataset.rk===rg;
-    n.style.opacity = rg ? (on?1:.14) : "";
-    n.style.filter  = (rg && !on) ? "grayscale(1)" : "";
+    const on = !pred || pred(n);
+    n.style.opacity = pred ? (on?1:.12) : "";
+    n.style.filter  = (pred && !on) ? "grayscale(1)" : "";
   });
   host.querySelectorAll("g.fit").forEach(n=>{
     const ln=n.querySelector('line[stroke-linecap]');
     if(!ln) return;
-    const hot = rg && n.dataset.rk===rg;
+    const hot = pred && pred(n);
     ln.setAttribute("stroke-width", hot?2.8:ln.dataset.w);
     ln.setAttribute("opacity",      hot?.95:ln.dataset.o);
   });
 }
+const crossHighlight = rg => isolate(rg ? n=>n.dataset.rk===rg : null);
+/* A fitted line has no outcome, so isolating one dims every line and leaves a single row of
+   dots at that height -- which is what the tick is pointing at. */
+const outcomeHighlight = k => isolate(k ? n=>n.dataset.ok===k : null);
 
 /* ============================ rank panel ============================ */
 function drawRank(host,state){
@@ -182452,6 +182459,8 @@ function syncControls(){
     bindTip(i, near.length>1
       ? `<b>${near.length} outcomes at this point on the axis</b>${near.map(line).join("")}`
       : line(o));
+    i.addEventListener("mouseenter",()=>outcomeHighlight(o.key));
+    i.addEventListener("mouseleave",()=>outcomeHighlight(null));
     tk.appendChild(i);
   }
   const st=DATA.meta.strata.find(x=>x.key===S.stratum);
