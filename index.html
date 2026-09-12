@@ -198,6 +198,41 @@ window.__unlock=function(run){
 <!-- ========================== end access gate ========================== -->
 
 <div class="wrap">
+<!-- ---------------------------- cross-page nav ---------------------------- -->
+<nav class="dnav" data-here="index">
+  <a data-p="index"><b>1</b><i>Rankings</i><span>which source ranks where, one outcome at a time</span></a>
+  <a data-p="explorer"><b>2</b><i>Rare vs common</i><span>how that ranking changes with how common a belief is</span></a>
+  <a data-p="gaps"><b>3</b><i>Gaps between people</i><span>the same result as a difference in percentage points</span></a>
+</nav>
+<style>
+.dnav{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:0 0 22px}
+.dnav a{display:block;border:1px solid #e6e9ec;border-radius:10px;padding:9px 12px;
+  text-decoration:none;color:#16181d;background:#fff}
+.dnav a[href]:hover{background:#f4f7f9;border-color:#ccd1d6}
+.dnav a.on{border-color:#16181d;border-width:1.5px;cursor:default}
+.dnav b{display:inline-block;font-size:9.5px;font-weight:700;letter-spacing:.14em;
+  color:#a3a9b0;margin-right:7px;vertical-align:1px}
+.dnav a.on b{color:#16181d}
+.dnav i{font-style:normal;font-size:13px;font-weight:600}
+.dnav span{display:block;font-size:10.8px;color:#71777f;line-height:1.4;margin-top:2px}
+@media(max-width:860px){.dnav{grid-template-columns:1fr}.dnav span{display:none}}
+</style>
+<script>
+/* The three pages ship in two forms: served (index.html + data.json) and self-contained
+   (index_standalone.html with the payload inlined). A link has to point at the sibling of the
+   same kind, or a reader who opened the standalone copy from Finder lands on a page that
+   cannot fetch its data. Decided at load from whether this page's own payload is inlined. */
+addEventListener("DOMContentLoaded",function(){
+  var nav=document.querySelector(".dnav"), here=nav.dataset.here;
+  var el=document.getElementById("payload");
+  var solo=!!(el && el.textContent.trim()[0]==="{");
+  nav.querySelectorAll("a").forEach(function(a){
+    if(a.dataset.p===here){ a.className="on"; return; }
+    a.href=a.dataset.p+(solo?"_standalone":"")+".html";
+  });
+});
+</script>
+<!-- -------------------------- end cross-page nav -------------------------- -->
   <h1>Where political news comes from, and what people believe</h1>
   <p class="sub">Aggregated estimates from the Civic Health and Institutions Project (CHIP50), June 2022 – May 2026.
      <span id="buildstamp" style="color:#ccd1d6"></span></p>
