@@ -42,13 +42,24 @@ h2{font-size:19px;font-weight:700;margin:0 0 8px;letter-spacing:-.01em}
 .a-out .grph{font-size:11.8px}
 .a-out label.row{font-size:11.6px;padding:2px 0}
 .a-out input[type=radio]{transform:scale(.88);transform-origin:left center}
-/* contrast builder */
-.roles{display:grid;grid-template-columns:132px repeat(3,1fr);gap:6px;align-items:center;
-  font-size:12.4px;margin-bottom:6px}
-.roles .rl{font-weight:600}
-.roles .hdr{font-size:9.6px;letter-spacing:.14em;text-transform:uppercase;color:var(--mid);
-  font-weight:700;text-align:center}
-.roles .lv{grid-column:1/-1;font-size:11.2px;color:var(--mid);margin:-2px 0 6px 0}
+/* Contrast builder: one row, a segmented control for the comparison and plain checkboxes for
+   what splits the panels. The earlier grid of bullet buttons carried three states per row with
+   nothing on the control itself saying which was which. */
+.contrast{display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px;
+  padding:0 0 12px;border-bottom:1px solid var(--hair);margin-bottom:11px}
+.contrast .lbl{font-size:9.8px;letter-spacing:.14em;text-transform:uppercase;color:var(--mid);
+  font-weight:700}
+.seg{display:inline-flex;border:1px solid var(--faint);border-radius:8px;overflow:hidden}
+.seg button{font:inherit;font-size:12.2px;padding:5px 13px;border:0;background:#fff;
+  color:var(--ink);cursor:pointer;border-left:1px solid var(--faint)}
+.seg button:first-child{border-left:0}
+.seg button:hover{background:var(--wash)}
+.seg button.on{background:var(--ink);color:#fff}
+.contrast .splits{display:inline-flex;align-items:center;gap:14px}
+.contrast .splits label{display:inline-flex;align-items:center;gap:6px;font-size:12.2px;cursor:pointer}
+.contrast .splits label.locked{cursor:not-allowed;color:var(--mid)}
+.contrast .splits input{margin:0;accent-color:var(--ink)}
+.contrast .sep{width:1px;align-self:stretch;background:var(--hair)}
 label.row{display:flex;gap:8px;align-items:flex-start;padding:3px 0;cursor:pointer;font-size:12.6px}
 input[type=radio]{margin:3px 0 0;accent-color:var(--dem);flex:none}
 .meta{color:var(--mid);font-size:10.6px;margin-left:auto;padding-left:8px;white-space:nowrap}
@@ -164,7 +175,7 @@ addEventListener("DOMContentLoaded",function(){
 });
 </script>
 <!-- -------------------------- end cross-page nav -------------------------- -->
-<div class="pagehdr">
+<div>
  <div>
 <h1>Who the gap belongs to</h1>
 <p class="sub">The same survey, asked as a difference between people rather than a coefficient.
@@ -173,11 +184,6 @@ Pick any two groups — <b>Democrats and Republicans</b>, <b>graduates and non-g
 belief or trust an institution, and how far apart they are in percentage points.
 <span style="color:var(--ink)">A difference of 31 points between two groups is a sentence anyone can
 read; an odds ratio of 3.9 is not.</span></p>
- </div>
- <div class="panel" style="margin-top:2px">
-   <div class="track" style="margin-bottom:9px">The contrast</div>
-   <div class="roles" id="roles"></div>
-   <div class="note" id="roleNote"></div>
  </div>
 </div>
 <div class="rule"></div>
@@ -192,6 +198,8 @@ read; an odds ratio of 3.9 is not.</span></p>
 
  <div>
   <div class="panel" style="border:2.5px solid var(--ink);border-radius:13px">
+    <div class="contrast" id="contrast"></div>
+    <div class="note" id="roleNote" style="margin:0 0 12px"></div>
     <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:4px">
       <h2 id="chartTitle" style="margin:0;line-height:1.2"></h2>
       <span style="margin-left:auto;white-space:nowrap">
@@ -274,25 +282,24 @@ function panels(){
 function gapOf(pk){ const c=cell(); return c ? c.g[S.compare+"|"+pk] : null; }
 
 /* ------------------------------------------------ controls */
-function buildRoles(){
-  const h=document.getElementById("roles");
-  h.innerHTML='<div></div><div class="hdr">Compare</div><div class="hdr">Split by</div><div class="hdr">Pool</div>';
-  for(const [k,lab,levels] of DIMS){
-    const isC=S.compare===k, isS=!isC&&S.split[k], isP=!isC&&!S.split[k];
-    const lockPool = k==="source" && !isC;   /* see panels() */
-    h.insertAdjacentHTML("beforeend",
-      `<div class="rl">${lab}</div>
-       <div style="text-align:center"><button class="btn${isC?" on":""}" data-role="compare" data-dim="${k}">●</button></div>
-       <div style="text-align:center"><button class="btn${isS?" on":""}" data-role="split" data-dim="${k}"${isC?" disabled":""}>●</button></div>
-       <div style="text-align:center"><button class="btn${isP?" on":""}" data-role="pool" data-dim="${k}"${isC||lockPool?" disabled":""}>●</button></div>
-       <div class="lv">${levels}</div>`);
-  }
-  document.getElementById("roleNote").innerHTML =
-    S.compare==="source"
-      ? "The gap is between people who use the source for political news and people who don't."
-      : `The gap is between ${S.compare==="party"?"the two parties":"graduates and non-graduates"}, shown separately for
-         users and non-users of the news source. Pooling over news source use is disabled because a gap
-         averaged over a variable the model interacts with is not an estimate this fit produces.`;
+function buildContrast(){
+  const h=document.getElementById("contrast");
+  const seg=DIMS.map(([k,lab])=>
+    `<button class="${S.compare===k?"on":""}" data-role="compare" data-dim="${k}">${lab}</button>`).join("");
+  const splits=DIMS.filter(([k])=>k!==S.compare).map(([k,lab])=>{
+    const locked = k==="source";             /* see panels() */
+    const on = locked ? true : S.split[k];
+    return `<label class="${locked?"locked":""}"${locked?' title="A gap averaged over a variable the model interacts with is not an estimate this fit produces, so news source use always splits the panels when it is not the comparison."':""}>
+      <input type="checkbox" data-role="split" data-dim="${k}"${on?" checked":""}${locked?" disabled":""}>
+      <span>${lab}</span></label>`;}).join("");
+  h.innerHTML=`<span class="lbl">Compare</span><span class="seg">${seg}</span>
+    <span class="sep"></span>
+    <span class="lbl">Split the panels by</span><span class="splits">${splits}</span>`;
+  const LV={source:"people who use it for political news and people who don\u2019t",
+            party:"Democrats and Republicans",
+            diploma:"people with a college degree or higher and people without one"};
+  document.getElementById("roleNote").textContent =
+    "Each row below is the gap between "+LV[S.compare]+".";
 }
 function buildSrcTree(){
   const h=document.getElementById("srcTree"); h.innerHTML="";
@@ -518,17 +525,22 @@ function drawTable(){
     and a gap between users and non-users is a gap between people who differ in many ways.
     Built ${DATA.meta.built} from ${DATA.meta.source}.`;
 }
-function render(){ buildRoles(); buildSrcTree(); buildOutTree(); draw(); }
+function render(){ buildContrast(); buildSrcTree(); buildOutTree(); draw(); }
 
 function wire(){
   document.addEventListener("click",e=>{
-    const b=e.target.closest("[data-role]"); if(!b||b.disabled) return;
-    const dim=b.dataset.dim, role=b.dataset.role;
-    if(role==="compare"){
-      S.compare=dim; S.split[dim]=false;
-      if(dim!=="source") S.split.source=true;      /* see panels() */
-    } else S.split[dim]=(role==="split");
+    const b=e.target.closest("button[data-role=compare]"); if(!b||b.disabled) return;
+    const prev=S.compare, next=b.dataset.dim;
+    if(prev===next) return;
+    /* a dimension that stops being the comparison goes back to splitting the panels. Leaving
+       it off would silently collapse the chart to one pooled row on the way back. */
+    S.compare=next; S.split[next]=false; S.split[prev]=true;
+    if(next!=="source") S.split.source=true;            /* see panels() */
     render();
+  });
+  document.getElementById("contrast").addEventListener("change",e=>{
+    const i=e.target; if(i.dataset.role!=="split"||i.disabled) return;
+    S.split[i.dataset.dim]=i.checked; render();
   });
   document.getElementById("srcTree").addEventListener("change",e=>{
     if(e.target.name==="src"){ S.source=e.target.value; draw(); }});
