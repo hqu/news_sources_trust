@@ -68,8 +68,21 @@ button{font:inherit;cursor:pointer}
   .pane{min-height:auto;padding:14px 0}}
 
 /* ======== explorer ======== */
-.cols{display:grid;grid-template-columns:300px minmax(0,1fr);gap:24px;align-items:start}
-@media(max-width:1060px){.cols{grid-template-columns:1fr}}
+.cols{display:grid;grid-template-columns:206px minmax(0,1fr);gap:18px;align-items:start}
+@media(max-width:1120px){.cols{grid-template-columns:184px minmax(0,1fr);gap:14px}}
+@media(max-width:900px){.cols{grid-template-columns:1fr}}
+/* the control column is narrow, so its type and padding step down with it */
+.cols>div:first-child .panel{padding:12px 12px}
+.cols>div:first-child label.row{font-size:11.8px;line-height:1.35;align-items:flex-start}
+.cols>div:first-child .meta{font-size:10px;padding-left:6px}
+.cols>div:first-child .famhdr .fl{font-size:11.8px}
+.cols>div:first-child .famhdr .fn{font-size:9.4px}
+.cols>div:first-child .chip{font-size:10.8px;padding:2px 8px}
+.kids{padding-left:17px}
+@media(max-width:1120px){
+  .cols>div:first-child label.row{font-size:11.2px}
+  .cols>div:first-child .panel{padding:10px 10px}
+}
 .ctlrow{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:9px}
 label.row{display:flex;gap:8px;align-items:flex-start;padding:3px 0;cursor:pointer;font-size:12.6px}
 input[type=checkbox]{margin:3px 0 0;accent-color:var(--vlp);flex:none}
@@ -344,7 +357,7 @@ two results in about two minutes.</p>
         full places clear of the next regime.</p>
       </div></div>
 
-      <div class="pane" data-step="2"><div class="card">
+      <div class="pane" data-step="2" data-needs="challenger"><div class="card">
         <div class="step">Takeaway 1, continued</div>
         <h3>But it is substitution, not cynicism.</h3>
         <div class="big">1.97×</div>
@@ -427,8 +440,15 @@ function orient(o,e){
     ? {or:1/e.odds_ratio, lo:1/e.hi, hi:1/e.lo}
     : {or:e.odds_ratio,   lo:e.lo,   hi:e.hi};
 }
+/* ---------------------------------------------------------------------------
+   TEMPORARILY HIDDEN OUTCOMES. The models, the payload and the rendering code
+   are all untouched; these keys are filtered out at load. Empty the array to
+   bring them back -- nothing else has to change.
+   --------------------------------------------------------------------------- */
+const HIDDEN_OUTCOMES=["rfk","musk"];
 function prepare(raw){
   DATA=raw;
+  raw.outcomes=raw.outcomes.filter(o=>!HIDDEN_OUTCOMES.includes(o.key));
   REG = raw.meta.regimes.map(r=>r.key);
   raw.meta.regimes.forEach(r=>RLAB[r.key]=r.label);
   /* The payload now carries "Podcasts" for this regime, so no override is needed here.
@@ -608,8 +628,9 @@ function drawScatter(host,state,opts={}){
   /* legend, bottom right where the low-prevalence rows leave room */
   const lg=el("g",{transform:`translate(${M.l+iw-166},${M.t+ih-34})`});
   [["belief","● belief in a claim"],["establishment","■ distrust of an institution"],
-   ["challenger","▲ trust in RFK / Musk"]].forEach((d,i)=>
-    lg.appendChild(txt(d[1],{x:0,y:i*13,fill:"var(--mid)","font-size":10.2})));
+   ["challenger","▲ trust in a challenger"],["government","▲ trust in government"]]
+   .filter(d=>OUT.some(o=>o.fam===d[0]))
+   .forEach((d,i)=>lg.appendChild(txt(d[1],{x:0,y:i*13,fill:"var(--mid)","font-size":10.2})));
   svg.appendChild(lg);
 }
 /* ============================ cross-chart highlight ============================ */
@@ -758,6 +779,7 @@ function buildOutcomeTree(){
   const host=document.getElementById("outcomeTree"); host.innerHTML="";
   for(const [fk,flab,fnote] of FAMS){
     const list=OUT.filter(o=>o.fam===fk);
+    if(!list.length) continue;          // nothing on the page, so no heading for it either
     const wrap=document.createElement("div"); wrap.className="fam";
     const hdr=document.createElement("div"); hdr.className="famhdr";
     hdr.innerHTML=`<input type="checkbox" data-fam="${fk}">
@@ -796,6 +818,7 @@ function syncControls(){
   for(const [fk] of FAMS){
     const list=OUT.filter(o=>o.fam===fk), on=list.filter(o=>S.outcomes.has(o.key)).length;
     const box=document.querySelector(`[data-fam="${fk}"]`);
+    if(!box) continue;               // a family with nothing on the page draws no header
     box.checked = on===list.length && on>0;
     box.indeterminate = on>0 && on<list.length;
   }
@@ -858,7 +881,7 @@ const STEPS=[
    opts:{faint:true,noLines:true}},
   {title:"Podcasts lead 15 of 18", st:o=>({...o,outcomes:new Set(OUT.filter(x=>x.fam!=="challenger").map(x=>x.key))}),
    opts:{emphasis:["DEC"],annotate:{lines:["Podcasts","first on 15 of 18 outcomes"],w:196,h:40}}},
-  {title:"…but it reverses for the challengers",
+  {title:"…but it reverses for the challengers", needs:"challenger",
    st:o=>({...o,outcomes:new Set(OUT.map(x=>x.key))}),
    opts:{emphasis:["DEC"],annotate:{lines:["▲ RFK and Musk sit LEFT of 1","podcast listeners trust them more"],w:240,h:40}}},
   {title:"Private messaging against Very Large Platform",
@@ -871,7 +894,7 @@ const STEPS=[
 let storyStep=-1;
 function showStep(i){
   if(i===storyStep) return; storyStep=i;
-  const s=STEPS[i]; if(!s) return;
+  const s=LIVE[i]; if(!s) return;
   document.getElementById("storyTitle").textContent=s.title;
   const host=document.getElementById("storyChart");
   const st=s.st({...S,regimes:new Set(REG),stratum:"all",lo:0,hi:PMAX,aiFits:false});
@@ -879,9 +902,19 @@ function showStep(i){
   document.querySelectorAll("#dots .dot").forEach((d,j)=>d.classList.toggle("on",j===i));
   document.querySelectorAll("#panes .pane").forEach((p,j)=>p.classList.toggle("active",j===i));
 }
+let LIVE=STEPS;
 function initStory(){
+  /* A walkthrough pane that argues about outcomes which are not on the page would annotate an
+     empty chart, so a step can declare the outcome family it needs. Dropping one renumbers the
+     rest, since the pane's data-step indexes this list. */
+  const keep=STEPS.map((s,i)=>({s,i})).filter(({s})=>!s.needs||OUT.some(o=>o.fam===s.needs));
+  LIVE=keep.map(x=>x.s);
+  [...document.querySelectorAll("#panes .pane")].forEach(p=>{
+    const ni=keep.findIndex(x=>x.i===+p.dataset.step);
+    if(ni<0) p.remove(); else p.dataset.step=ni;
+  });
   const dots=document.getElementById("dots");
-  dots.innerHTML=STEPS.map(()=>'<span class="dot"></span>').join("");
+  dots.innerHTML=LIVE.map(()=>'<span class="dot"></span>').join("");
   const panes=[...document.querySelectorAll("#panes .pane")];
   if(typeof IntersectionObserver==="function"){
     const io=new IntersectionObserver(es=>{

@@ -286,6 +286,12 @@ let DATA=null, OUT=[], SRC=[], REG=[];
 const DIMS=[["source","News source use","uses this news source for political news vs doesn't"],
             ["party","Party","Democrat vs Republican"],
             ["diploma","Diploma divide","College degree or higher vs no college degree"]];
+/* ---------------------------------------------------------------------------
+   TEMPORARILY HIDDEN OUTCOMES. The models, the payload and the rendering code
+   are all untouched; these keys are filtered out at load. Empty the array to
+   bring them back -- nothing else has to change.
+   --------------------------------------------------------------------------- */
+const HIDDEN_OUTCOMES=["rfk","musk"];
 const S={compare:"source", split:{party:true, diploma:false, source:true},
          source:"DEC", outcome:"denial", adjusted:true};
 const PANEL_LABEL={"":"Everyone",dem:"Democrats",rep:"Republicans",
@@ -634,7 +640,9 @@ function wire(){
 
 __unlock(function(){
   const go=raw=>{
-    DATA=raw; OUT=raw.outcomes; SRC=raw.meta.sources; REG=raw.meta.regimes;
+    DATA=raw; OUT=raw.outcomes.filter(o=>!HIDDEN_OUTCOMES.includes(o.key));
+    SRC=raw.meta.sources; REG=raw.meta.regimes;
+    if(HIDDEN_OUTCOMES.includes(S.outcome)) S.outcome=OUT[0].key;
     if(!DATA.cells[S.outcome+"|"+S.source]) S.source=REG[0].key;
     wire(); render();
   };

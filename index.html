@@ -405,9 +405,10 @@ function renderQuestions(){
       html+=`<p class="qstem">${ent["__stem_"+st].text}`
            +(STEM_NOTE[st]?`<br><span class="qs">${STEM_NOTE[st]}</span>`:"")+`</p>`;
       kids.sort((a,b)=>{const n=x=>parseInt((x.match(/_(\d+)$/)||[0,0])[1]);return n(a)-n(b)||a.localeCompare(b);});
-      kids.forEach(k=>{used.add(k); html+=item(k,ent[k]);});
+      kids.filter(k=>!HIDDEN_VARS.includes(k))
+          .forEach(k=>{used.add(k); html+=item(k,ent[k]);});
     });
-    Object.keys(ent).filter(k=>!k.startsWith("__stem_")&&!used.has(k))
+    Object.keys(ent).filter(k=>!k.startsWith("__stem_")&&!used.has(k)&&!HIDDEN_VARS.includes(k))
       .forEach(k=>{html+=item(k,ent[k]);});
     host.innerHTML=html||'<p class="q" style="color:#ccd1d6">not available</p>';};
   put("qsource","source"); put("qoutcome","outcome"); put("qcontrol","control");}
@@ -415,7 +416,17 @@ function stamp(){
   const m=DATA.meta, n=(DATA.outcomes||[]).length, st=(m.strata||[]).length;
   document.getElementById("buildstamp").textContent =
     ` · data built ${m.built} · ${n} outcomes · ${st} subgroups`;}
-function boot(d){try{DATA=d;init();loadQuestions();stamp();}catch(e){fail("Error building the view: "+e.message);throw e;}}
+/* ---------------------------------------------------------------------------
+   TEMPORARILY HIDDEN OUTCOMES. The models, the payload and the rendering code
+   are all untouched; these keys are filtered out at load. Empty the array to
+   bring them back -- nothing else has to change.
+   --------------------------------------------------------------------------- */
+const HIDDEN_OUTCOMES=["rfk","musk"];
+const HIDDEN_VARS=["pol_trust_rfk","pol_trust_musk"];
+function boot(d){try{
+  DATA=d; DATA.outcomes=DATA.outcomes.filter(o=>!HIDDEN_OUTCOMES.includes(o.key));
+  init();loadQuestions();stamp();
+}catch(e){fail("Error building the view: "+e.message);throw e;}}
 
 const O=k=>DATA.outcomes.find(o=>o.key===k);
 const REG=()=>DATA.meta.regimes;
