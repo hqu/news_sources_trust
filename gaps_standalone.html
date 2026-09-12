@@ -294,6 +294,9 @@ const DIMS=[["source","News source use","uses this news source for political new
    bring them back -- nothing else has to change.
    --------------------------------------------------------------------------- */
 const HIDDEN_OUTCOMES=["rfk","musk"];
+/* Regrouped in the page rather than in the payload so the change did not need a refit; the
+   build emits the same grouping from its next run. Idempotent either way. */
+const REGROUP={cdc:"Government",fda:"Government",fauci:"Government"};
 const S={compare:"source", split:{party:true, diploma:false, source:true},
          source:"DEC", outcome:"denial", adjusted:true};
 const PANEL_LABEL={"":"Everyone",dem:"Democrats",rep:"Republicans",
@@ -393,8 +396,8 @@ function buildOutTree(){
   for(const g of ["Trust","Conspiracy","Outlier","Government"]){
     const list=OUT.filter(o=>o.group===g); if(!list.length) continue;
     const d=document.createElement("div"); d.className="grp";
-    const title={Trust:"Trust in science and health",Conspiracy:"Conspiracy belief",
-                 Outlier:"The two outliers",Government:"Government and courts"}[g];
+    const title={Trust:"The profession and the industry",Conspiracy:"Conspiracy belief",
+                 Outlier:"The two outliers",Government:"Government, agencies and courts"}[g];
     d.innerHTML=`<div class="grph">${title}</div>`;
     const k=document.createElement("div"); k.className="kids";
     list.forEach(o=>k.insertAdjacentHTML("beforeend",
@@ -664,7 +667,9 @@ function wire(){
 
 __unlock(function(){
   const go=raw=>{
-    DATA=raw; OUT=raw.outcomes.filter(o=>!HIDDEN_OUTCOMES.includes(o.key));
+    DATA=raw;
+    raw.outcomes.forEach(o=>{ if(REGROUP[o.key]) o.group=REGROUP[o.key]; });
+    OUT=raw.outcomes.filter(o=>!HIDDEN_OUTCOMES.includes(o.key));
     SRC=raw.meta.sources; REG=raw.meta.regimes;
     if(HIDDEN_OUTCOMES.includes(S.outcome)) S.outcome=OUT[0].key;
     if(!DATA.cells[S.outcome+"|"+S.source]) S.source=REG[0].key;

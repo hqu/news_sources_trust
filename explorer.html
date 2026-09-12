@@ -417,7 +417,7 @@ const CHALLENGERS = ["rfk","musk"];
 /* Trust in political institutions is a different object from trust in the scientific
    establishment, so these get their own family rather than being folded into it and
    quietly widening what "the establishment" means. Off by default. */
-const GOVT = ["trump","whitehouse","scotus"];
+const GOVT = ["cdc","fda","fauci","trump","whitehouse","scotus"];
 /* Ceiling of the prevalence axis. The most widely held outcome in the battery sits at 68.5%,
    so 75 is the top of the data plus a little headroom; carrying the axis to 100 left a
    quarter of every chart permanently empty. Nothing is excluded by this. */
@@ -425,9 +425,11 @@ const PMAX = 75;
 const RC = {JS:"var(--js)",PB:"var(--pb)",SRCH:"var(--srch)",AICH:"var(--aich)",
             VLP:"var(--vlp)",PVT:"var(--pvt)",INT:"var(--int)",DEC:"var(--dec)"};
 const FAMS = [["belief","Belief in a claim","conspiracy and misinformation items"],
-              ["establishment","Trust in the establishment","shown as DISTRUST, so higher = more adverse"],
+              ["establishment","Trust in the profession and industry",
+               "scientists, doctors, pharma — shown as DISTRUST, so higher = more adverse"],
               ["challenger","Trust in the challengers","RFK Jr. and Musk — these run the other way"],
-              ["government","Trust in government and courts","White House, Supreme Court, Trump"]];
+              ["government","Trust in government, agencies and courts",
+               "CDC, FDA, Fauci, White House, Supreme Court, Trump"]];
 let DATA=null, REG=[], RLAB={}, OUT=[], BYKEY={};
 /* short codes for the quadrant, where a full label will not fit beside a 5px dot */
 const RSHORT={JS:"JS",PB:"PB",SRCH:"SRCH",AICH:"AI",VLP:"VLP",PVT:"PVT",INT:"INT",DEC:"POD"};

@@ -49,10 +49,10 @@ EDU = {"Some High School or Less":1,"High School Graduate":2,"Some College":3,
 OUTCOMES = [
  ("science","pol_trust_science","Trust","Trust in scientists and researchers","trust"),
  ("doctors","pol_trust_doctors","Trust","Trust in hospitals and doctors","trust"),
- ("cdc","pol_trust_cdc","Trust","Trust in the CDC","trust"),
- ("fda","pol_trust_fda","Trust","Trust in the FDA","trust"),
+ ("cdc","pol_trust_cdc","Government","Trust in the CDC","trust"),
+ ("fda","pol_trust_fda","Government","Trust in the FDA","trust"),
  ("pharma","pol_trust_pharma","Trust","Trust in pharmaceutical companies","trust"),
- ("fauci","pol_trust_fauci","Trust","Trust in Anthony Fauci","trust"),
+ ("fauci","pol_trust_fauci","Government","Trust in Anthony Fauci","trust"),
  ("denial","trump_win","Conspiracy","Election denial — Trump won in 2020","belief"),
  ("rfk","pol_trust_rfk","Outlier","Trust in Robert F. Kennedy Jr.","trust"),
  ("musk","pol_trust_musk","Outlier","Trust in Elon Musk","trust"),
@@ -86,7 +86,8 @@ for w in sorted(wave_rule.MODEL_WAVES, key=float):
         if col and col in h: fnmap[key]=col
     if not tg and not fnmap: continue
     cols=[c for c in have+tg+list(fnmap.values())
-          +["weight","party7","education_cat","income_cat_5","age","male","female"] if c in h]
+          +["weight","party7","education_cat","income_cat_5","age","male","female",
+            "race","age_cat_6"] if c in h]
     d=pd.read_csv(f,usecols=sorted(set(cols)),low_memory=False); d["wave"]=w
     for key,_,_,_ in FN_OUTCOMES: d["FN_"+key]=d[fnmap[key]] if key in fnmap else np.nan
     for c in CHAN:
@@ -96,7 +97,10 @@ for w in sorted(wave_rule.MODEL_WAVES, key=float):
         d[rg]=(d[src]>0).any(axis=1).astype(float) if src else np.nan
     for t in NEED+["male","female"]:
         if t not in d: d[t]=np.nan
-    fr.append(d[["wave","weight","party7","education_cat","income_cat_5","age","male","female"]
+    for c in ["race","age_cat_6"]:
+        if c not in d: d[c]=np.nan
+    fr.append(d[["wave","weight","party7","education_cat","income_cat_5","age","male","female",
+                 "race","age_cat_6"]
                 +NEED+["FN_"+k for k,_,_,_ in FN_OUTCOMES]+list(CHAN)+REGIMES])
 d=pd.concat(fr,ignore_index=True)
 d["edu"]=d["education_cat"].map(EDU)
@@ -132,11 +136,23 @@ def y_of(var):
 
 for c in CONSP: d["C_"+c]=CC.num(d[c])
 CC_COLS=["C_"+c for c in CONSP]
+# Race and an age BRACKET, added 2026-09-12. Age entered linearly cannot absorb a difference
+# that sits at one end of the distribution, and race was not in the model at all -- both matter
+# for who uses a messaging app for political news. Missing values take their own level rather
+# than costing the row.
+def dummies(col, prefix):
+    v = d[col].astype("object").where(d[col].notna(), "unknown").astype(str)
+    D = pd.get_dummies(v, prefix=prefix, drop_first=True).astype(float)
+    for c in D.columns: d[c] = D[c].values
+    return list(D.columns)
+RACE_D = dummies("race", "race")
+AGEB_D = dummies("age_cat_6", "ageb")
+print(f"  race levels {len(RACE_D)+1}, age brackets {len(AGEB_D)+1}", flush=True)
 # The four conspiracy items are controls rather than outcomes, which is what lets them be
 # controls at all. It costs wave coverage -- the battery runs in 11 of the 15 model waves --
 # and for an outcome whose own waves barely overlap it, what survives is not a sample. Those
 # outcomes keep the uncontrolled specification and the payload records which ones.
-BASE_CTRL=["age","income_cat_5","male_c"]
+BASE_CTRL=["income_cat_5","male_c"]+RACE_D+AGEB_D
 BASE=BASE_CTRL+CC_COLS
 
 def consp_viable(y):

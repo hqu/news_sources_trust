@@ -337,9 +337,12 @@ const DAGGER="The four conspiracy items are controls in every model. This outcom
   +"they are omitted here instead.";
 const DAGGER_NOTE="† the four conspiracy items are held fixed in every model except these, which are asked in waves the conspiracy battery does not cover";
 const PRIMARY=["science"];
-const DISCLOSE=[["Other science and health institutions",["cdc","fda","doctors","pharma"]],
-                ["Named individuals",["fauci","rfk","musk","trump"]],
-                ["Government and courts",["whitehouse","scotus"]]];
+// The CDC, the FDA and Fauci sit with government rather than with science: they are two
+// federal agencies and a federal official, which is what §5 of the trust chapter is about --
+// appointive agencies alternate with partisan control and the profession does not.
+const DISCLOSE=[["The profession and the industry",["doctors","pharma"]],
+                ["Named individuals",["rfk","musk","trump"]],
+                ["Government, agencies and courts",["cdc","fda","fauci","whitehouse","scotus"]]];
 // A third element asks for the group to be ordered by how many people hold the belief,
 // read from the payload rather than fixed here, so it stays right if the data change.
 // The four conspiracy items are controls in every model now rather than outcomes, so the
