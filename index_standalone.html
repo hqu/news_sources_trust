@@ -315,7 +315,7 @@ addEventListener("DOMContentLoaded",function(){
 <script>
 const PAL={ink:"#16181d",mid:"#71777f",faint:"#ccd1d6",hair:"#e6e9ec",
            obs:"#2f6f8f",semi:"#4f5f9e",priv:"#6b4c9a",bg:"#fff",wash:"#f4f7f9"};
-let DATA=null, QTEXT=null, selOut=[], selPred=new Set(), openNodes=new Set(["VLP","PVT"]),
+let DATA=null, QTEXT=null, selOut=[], selPred=new Set(), openNodes=new Set(),
    
     selStratum="all";
 
@@ -439,8 +439,10 @@ function orderedNodes(){
   });
   return out;}
 const GROUPONLY={CRW:"Crowdsourced"};
-// regimes whose named platforms are expanded and checked from the start
-const OPEN_BY_DEFAULT=["VLP","PVT"];
+// Parents whose named platforms are expanded and checked from the start. Crowdsourced is
+// here because it has no 24-hour item of its own -- Reddit and Wikipedia are the only way it
+// appears at all, so leaving them unchecked hides the regime completely.
+const OPEN_BY_DEFAULT=["VLP","PVT","CRW"];
 // On load and on every outcome change, switch on all eight regimes — but only those the
 // chosen outcome can actually estimate, since a regime absent from its waves (AI Chat on
 // the pre-2024 items) would otherwise sit checked with nothing to draw.
@@ -448,9 +450,8 @@ function defaultsFor(keys){
   const s=new Set();
   keys.forEach(k=>{const o=O(k); if(!o)return;
     REG().forEach(r=>{if(estOf(o,r.key)) s.add(r.key);});
-    // Very Large Platform and Private Messaging start with their named platforms checked.
-    // Those come from the 6-wave named-platform model rather than the 15-wave one, so the
-    // plot marks each such row.
+    // These parents start with their named platforms checked. Those come from the 6-wave
+    // named-platform model rather than the 15-wave one, so the plot marks each such row.
     PLATS().filter(p=>OPEN_BY_DEFAULT.includes(p.parent))
            .forEach(p=>{if(estOf(o,p.key)) s.add(p.key);});});
   return s;}
@@ -508,6 +509,7 @@ document.addEventListener("click",e=>{
   renderTabs(); draw();});
 
 function init(){
+  OPEN_BY_DEFAULT.forEach(k=>openNodes.add(k));
   // ---- outcome: primary, disclosures, then the always-visible extras
   const prim=document.getElementById("primary");
   PRIMARY.forEach(k=>O(k)&&prim.appendChild(outRow(k)));
