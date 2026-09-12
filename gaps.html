@@ -479,10 +479,11 @@ function draw(){
     /* the gap, with its interval, to the right of the two dots */
     const gx=X(Math.max(va,vb))+16, sign=g.gap>0?"+":"";
     const gt=el("g");
-    gt.appendChild(txt(`${sign}${fmt(g.gap)} pts`,{x:gx,y:y+1,"font-size":12.6,"font-weight":700,
+    // The interval stays in the tooltip, which already carries it to a decimal place. Printed
+    // here it doubled the height of every row's annotation to qualify a number the reader has
+    // not asked about yet.
+    gt.appendChild(txt(`${sign}${fmt(g.gap)} pts`,{x:gx,y:y+4,"font-size":12.6,"font-weight":700,
       fill:S.adjusted?"var(--ink)":"var(--mid)"}));
-    if(S.adjusted)
-      gt.appendChild(txt(`[${fmt(g.lo)}, ${fmt(g.hi)}]`,{x:gx,y:y+14,"font-size":10.2,fill:"var(--mid)"}));
     tip(gt,`<b>${la} − ${lb}</b><br>${sign}${fmt(g.gap,1)} percentage points`+
       (S.adjusted?`<br>95% CI [${fmt(g.lo,1)}, ${fmt(g.hi,1)}]<br>
         <span style="opacity:.8">${(g.lo>0||g.hi<0)?"interval excludes zero":"interval includes zero"}</span>`:""));
