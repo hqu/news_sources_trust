@@ -537,7 +537,7 @@ function init(){
       `<p class="legend" style="margin:11px 0 0">${DAGGER_NOTE}</p>`);
   DISCLOSE.forEach(([name,keys])=>{
     const av=keys.filter(k=>O(k)); if(!av.length)return;
-    const d=document.createElement("details"); d.className="disc";
+    const d=document.createElement("details"); d.className="disc"; d.open=true;
     d.innerHTML=`<summary>${name} <span class="meta" style="margin-left:0">${av.length}</span></summary>`;
     const inner=document.createElement("div"); inner.className="inner ogrid";
     av.forEach(k=>inner.appendChild(outRow(k))); d.appendChild(inner); discs.appendChild(d);
