@@ -286,7 +286,7 @@ let DATA=null, OUT=[], SRC=[], REG=[];
 const DIMS=[["source","News source use","uses this news source for political news vs doesn't"],
             ["party","Party","Democrat vs Republican"],
             ["diploma","Diploma divide","College degree or higher vs no college degree"]];
-const S={compare:"source", split:{party:true, diploma:true, source:true},
+const S={compare:"source", split:{party:true, diploma:false, source:true},
          source:"DEC", outcome:"denial", adjusted:true};
 const PANEL_LABEL={"":"Everyone",dem:"Democrats",rep:"Republicans",
   deg:"College degree or higher",nodeg:"No college degree",
@@ -606,10 +606,13 @@ function wire(){
     const b=e.target.closest("button[data-role=compare]"); if(!b||b.disabled) return;
     const prev=S.compare, next=b.dataset.dim;
     if(prev===next) return;
-    /* a dimension that stops being the comparison goes back to splitting the panels. Leaving
-       it off would silently collapse the chart to one pooled row on the way back. */
-    S.compare=next; S.split[next]=false; S.split[prev]=true;
+    S.compare=next; S.split[next]=false;
     if(next!=="source") S.split.source=true;            /* see panels() */
+    /* A dimension that stops being the comparison is only switched back on when nothing else
+       would be splitting the panels, which would collapse the chart to one pooled row. Short
+       of that it stays as the reader left it -- the diploma divide in particular is off until
+       someone turns it on. */
+    if(!DIMS.some(([k])=>k!==next && S.split[k])) S.split[prev]=true;
     render();
   });
   document.getElementById("contrast").addEventListener("change",e=>{
