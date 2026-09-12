@@ -444,7 +444,12 @@ function draw(){
        gap</span>`;
   const rows=pk.map(k=>[k,gapOf(k)]).filter(([,g])=>g);
   if(!rows.length){ host.innerHTML='<div class="note warn">Too few respondents in these cells.</div>'; return; }
-  const W=host.clientWidth||760, RH=46, M={t:14,r:26,b:46,l:186};
+  /* The label gutter was a fixed 186px, sized for "Republicans · no degree" and left mostly
+     empty when the panels are "Democrats" and "Republicans". It is now measured from the
+     labels actually drawn, with a floor that keeps room for the thin-cell warning. */
+  const labw = Math.max(...rows.map(([k])=>(PANEL_LABEL[k]||k).length))*6.6;
+  const W=host.clientWidth||760, RH=46,
+        M={t:14,r:26,b:46,l:Math.round(Math.max(92,Math.min(196,labw+20)))};
   const H=M.t+rows.length*RH+M.b;
   const svg=el("svg",{width:W,height:H,viewBox:`0 0 ${W} ${H}`}); host.appendChild(svg);
   const iw=W-M.l-M.r, X=v=>M.l+iw*v/100;
