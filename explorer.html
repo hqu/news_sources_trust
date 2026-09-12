@@ -770,10 +770,13 @@ function drawTable(state){
 }
 /* ============================ state + wiring ============================ */
 const S={outcomes:new Set(), lo:0, hi:PMAX, regimes:new Set(), aiFits:false, stratum:"all"};
-/* The page opens with podcasts picked out of the scatter, because that is the first result.
-   Any interaction clears it -- an emphasis the user cannot get rid of is a trap. */
-let openEmphasis="DEC";
-const clearEmphasis=()=>{ openEmphasis=null; };
+/* Podcasts stay picked out of the scatter whatever else changes -- a different outcome
+   selection, a different window, a different stratum. Drawing seven fitted lines at once is
+   unreadable and picking a different one each time the selection changes would be worse. The
+   way out is the Podcasts chip in the regime list: switch it off and the emphasis goes with
+   it, because there is nothing left to emphasise. Hovering a bar in the ranking panel
+   overrides it for as long as the pointer is there. */
+const EMPHASIS="DEC";
 
 function buildOutcomeTree(){
   const host=document.getElementById("outcomeTree"); host.innerHTML="";
@@ -869,7 +872,7 @@ function syncControls(){
 function render(){
   syncControls();
   drawScatter(document.getElementById("scatter"),S,
-              {height:430, emphasis: openEmphasis?[openEmphasis]:null});
+              {height:430, emphasis: S.regimes.has(EMPHASIS)?[EMPHASIS]:null});
   drawRank(document.getElementById("rank"),S);
   drawQuad(document.getElementById("quad"),S);
   drawTable(S);
@@ -946,34 +949,34 @@ function wire(){
       OUT.filter(o=>o.fam===t.dataset.fam).forEach(o=>
         t.checked?S.outcomes.add(o.key):S.outcomes.delete(o.key));
     } else return;
-    clearEmphasis(); render();
+    render();
   });
   document.addEventListener("click",e=>{
     const q=e.target.closest("[data-quick]");
     if(q){
       const k=q.dataset.quick;
       S.outcomes=new Set(k==="none"?[]:OUT.filter(o=>k==="all"||o.fam===k).map(o=>o.key));
-      clearEmphasis(); render(); return;
+      render(); return;
     }
     const w=e.target.closest("[data-win]");
     if(w){ const [a,b]=w.dataset.win.split(",").map(Number); S.lo=a; S.hi=b;
-           clearEmphasis(); render(); return; }
+           render(); return; }
     const c=e.target.closest("[data-reg]");
     if(c){ const rg=c.dataset.reg;
       S.regimes.has(rg)?S.regimes.delete(rg):S.regimes.add(rg);
-      clearEmphasis(); render(); return; }
+      render(); return; }
   });
   const lo=document.getElementById("rlo"), hi=document.getElementById("rhi");
   const onSlide=()=>{
     let a=+lo.value, b=+hi.value;
     if(a>b){ if(document.activeElement===lo) b=a; else a=b; }
-    S.lo=a; S.hi=b; clearEmphasis(); render();
+    S.lo=a; S.hi=b; render();
   };
   lo.addEventListener("input",onSlide); hi.addEventListener("input",onSlide);
   document.getElementById("aiFits").addEventListener("change",e=>{
-    S.aiFits=e.target.checked; clearEmphasis(); render();});
+    S.aiFits=e.target.checked; render();});
   document.getElementById("stratum").addEventListener("change",e=>{
-    S.stratum=e.target.value; clearEmphasis(); render();});
+    S.stratum=e.target.value; render();});
   let timer=null;
   document.getElementById("animate").addEventListener("click",e=>{
     if(timer){ clearInterval(timer); timer=null; e.target.textContent="▶ Sweep"; return; }
