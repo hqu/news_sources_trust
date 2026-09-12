@@ -15,13 +15,23 @@ h1{font-size:25px;font-weight:700;margin:0 0 5px}
 .sub{color:var(--mid);font-size:14px;margin:0}
 .track{letter-spacing:.19em;text-transform:uppercase;font-size:10.5px;font-weight:700;color:var(--mid)}
 .rule{height:1px;background:var(--hair);margin:18px 0 22px}
-.cols{display:grid;grid-template-columns:292px minmax(0,1fr) 246px;gap:26px;
+/* Three columns are the layout. The middle one has to hold a fixed-width plot, so the side
+   columns shrink twice before the grid gives up, and the plot itself is narrower than it was.
+   Collapsing to one column is the last resort, not the first. */
+.cols{display:grid;grid-template-columns:236px minmax(0,1fr) 206px;gap:18px;
   grid-template-areas:"news plots outcome" "news model model";align-items:start}
 .a-news{grid-area:news}
 .a-plots{grid-area:plots}
 .a-outcome{grid-area:outcome}
 .a-model{grid-area:model;min-width:0}
-@media(max-width:1180px){
+@media(max-width:1120px){.cols{grid-template-columns:208px minmax(0,1fr) 186px;gap:14px}
+  .cols .panel{padding:12px 12px}
+  .a-news label.row,.a-outcome label.row{font-size:11.4px}}
+@media(max-width:980px){.cols{grid-template-columns:190px minmax(0,1fr) 170px;gap:12px}
+  .cols .panel{padding:10px 10px}
+  .a-news label.row,.a-outcome label.row{font-size:10.8px;line-height:1.35}
+  .a-news .meta,.a-outcome .meta{font-size:9.6px}}
+@media(max-width:890px){
   .cols{grid-template-columns:1fr;grid-template-areas:"outcome" "news" "plots" "model"}}
 
 /* forest plot gets a heavy frame so it reads as the focal object */
@@ -709,11 +719,11 @@ function draw(){
   let lo=1,hi=1;
   F.forEach(f=>rows.forEach(k=>{const e=estIn(f,k); if(e){lo=Math.min(lo,e.lo);hi=Math.max(hi,e.hi);}}));
   lo=Math.min(lo,1/1.15); hi=Math.max(hi,1.15);
-  const W=340, PADR=16, H=25*rows.length+68, X1=W-PADR;
+  const W=300, PADR=14, H=25*rows.length+68, X1=W-PADR;
   const sx=v=>6+(Math.log(v)-Math.log(lo))/(Math.log(hi)-Math.log(lo))*(X1-6);
 
   F.forEach((f,ci)=>{
-    const o=O(selOut[0]), OX=ci===0?176:0;
+    const o=O(selOut[0]), OX=ci===0?152:0;
     const fb=blk(f,"regime"), flabel=(DATA.meta.strata.find(s=>s.key===f)||{}).label||f;
     const d=document.createElement("div"); d.className="plot";
     let svg=`<svg width="${W+OX}" height="${H}" font-family="Helvetica Neue,Helvetica,Arial">`;
