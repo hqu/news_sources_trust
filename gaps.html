@@ -83,6 +83,9 @@ input[type=radio]{margin:3px 0 0;accent-color:var(--dem);flex:none}
 .grph{font-size:12.4px;font-weight:600;padding:3px 0}
 .kids{padding-left:19px}
 .kids label{font-size:11.8px;color:var(--mid)}
+#srcTree .srcname{min-width:0;overflow-wrap:anywhere}
+#srcTree .chsub{display:block;color:var(--mid);font-size:10.2px;line-height:1.3;margin-top:1px}
+#srcTree label.row{align-items:flex-start}
 table{border-collapse:collapse;width:100%;font-size:11.6px;margin-top:8px;table-layout:fixed}
 th,td{text-align:right;padding:4.5px 6px;border-bottom:1px solid var(--hair);white-space:nowrap}
 th:first-child,td:first-child{text-align:left;white-space:normal}
@@ -338,9 +341,15 @@ function buildSrcTree(){
     const kids=SRC.filter(s=>s.kind==="channel"&&s.parent===r.key);
     const solo=kids.length===1;
     const d=document.createElement("div"); d.className="grp";
+    // A single-channel regime named the channel in a right-aligned nowrap span, which ran out
+    // of the column once it narrowed. The channel now sits on a second line under the regime,
+    // and is dropped entirely when the two names are the same thing -- "Podcasts / Podcasts
+    // only", "Search Engine / Search engine only".
+    const same = solo && kids[0].label.toLowerCase()===r.label.toLowerCase();
+    const sub = (solo && !same) ? `<span class="chsub">${kids[0].label}</span>` : "";
     d.innerHTML=`<label class="row"><input type="radio" name="src" value="${r.key}"
-      ${S.source===r.key?"checked":""}><span style="font-weight:600">${r.label}</span>
-      ${solo?`<span class="meta">${kids[0].label} only</span>`:""}</label>`;
+      ${S.source===r.key?"checked":""}><span class="srcname"><span
+      style="font-weight:600">${r.label}</span>${sub}</span></label>`;
     if(!solo&&kids.length){
       const k=document.createElement("div"); k.className="kids";
       kids.forEach(c=>k.insertAdjacentHTML("beforeend",
