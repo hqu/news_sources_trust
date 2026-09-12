@@ -10,7 +10,7 @@ There are **three pages**:
 |---|---|---|
 | `index.html` | `data.json` | For a given outcome, how do the news-source regimes rank? Forest plot, live multivariate model, party and diploma-divide subgroups. |
 | `explorer.html` | `data.json` | How does that ranking **change with how widely the belief is held**? Guided walkthrough of the two headline results, then a prevalence-window explorer. |
-| `gaps.html` | `gap_data.json` | **Who the gap belongs to.** The same associations as a difference between two groups of people, in percentage points — Democrats vs Republicans, graduates vs non-graduates, or users vs non-users of a source. Modelled on Paper 1. |
+| `gaps.html` | `gap_data.json` | **Who the gap belongs to.** The same associations as a difference between two groups of people, in percentage points — Democrats vs Republicans, graduates vs non-graduates, or users vs non-users of a source. |
 
 ## Access word
 

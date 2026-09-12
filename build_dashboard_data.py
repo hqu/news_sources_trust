@@ -50,9 +50,13 @@ PLAT = {"pol_news2_1":("Facebook","VLP"), "pol_news2_2":("Twitter / X","VLP"),
 # Snapchat is PVT, not VLP: regime_taxonomy_v2.csv lists it under Private Messaging
 # ("Mobile instant message app; Facebook Messenger; WhatsApp; Snapchat"), as do
 # paper3/data/README.md and MODEL_NOTES sec.18. It moved with the 2026-09-06 PVT split,
-# following Paper 1 Fig. 3B. This file was the only place still calling it VLP.
+# This file was the only place still calling it VLP.
 REGIME_LABEL = {"JS":"Journalistic Standard","PB":"Partisan Broadcast","VLP":"Very Large Platform",
-                "DEC":"Decentralized","PVT":"Private Messaging","INT":"Interpersonal Ties",
+                # The regime is operationally one channel, podcasts, and the taxonomy name
+                # carries a claim -- no platform gatekeeper -- that one item cannot test. The
+                # pages are read by people who did not write the taxonomy, so the payload says
+                # what was measured; regime_taxonomy_v2.csv keeps the taxonomy name.
+                "DEC":"Podcasts","PVT":"Private Messaging","INT":"Interpersonal Ties",
                 "SRCH":"Search Engine","AICH":"AI Chat"}
 CONSP = ["conspiracy_1","conspiracy_2","conspiracy_3","conspiracy_4"]
 CONSP_TEXT = {

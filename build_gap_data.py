@@ -1,9 +1,8 @@
 """Precompute the gap dashboard: predicted probabilities and percentage-point gaps.
 
-WHY A SEPARATE BUILD. The forest-plot payload reports odds ratios per stratum. Paper 1's
+WHY A SEPARATE BUILD. The forest-plot payload reports odds ratios per stratum. This dashboard's
 estimand is different and cannot be recovered from it: predicted probabilities for users and
-non-users ("42% for non-users and 73% for messaging users... difference 31 points, 95% CI
-[11, 45]"), and a contrast between two such gaps. That needs predicted probabilities, an
+non-users, and a contrast between two such gaps. That needs predicted probabilities, an
 interval on a DIFFERENCE, and a difference-in-differences, none of which data.json carries.
 
 THE MODEL, per (outcome, source). Survey-weighted logistic regression on the sample of
@@ -245,7 +244,8 @@ for o in payload["outcomes"]:
                     predicted under the stated source setting, so it averages over the whole
                     group. The COUNT reported beside it is the number who are actually in that
                     state, which is the number a reader needs to judge whether to believe the
-                    estimate -- Paper 1's own caveat is that its focal cell held 35 people."""
+                    estimate. A gap resting on a few dozen people is not the same object as one
+                    resting on thousands, and only the count says which it is."""
                     sel = mask & (S == s_state)
                     n=int(sel.sum())
                     if n==0: return None,0

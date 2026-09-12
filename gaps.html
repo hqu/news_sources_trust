@@ -25,8 +25,13 @@ h1{font-size:25px;font-weight:700;margin:0 0 5px;letter-spacing:-.01em}
 .btn[disabled]{opacity:.32;cursor:not-allowed}
 .note{color:var(--mid);font-size:11.8px;line-height:1.65;margin-top:9px}
 .warn{color:#9a3b30}
-.cols{display:grid;grid-template-columns:292px minmax(0,1fr);gap:24px;align-items:start}
+.cols{display:grid;grid-template-columns:286px minmax(0,1fr) 246px;gap:22px;align-items:start}
+@media(max-width:1240px){.cols{grid-template-columns:264px minmax(0,1fr)}}
 @media(max-width:1040px){.cols{grid-template-columns:1fr}}
+/* the outcome column is dense, so it steps down a size */
+.a-out .grph{font-size:11.8px}
+.a-out label.row{font-size:11.6px;padding:2px 0}
+.a-out input[type=radio]{transform:scale(.88);transform-origin:left center}
 /* contrast builder */
 .roles{display:grid;grid-template-columns:132px repeat(3,1fr);gap:6px;align-items:center;
   font-size:12.4px;margin-bottom:6px}
@@ -42,10 +47,11 @@ input[type=radio]{margin:3px 0 0;accent-color:var(--dem);flex:none}
 .grph{font-size:12.4px;font-weight:600;padding:3px 0}
 .kids{padding-left:19px}
 .kids label{font-size:11.8px;color:var(--mid)}
-table{border-collapse:collapse;width:100%;font-size:12.2px;margin-top:8px}
-th,td{text-align:right;padding:4.5px 9px;border-bottom:1px solid var(--hair);white-space:nowrap}
-th:first-child,td:first-child{text-align:left}
-th{color:var(--mid);font-weight:600;font-size:10.4px;letter-spacing:.05em;text-transform:uppercase}
+table{border-collapse:collapse;width:100%;font-size:11.6px;margin-top:8px;table-layout:fixed}
+th,td{text-align:right;padding:4.5px 6px;border-bottom:1px solid var(--hair);white-space:nowrap}
+th:first-child,td:first-child{text-align:left;white-space:normal}
+th{color:var(--mid);font-weight:600;font-size:9.8px;letter-spacing:.03em;text-transform:uppercase;
+  white-space:normal;line-height:1.25;vertical-align:bottom}
 tbody tr:hover{background:var(--wash)}
 .tip{position:fixed;pointer-events:none;background:#16181dF2;color:#fff;border-radius:7px;
   padding:7px 10px;font-size:11.4px;line-height:1.45;z-index:99;display:none;max-width:280px}
@@ -153,8 +159,8 @@ addEventListener("DOMContentLoaded",function(){
 Pick any two groups — <b>Democrats and Republicans</b>, <b>graduates and non-graduates</b>, or
 <b>people who use a news source and people who don't</b> — and see the share of each who hold a
 belief or trust an institution, and how far apart they are in percentage points.
-<span style="color:var(--ink)">Modelled on Paper 1, which put the private-messaging contrast at
-42% against 73% among Democrats — a 31-point difference.</span></p>
+<span style="color:var(--ink)">A difference of 31 points between two groups is a sentence anyone can
+read; an odds ratio of 3.9 is not.</span></p>
 <div class="rule"></div>
 
 <div class="cols">
@@ -167,10 +173,6 @@ belief or trust an institution, and how far apart they are in percentage points.
   <div class="panel">
     <div class="track" style="margin-bottom:8px">News source</div>
     <div id="srcTree"></div>
-  </div>
-  <div class="panel">
-    <div class="track" style="margin-bottom:8px">Outcome</div>
-    <div id="outTree"></div>
   </div>
  </div>
 
@@ -189,12 +191,16 @@ belief or trust an institution, and how far apart they are in percentage points.
   </div>
 
   <div class="panel">
-    <div style="display:flex;align-items:center">
-      <span class="track">Every cell drawn above</span>
-      <button class="btn" id="csv" style="margin-left:auto">Download CSV</button>
-    </div>
+    <div class="track">Every cell drawn above</div>
     <table id="tbl"></table>
     <div class="note" id="foot"></div>
+  </div>
+ </div>
+
+ <div class="a-out">
+  <div class="panel">
+    <div class="track" style="margin-bottom:8px">Outcome</div>
+    <div id="outTree"></div>
   </div>
  </div>
 </div>
@@ -205,11 +211,11 @@ belief or trust an institution, and how far apart they are in percentage points.
 <script>
 "use strict";
 let DATA=null, OUT=[], SRC=[], REG=[];
-const DIMS=[["party","Party","Democrat vs Republican"],
-            ["diploma","Diploma divide","College degree or higher vs no college degree"],
-            ["source","Source use","uses this source for political news vs doesn't"]];
-const S={compare:"source", split:{party:true, diploma:false, source:true},
-         source:"PVT", outcome:"denial", adjusted:true};
+const DIMS=[["source","Source use","uses this source for political news vs doesn't"],
+            ["party","Party","Democrat vs Republican"],
+            ["diploma","Diploma divide","College degree or higher vs no college degree"]];
+const S={compare:"source", split:{party:true, diploma:true, source:true},
+         source:"DEC", outcome:"denial", adjusted:true};
 const PANEL_LABEL={"":"Everyone",dem:"Democrats",rep:"Republicans",
   deg:"College degree or higher",nodeg:"No college degree",
   dem_deg:"Democrats · degree",dem_nodeg:"Democrats · no degree",
@@ -255,7 +261,7 @@ function buildRoles(){
   }
   document.getElementById("roleNote").innerHTML =
     S.compare==="source"
-      ? "The gap is between people who use the source and people who don't — Paper 1's contrast."
+      ? "The gap is between people who use the source for political news and people who don't."
       : `The gap is between ${S.compare==="party"?"the two parties":"graduates and non-graduates"}, shown separately for
          users and non-users of the source. Pooling over source use is disabled because a gap
          averaged over a variable the model interacts with is not an estimate this fit produces.`;
@@ -337,11 +343,12 @@ function draw(){
     svg.appendChild(txt(PANEL_LABEL[k]||k,{x:M.l-14,y:y+4,"text-anchor":"end","font-size":12.4,
       "font-weight":600,fill:"var(--ink)"}));
     const bar=el("line",{x1:X(Math.min(va,vb)),x2:X(Math.max(va,vb)),y1:y,y2:y,
-      stroke:"var(--ink)","stroke-width":thin?2:5,opacity:thin?.3:.14,"stroke-linecap":"round"});
+      stroke:"var(--ink)","stroke-width":thin?1.4:3,opacity:thin?.35:.2,"stroke-linecap":"round"});
     svg.appendChild(bar);
     [[vb,cb,lb,g.nb],[va,ca,la,g.na]].forEach(([v,col,lab,n])=>{
       const gg=el("g");
-      gg.appendChild(el("circle",{cx:X(v),cy:y,r:6.5,fill:col}));
+      gg.appendChild(el("circle",{cx:X(v),cy:y,r:9,fill:"transparent","pointer-events":"all"}));
+      gg.appendChild(el("circle",{cx:X(v),cy:y,r:1.7,fill:col}));
       gg.appendChild(txt(fmt(v,0)+"%",{x:X(v),y:y-12,"text-anchor":"middle","font-size":11.4,
         "font-weight":700,fill:col}));
       gg.appendChild(txt("n="+n.toLocaleString(),{x:X(v),y:y+17,"text-anchor":"middle",
@@ -368,7 +375,7 @@ function draw(){
   /* legend */
   const lg=el("g",{transform:`translate(${M.l},${M.t-16})`});
   [[la,ca,0],[lb,cb,190]].forEach(([t,col,dx])=>{
-    lg.appendChild(el("circle",{cx:dx+4,cy:-4,r:5,fill:col}));
+    lg.appendChild(el("circle",{cx:dx+4,cy:-4,r:3.5,fill:col}));
     lg.appendChild(txt(t,{x:dx+14,y:0,"font-size":11,fill:"var(--mid)"}));
   });
   svg.appendChild(lg);
@@ -424,17 +431,6 @@ function drawTable(){
     and a gap between users and non-users is a gap between people who differ in many ways.
     Built ${DATA.meta.built} from ${DATA.meta.source}.`;
 }
-function downloadCSV(){
-  const c=cell(), pk=panels(), [la,lb]=ENDS[S.compare]();
-  const head=["outcome","source","comparison","group",`p_${la}`,`p_${lb}`,"gap_pts","lo","hi",
-              "n_a","n_b","observed_a","observed_b"];
-  const rows=pk.map(k=>{const g=gapOf(k); if(!g) return null;
-    return [`"${outObj().label}"`,`"${srcLabel()}"`,S.compare,`"${PANEL_LABEL[k]||k}"`,
-            g.pa,g.pb,g.gap,g.lo,g.hi,g.na,g.nb,g.ra,g.rb].join(",");}).filter(Boolean);
-  const b=new Blob([[head.join(",")].concat(rows).join("\n")],{type:"text/csv"});
-  const a=document.createElement("a"); a.href=URL.createObjectURL(b);
-  a.download="chip50_gaps.csv"; a.click();
-}
 function render(){ buildRoles(); buildSrcTree(); buildOutTree(); draw(); }
 
 function wire(){
@@ -457,7 +453,6 @@ function wire(){
   document.getElementById("bRaw").addEventListener("click",()=>{S.adjusted=false;
     document.getElementById("bRaw").classList.add("on");
     document.getElementById("bAdj").classList.remove("on"); draw();});
-  document.getElementById("csv").addEventListener("click",downloadCSV);
   let rt=null; addEventListener("resize",()=>{clearTimeout(rt);rt=setTimeout(draw,180);});
 }
 

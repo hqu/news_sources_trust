@@ -296,10 +296,7 @@ two results in about two minutes.</p>
     </div>
 
     <div class="panel">
-      <div class="ctlrow">
-        <span class="track">Every estimate in the window</span>
-        <button class="btn" id="csv" style="margin-left:auto">Download CSV</button>
-      </div>
+      <div class="track" style="margin-bottom:6px">Every estimate in the window</div>
       <div style="max-height:420px;overflow:auto"><table id="tbl"></table></div>
       <div class="note" id="foot"></div>
     </div>
@@ -417,12 +414,9 @@ function prepare(raw){
   DATA=raw;
   REG = raw.meta.regimes.map(r=>r.key);
   raw.meta.regimes.forEach(r=>RLAB[r.key]=r.label);
-  /* The DEC regime is operationally a single channel -- podcasts -- and the taxonomy's own
-     name for it carries a theoretical claim (no platform gatekeeper) that one item cannot
-     test. This page is read by people who did not write the taxonomy, so it says what was
-     actually measured. The payload label is overridden here rather than in data.json,
-     which the other page shares. */
-  RLAB.DEC = "Podcasts";
+  /* The payload now carries "Podcasts" for this regime, so no override is needed here.
+     Kept as a guard in case an older data.json is served from a cache. */
+  if(RLAB.DEC==="Decentralized") RLAB.DEC="Podcasts";
   OUT = raw.outcomes.map(o=>{
     const m=o.models.all.regime;
     return {key:o.key, label:o.label, group:o.group, direction:o.direction,
@@ -729,18 +723,6 @@ function drawTable(state){
      These are cross-sectional associations confounded with selective exposure: they fix ordering, not
      transmission rates. Built ${DATA.meta.built} from ${DATA.meta.source}.`;
 }
-function downloadCSV(state){
-  const C=cells(state);
-  const head=["outcome","family","direction","adverse_pct","regime","adverse_or","lo","hi","occupancy_pct","n","waves","short_wave_fit"];
-  const lines=[head.join(",")].concat(C.map(c=>[
-    `"${c.o.label}"`,c.o.fam,c.o.direction,c.o.adverse.toFixed(2),c.regime,
-    c.or.toFixed(4),c.lo.toFixed(4),c.hi.toFixed(4),
-    c.occ!=null?c.occ.toFixed(2):"",c.n,c.waves,c.restricted?"yes":"no"].join(",")));
-  const b=new Blob([lines.join("\n")],{type:"text/csv"});
-  const a=document.createElement("a");
-  a.href=URL.createObjectURL(b); a.download="chip50_prevalence_window.csv"; a.click();
-}
-
 /* ============================ state + wiring ============================ */
 const S={outcomes:new Set(), lo:0, hi:PMAX, regimes:new Set(), aiFits:false, stratum:"all"};
 /* The page opens with podcasts picked out of the scatter, because that is the first result.
@@ -928,7 +910,6 @@ function wire(){
     S.aiFits=e.target.checked; clearEmphasis(); render();});
   document.getElementById("stratum").addEventListener("change",e=>{
     S.stratum=e.target.value; clearEmphasis(); render();});
-  document.getElementById("csv").addEventListener("click",()=>downloadCSV(S));
   let timer=null;
   document.getElementById("animate").addEventListener("click",e=>{
     if(timer){ clearInterval(timer); timer=null; e.target.textContent="▶ Sweep"; return; }

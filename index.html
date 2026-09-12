@@ -342,7 +342,7 @@ const DEFS=[
   "Professionally produced, with a real editorial operation, but organised around ideological commentary rather than reporting. It shares Journalistic Standard's accountability structure — named hosts, a corporate publisher, exposure to defamation — and does not share its editorial filter on claims. Separated from Journalistic Standard in September 2026 because the two behave differently: pooled, they predict election denial at an odds ratio of 0.998, which is the average of 0.83 for the reporting channels and 1.24 for these."],
  ["VLP","Very Large Platform","social media — Facebook, Twitter/X, YouTube, Instagram, TikTok",
   "Content distributed by an algorithmic feed operated by a single company, with a moderation policy the operator writes and enforces. This is the regime nearly all platform governance addresses — designation thresholds, systemic-risk audits, content-moderation duties."],
- ["DEC","Decentralized","podcasts",
+ ["DEC","Podcasts","the only channel in the regime the taxonomy calls Decentralized",
   "Public content with no platform gatekeeper: RSS-style distribution where host discretion is the only filter. Nothing sits between the publisher and the audience, so there is no operator surface for moderation to act on. Note this is a single-channel regime, so its estimates are podcast estimates and cannot separate the governance property from the format."],
  ["PVT","Private Messaging","messaging apps — Facebook Messenger, WhatsApp, Snapchat",
   "One-to-one and small-group messaging. Neither the content nor the audience can be enumerated from outside, so nothing can be counted, corrected or audited. The only available levers are structural — forwarding limits and group size caps."],
@@ -588,7 +588,8 @@ function renderTree(){
     const e=(r&&selOut.length)?estOf(O(selOut[0]),pk):null;
     const na=r&&selOut.length&&!e;          // regime not fielded for this outcome
     const node=document.createElement("div"); node.className="node";
-    const soloTag=solo?` <span class="ch">(${r.channels[0].label})</span>`:"";
+    const soloTag=(solo && r.channels[0].label!==labelOf(pk))
+        ? ` <span class="ch">(${r.channels[0].label})</span>` : "";
     // A regime with no 24-hour item of its own (Crowdsourced) has nothing to check at the
     // regime level. Draw it as a group heading rather than as a row whose checkbox is
     // missing, which reads as broken.
