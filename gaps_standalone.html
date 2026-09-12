@@ -433,7 +433,7 @@ function draw(){
        gap</span>`;
   const rows=pk.map(k=>[k,gapOf(k)]).filter(([,g])=>g);
   if(!rows.length){ host.innerHTML='<div class="note warn">Too few respondents in these cells.</div>'; return; }
-  const W=host.clientWidth||760, RH=62, M={t:14,r:26,b:46,l:186};
+  const W=host.clientWidth||760, RH=46, M={t:14,r:26,b:46,l:186};
   const H=M.t+rows.length*RH+M.b;
   const svg=el("svg",{width:W,height:H,viewBox:`0 0 ${W} ${H}`}); host.appendChild(svg);
   const iw=W-M.l-M.r, X=v=>M.l+iw*v/100;
@@ -455,22 +455,13 @@ function draw(){
     const bar=el("line",{x1:X(Math.min(va,vb)),x2:X(Math.max(va,vb)),y1:y,y2:y,
       stroke:"var(--ink)","stroke-width":thin?1.6:3.4,opacity:thin?.35:.18,"stroke-linecap":"round"});
     svg.appendChild(bar);
-    /* Two dots can land almost on top of each other -- a one-point gap is under 5px on a
-       0-100 axis -- and their counts then print over one another. When they are closer than
-       the labels are wide, each count is anchored on its own side and pushed outward instead
-       of being centred under its dot. */
-    const ends=[[vb,cb,lb,g.nb,tb],[va,ca,la,g.na,ta]];
-    const leftIdx = (vb<=va) ? 0 : 1;
-    const crowded = Math.abs(X(va)-X(vb)) < 58;
-    ends.forEach((e,i)=>{
-      const [v,col,lab,n,tcol]=e, isLeft = i===leftIdx;
+    /* Only the dots and the gap are drawn. The share at each end and the count behind it are
+       in the tooltip and in the table below; printing them here put four small grey figures on
+       every row, and on a row where the dots nearly coincide they overlapped each other. */
+    [[vb,cb,lb,g.nb,tb],[va,ca,la,g.na,ta]].forEach(([v,col,lab,n,tcol])=>{
       const gg=el("g");
       gg.appendChild(el("circle",{cx:X(v),cy:y,r:9,fill:"transparent","pointer-events":"all"}));
       gg.appendChild(el("circle",{cx:X(v),cy:y,r:4,fill:col}));
-      gg.appendChild(txt("n="+n.toLocaleString(),
-        {x: crowded ? X(v)+(isLeft?-8:8) : X(v), y:y+17,
-         "text-anchor": crowded ? (isLeft?"end":"start") : "middle",
-         "font-size":9.4,fill:"var(--mid)"}));
       tip(gg,`<b>${lab}</b> · ${PANEL_LABEL[k]||k}<br>
         ${S.adjusted?"model-adjusted":"observed"} share who ${outcomeWord}: <b>${fmt(v,1)}%</b><br>
         n = ${n.toLocaleString()}`);
@@ -488,7 +479,7 @@ function draw(){
       (S.adjusted?`<br>95% CI [${fmt(g.lo,1)}, ${fmt(g.hi,1)}]<br>
         <span style="opacity:.8">${(g.lo>0||g.hi<0)?"interval excludes zero":"interval includes zero"}</span>`:""));
     svg.appendChild(gt);
-    if(thin) svg.appendChild(txt("⚠ thin cell",{x:M.l-14,y:y+18,"text-anchor":"end","font-size":9.6,
+    if(thin) svg.appendChild(txt("⚠ thin cell",{x:M.l-14,y:y+16,"text-anchor":"end","font-size":9.6,
       fill:"#9a3b30"}));
   });
   drawDid(); drawRanking(); drawTable();
