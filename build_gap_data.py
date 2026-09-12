@@ -108,6 +108,22 @@ d["E"]=np.where(d["edu"]>=4,1.0,np.where(d["edu"].notna(),0.0,np.nan))   # colle
 d=d[d["R"].notna()&d["E"].notna()].copy()
 print(f"  {len(d):,} rows (Democrats and Republicans), {d['wave'].nunique()} waves", flush=True)
 
+def question_text(var, Q):
+    """Verbatim wording for an outcome: the battery stem plus the item, where there is a stem.
+
+    Trust and conspiracy items read as a bare target or statement on their own ("Scientists
+    and researchers"), so the stem is what makes them a question."""
+    ent = Q.get("outcome", {})
+    e = ent.get(var)
+    if not e: return None
+    item = e["text"] if isinstance(e, dict) else e
+    stem = None
+    for pre in ("conspiracy", "fn", "pol_trust"):
+        if var.lower().startswith(pre) and "__stem_" + pre in ent:
+            stem = ent["__stem_" + pre]["text"]; break
+    if not stem: return item
+    return stem.rstrip(" -\u2014 ").rstrip() + " \u2014 " + item
+
 def y_of(var):
     v=CC.num(d[var])
     if var.startswith("FN_"): return (v==1).astype(float).where(v.notna())
@@ -211,10 +227,12 @@ payload={"meta":{"built":pd.Timestamp.now().strftime("%Y-%m-%d"),
                  "regimes":[{"key":k,"label":REGIME_LABEL[k]} for k in REGIMES],
                  "sources":[{"key":k,"label":l,"kind":t,"parent":p} for k,l,t,p in SOURCES]},
          "outcomes":[], "cells":{}}
+QTXT=json.load(open(os.path.join(OUT,"questions.json"),encoding="utf-8"))
 for k,v,g,lab,dirn in OUTCOMES:
-    payload["outcomes"].append(dict(key=k,label=lab,group=g,direction=dirn))
+    payload["outcomes"].append(dict(key=k,label=lab,group=g,direction=dirn,q=question_text(v,QTXT)))
 for k,_,g,lab in FN_OUTCOMES:
-    payload["outcomes"].append(dict(key=k,label=lab,group=g,direction="belief"))
+    payload["outcomes"].append(dict(key=k,label=lab,group=g,direction="belief",
+                                    q=question_text("FN_"+k,QTXT)))
 VARS={k:v for k,v,_,_,_ in OUTCOMES}; VARS.update({k:"FN_"+k for k,_,_,_ in FN_OUTCOMES})
 
 t0=time.time(); done=0; total=len(payload["outcomes"])*len(SOURCES)
