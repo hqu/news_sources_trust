@@ -318,9 +318,11 @@ let DATA=null, QTEXT=null, selOut=[], selPred=new Set(), openNodes=new Set(["VLP
 const PRIMARY=["science"];
 const DISCLOSE=[["Other science and health institutions",["cdc","fda","doctors","pharma"]],
                 ["Named individuals",["fauci","rfk","musk"]]];
+// A third element asks for the group to be ordered by how many people hold the belief,
+// read from the payload rather than fixed here, so it stays right if the data change.
 const ALSO=[["Conspiracy beliefs",["consp1","consp2","consp3","consp4"]],
             ["Election denial",["denial"]],
-            ["Misinformation claims",["gmo","machines","cia","turbines","soros"]]];
+            ["Misinformation claims",["gmo","machines","cia","turbines","soros"],"prevalence"]];
 
 const COLDEFS=[
  ["Term","the variable whose coefficient that row reports. The upper block holds the news sources — a regime, or an individual channel, coded 1 if the respondent reported getting political news from it in the previous 24 hours and 0 otherwise. Below the rule sit the control variables, which are in every model and are not shown in the plot. A source greyed and marked <i>not shown</i> was in the fitted model but is currently unchecked in the left column, so it is adjusted for without being drawn."],
@@ -502,8 +504,10 @@ function init(){
   const discs=document.getElementById("discs");
   // Conspiracy and election denial are primary outcomes and sit directly under
   // trust in science; the collapsible institution groups come after them.
-  ALSO.forEach(([name,keys])=>{
-    const av=keys.filter(k=>O(k)); if(!av.length)return;
+  ALSO.forEach(([name,keys,sortBy])=>{
+    let av=keys.filter(k=>O(k)); if(!av.length)return;
+    if(sortBy==="prevalence")
+      av=av.sort((a,b)=>O(a).regime.prevalence-O(b).regime.prevalence);
     const h=document.createElement("div");
     h.className="track"; h.style.cssText="margin:13px 0 3px";
     h.textContent=name; discs.appendChild(h);
