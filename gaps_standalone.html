@@ -483,9 +483,8 @@ function drawRanking(){
   if(rows.length<2){ host.innerHTML='<div class="note">Not enough sources for this outcome.</div>';
                      note.textContent=""; return; }
   rows.sort((a,b)=>b.gap-a.gap);
-  note.innerHTML="users minus non-users, pooled over party and the diploma divide — "
-    +`<b>above zero means more ${outObj().direction==="belief"?"believing":"trusting"}</b>`;
-  const W=host.clientWidth||700, RH=19, M={t:16,r:54,b:20,l:176};
+  note.textContent="users minus non-users, pooled over party and the diploma divide";
+  const W=host.clientWidth||700, RH=19, M={t:16,r:54,b:36,l:176};
   const H=M.t+rows.length*RH+M.b, iw=W-M.l-M.r;
   const lo=Math.min(0,...rows.map(r=>r.lo)), hi=Math.max(0,...rows.map(r=>r.hi));
   const X=v=>M.l+iw*(v-lo)/(hi-lo);
@@ -497,6 +496,11 @@ function drawRanking(){
     svg.appendChild(txt((t>0?"+":"")+t,{x:X(t),y:M.t-10,"text-anchor":"middle",
       fill:"var(--mid)","font-size":9.6}));
   }
+  // The tick numbers sit above the bars, so the unit goes underneath them, where an axis
+   // title is looked for. The caption above says what is being compared; this says in what.
+  svg.appendChild(txt(`percentage-point gap — further right, more `
+    +`${outObj().direction==="belief"?"believing":"trusting"}`,
+    {x:M.l+iw/2,y:H-10,"text-anchor":"middle",fill:"var(--mid)","font-size":11}));
   rows.forEach((r,i)=>{
     const y=M.t+i*RH+RH/2, on=r.key===S.source, col=on?"var(--use)":"var(--faint)";
     const g=el("g",{cursor:"pointer"});
