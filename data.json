@@ -1,6 +1,6 @@
 {
  "meta": {
-  "built": "2026-09-11",
+  "built": "2026-09-12",
   "source": "CHIP50 / Civic Health and Institutions Project",
   "note": "Aggregated model output only. No respondent-level data is present in this file.",
   "regimes": [
@@ -139,7 +139,7 @@
    {
     "key": "pol_news2_6",
     "label": "Snapchat",
-    "parent": "VLP"
+    "parent": "PVT"
    },
    {
     "key": "pol_news2_10",

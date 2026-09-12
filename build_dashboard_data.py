@@ -44,9 +44,13 @@ REGIMES = ["JS","PB","SRCH","AICH","VLP","PVT","INT","DEC"]
 # regime_taxonomy_v2) are deliberately excluded.
 PLAT = {"pol_news2_1":("Facebook","VLP"), "pol_news2_2":("Twitter / X","VLP"),
         "pol_news2_3":("YouTube","VLP"),  "pol_news2_5":("Instagram","VLP"),
-        "pol_news2_6":("Snapchat","VLP"), "pol_news2_10":("TikTok","VLP"),
+        "pol_news2_6":("Snapchat","PVT"), "pol_news2_10":("TikTok","VLP"),
         "pol_news2_4":("Reddit","CRW"),   "pol_news2_7":("Wikipedia","CRW"),
         "pol_news2_8":("Facebook Messenger","PVT"), "pol_news2_9":("WhatsApp","PVT")}
+# Snapchat is PVT, not VLP: regime_taxonomy_v2.csv lists it under Private Messaging
+# ("Mobile instant message app; Facebook Messenger; WhatsApp; Snapchat"), as do
+# paper3/data/README.md and MODEL_NOTES sec.18. It moved with the 2026-09-06 PVT split,
+# following Paper 1 Fig. 3B. This file was the only place still calling it VLP.
 REGIME_LABEL = {"JS":"Journalistic Standard","PB":"Partisan Broadcast","VLP":"Very Large Platform",
                 "DEC":"Decentralized","PVT":"Private Messaging","INT":"Interpersonal Ties",
                 "SRCH":"Search Engine","AICH":"AI Chat"}

@@ -38,6 +38,8 @@ h1{font-size:25px;font-weight:700;margin:0 0 5px}
 .a-outcome .disc .inner{padding:6px 9px 7px}
 .a-outcome .ogrid{grid-template-columns:1fr;gap:0}
 .a-outcome input[type=checkbox],.a-outcome input[type=radio]{margin-top:2px;transform:scale(.88);transform-origin:left center}
+.xgrid th.axh{font-size:9.6px;letter-spacing:.16em;text-transform:uppercase;color:var(--mid);
+  font-weight:700;padding-bottom:3px;border-bottom:1px solid var(--hair)}
 .panel{border:1px solid var(--hair);border-radius:11px;padding:15px 16px}
 .panel+.panel{margin-top:16px}
 label.row{display:flex;gap:8px;align-items:flex-start;padding:3.5px 0;cursor:pointer;font-size:13px}
@@ -171,7 +173,7 @@ tr.sep td{border-bottom:1px solid var(--faint);padding:0;height:0}
           <div class="track" style="margin-bottom:7px">Subgroup</div>
           <table class="xgrid" id="xgrid"></table>
           <p class="note" style="margin-top:9px">Click any cell. The top-left cell is every
-            respondent; the top row holds education on its own, the left column party on its own,
+            respondent; the top row holds the diploma divide on its own, the left column party on its own,
             and the interior cells cross the two. Leaners fold into the party they lean toward.
             Each cell is its own fitted model rather than an interaction term, and the variables
             defining it leave the control set inside it. Cells thin out toward the bottom right —
@@ -241,11 +243,11 @@ const DEFS=[
   "Professionally produced reporting with an identifiable editorial operation: named accountable editors, correction norms, and legal review before publication. What distinguishes it is an editor standing between the author and the audience."],
  ["PB","Partisan Broadcast","cable news, talk radio, late-night political comedy",
   "Professionally produced, with a real editorial operation, but organised around ideological commentary rather than reporting. It shares Journalistic Standard's accountability structure — named hosts, a corporate publisher, exposure to defamation — and does not share its editorial filter on claims. Separated from Journalistic Standard in September 2026 because the two behave differently: pooled, they predict election denial at an odds ratio of 0.998, which is the average of 0.83 for the reporting channels and 1.24 for these."],
- ["VLP","Very Large Platform","social media — Facebook, Twitter/X, YouTube, Instagram, Snapchat, TikTok",
+ ["VLP","Very Large Platform","social media — Facebook, Twitter/X, YouTube, Instagram, TikTok",
   "Content distributed by an algorithmic feed operated by a single company, with a moderation policy the operator writes and enforces. This is the regime nearly all platform governance addresses — designation thresholds, systemic-risk audits, content-moderation duties."],
  ["DEC","Decentralized","podcasts",
   "Public content with no platform gatekeeper: RSS-style distribution where host discretion is the only filter. Nothing sits between the publisher and the audience, so there is no operator surface for moderation to act on. Note this is a single-channel regime, so its estimates are podcast estimates and cannot separate the governance property from the format."],
- ["PVT","Private Messaging","messaging apps — Facebook Messenger, WhatsApp",
+ ["PVT","Private Messaging","messaging apps — Facebook Messenger, WhatsApp, Snapchat",
   "One-to-one and small-group messaging. Neither the content nor the audience can be enumerated from outside, so nothing can be counted, corrected or audited. The only available levers are structural — forwarding limits and group size caps."],
  ["INT","Interpersonal Ties","friends and family",
   "Political information received in conversation from people the respondent knows. Fully attributable to a named person and leaving no durable record, which is the mirror image of a pseudonymous post. No intervention reaches it."],
@@ -353,13 +355,13 @@ function defaultsFor(keys){
 function strata(kind){return (DATA.meta.strata||[]).filter(s=>s.kind===kind);}
 function modelsFor(k){return O(k).models||{};}
 // Exactly one stratum is ever drawn, so there is only ever one forest plot and no
-// horizontal scroll. Party and education cannot be combined: the models are fitted
-// marginally, so there is no Republican-and-college-degree cell to show.
+// horizontal scroll. The interior cells cross party with the diploma divide; each is its
+// own fitted model, so a crossed cell is not the product of its two margins.
 function facets(){
   const avail=modelsFor(selOut[0]);
   return [avail[selStratum]?selStratum:"all"];}
 const PARTY_ROWS=[["all","All parties"],["dem","Democrat"],["ind","Independent"],["rep","Republican"]];
-const EDU_COLS=[["all","All education"],["High_school_or_less","High school or less"],
+const EDU_COLS=[["all","All levels"],["High_school_or_less","High school or less"],
                 ["Some_college","Some college"],["College_degree","College degree"],
                 ["Graduate_degree","Graduate degree"]];
 const PARTY_FULL={dem:"Democrat",ind:"Independent",rep:"Republican"};
@@ -372,6 +374,10 @@ function cellKey(p,e){
 function renderTabs(){
   const avail=modelsFor(selOut[0]);
   const g=document.getElementById("xgrid"); g.innerHTML="";
+  const axes=document.createElement("tr");
+  axes.innerHTML='<th class="rowh axh">Party</th>'
+    +`<th class="axh" colspan="${EDU_COLS.length}">Diploma divide</th>`;
+  g.appendChild(axes);
   const head=document.createElement("tr");
   head.innerHTML='<th class="rowh"></th>'+EDU_COLS.map(([,l])=>`<th>${l}</th>`).join("");
   g.appendChild(head);
@@ -633,7 +639,7 @@ function draw(){
     unchecked terms are greyed in the table rather than removed, because <strong>toggling a source
     filters the display of a fitted model and does not re-estimate it</strong>. There are three separate fitted models —
     regime and channel on all 15 waves, and platform (Facebook, Twitter/X, YouTube, Instagram,
-    Snapchat, TikTok, Reddit, Wikipedia, Messenger, WhatsApp) on the 6 of 15 waves that name
+    TikTok, Reddit, Wikipedia, Messenger, WhatsApp, Snapchat) on the 6 of 15 waves that name
     individual platforms rather than generic categories. A platform row is <strong>not a decomposition of the regime row above
     it</strong>: they are different models on different samples. Blue is below 1, purple above 1, grey means the
     interval spans 1. Two sets of estimates rest on 6 of the 15 waves and are marked as such in the
