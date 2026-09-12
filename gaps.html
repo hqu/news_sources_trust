@@ -332,11 +332,11 @@ function buildSrcTree(){
 }
 function buildOutTree(){
   const h=document.getElementById("outTree"); h.innerHTML="";
-  for(const g of ["Trust","Conspiracy","Outlier"]){
+  for(const g of ["Trust","Conspiracy","Outlier","Government"]){
     const list=OUT.filter(o=>o.group===g); if(!list.length) continue;
     const d=document.createElement("div"); d.className="grp";
-    const title={Trust:"Trust in institutions",Conspiracy:"Conspiracy belief",
-                 Outlier:"The two outliers"}[g];
+    const title={Trust:"Trust in science and health",Conspiracy:"Conspiracy belief",
+                 Outlier:"The two outliers",Government:"Government and courts"}[g];
     d.innerHTML=`<div class="grph">${title}</div>`;
     const k=document.createElement("div"); k.className="kids";
     list.forEach(o=>k.insertAdjacentHTML("beforeend",
@@ -369,7 +369,12 @@ function draw(){
   document.getElementById("chartSub").innerHTML =
     `${c.n.toLocaleString()} Democrats and Republicans over ${c.waves} waves. `+
     `Dots are the share who ${outcomeWord}; the bar is the difference between them in percentage points`+
-    (S.adjusted?", adjusted for the other sources, age, income, gender and wave.":", as observed, with no adjustment.");
+    (S.adjusted?", adjusted for the other sources, age, income, gender, wave"
+      +(outObj().consp_control===false
+        ? " — but <b>not</b> for the four conspiracy items, which are held fixed everywhere else "
+          +"and are not asked in the waves that carry this question."
+        : " and the four conspiracy items.")
+      :", as observed, with no adjustment.");
 
   const rows=pk.map(k=>[k,gapOf(k)]).filter(([,g])=>g);
   if(!rows.length){ host.innerHTML='<div class="note warn">Too few respondents in these cells.</div>'; return; }

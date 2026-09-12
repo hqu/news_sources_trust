@@ -319,13 +319,19 @@ let DATA=null, QTEXT=null, selOut=[], selPred=new Set(), openNodes=new Set(),
    
     selStratum="all";
 
+const DAGGER="The four conspiracy items are controls in every model. This outcome is asked in "
+  +"waves the conspiracy battery does not cover, so holding them fixed would leave no sample and "
+  +"they are omitted here instead.";
+const DAGGER_NOTE="† the four conspiracy items are held fixed in every model except these, which are asked in waves the conspiracy battery does not cover";
 const PRIMARY=["science"];
 const DISCLOSE=[["Other science and health institutions",["cdc","fda","doctors","pharma"]],
-                ["Named individuals",["fauci","rfk","musk"]]];
+                ["Named individuals",["fauci","rfk","musk","trump"]],
+                ["Government and courts",["whitehouse","scotus"]]];
 // A third element asks for the group to be ordered by how many people hold the belief,
 // read from the payload rather than fixed here, so it stays right if the data change.
-const ALSO=[["Conspiracy beliefs",["consp1","consp2","consp3","consp4"]],
-            ["Election denial",["denial"]],
+// The four conspiracy items are controls in every model now rather than outcomes, so the
+// group they used to head is gone from here and their wording sits in the control column.
+const ALSO=[["Election denial",["denial"]],
             ["Misinformation claims",["gmo","machines","cia","turbines","soros"],"prevalence"]];
 
 const COLDEFS=[
@@ -526,6 +532,9 @@ function init(){
     const g=document.createElement("div"); g.className="ogrid";
     av.forEach(k=>g.appendChild(outRow(k))); discs.appendChild(g);
   });
+  if(DATA.outcomes.some(o=>o.consp_control===false))
+    discs.insertAdjacentHTML("beforeend",
+      `<p class="legend" style="margin:11px 0 0">${DAGGER_NOTE}</p>`);
   DISCLOSE.forEach(([name,keys])=>{
     const av=keys.filter(k=>O(k)); if(!av.length)return;
     const d=document.createElement("details"); d.className="disc";
@@ -562,13 +571,14 @@ function init(){
   renderTabs();renderTree();draw();
 }
 function codingOf(o){
-  if(o.var.startsWith("conspiracy")) return "answered “agree” or “strongly agree”";
   if(o.var==="trump_win") return "said Trump would have won a fairly counted 2020 election";
   return "answered “a lot” or “some”";}
 function outRow(k){const o=O(k);
   const l=document.createElement("label"); l.className="row";
   const pct=o.regime.prevalence;
-  l.innerHTML=`<input type="radio" name="outcome" data-out="1" value="${k}"><span>${o.label}</span>
+  const exempt = o.consp_control===false;
+  l.innerHTML=`<input type="radio" name="outcome" data-out="1" value="${k}">
+               <span>${o.label}${exempt?' <span title="'+DAGGER+'">†</span>':''}</span>
                <span class="meta">${pct.toFixed(0)}%</span>`;
   return l;}
 
@@ -717,7 +727,9 @@ function draw(){
     const sublab = f==="all" ? "" : `<span style="font-weight:400;color:${PAL.priv}"> · ${pretty}</span>`;
     d.innerHTML=`<h3>${o.label}${sublab}</h3><p class="pmeta">${
       f==="all"?"All respondents":pretty} · ${fb?fb.prevalence.toFixed(1):"–"}% ${
-      o.direction==="trust"?"trusting":"believing"}${fb?" · n="+fb.n.toLocaleString():""}</p>${svg}</svg>`;
+      o.direction==="trust"?"trusting":"believing"}${fb?" · n="+fb.n.toLocaleString():""}${
+      o.consp_control===false?' · <span title="'+DAGGER+'">conspiracy items not held fixed †</span>':""
+      }</p>${svg}</svg>`;
     plots.appendChild(d);
   });
 

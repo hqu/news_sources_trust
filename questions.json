@@ -106,10 +106,6 @@
   }
  },
  "outcome": {
-  "__stem_conspiracy": {
-   "text": "How much do you agree or disagree with the following statements? -",
-   "scale": []
-  },
   "__stem_fn": {
    "text": "Below are some statements about current affairs. To the best of your knowledge, are those statements accurate or inaccurate? -",
    "scale": []
@@ -186,20 +182,16 @@
     "1 = Not at all"
    ]
   },
-  "conspiracy_1": {
-   "text": "Even though we live in a democracy, a few people will always run things anyway.",
+  "pol_trust_trump": {
+   "text": "Donald Trump",
    "scale": []
   },
-  "conspiracy_2": {
-   "text": "The people who really 'run' the country are not known to the voters",
+  "pol_trust_white_house": {
+   "text": "The White House",
    "scale": []
   },
-  "conspiracy_3": {
-   "text": "Big events like wars, recessions, and the outcomes of elections are controlled by small groups of people who are working in secret against the rest of us.",
-   "scale": []
-  },
-  "conspiracy_4": {
-   "text": "Much of our lives are being controlled by plots hatched in secret places",
+  "pol_trust_court": {
+   "text": "The US Supreme Court",
    "scale": []
   },
   "trump_win": {
@@ -258,6 +250,26 @@
   }
  },
  "control": {
+  "__stem_conspiracy": {
+   "text": "How much do you agree or disagree with the following statements? -",
+   "scale": []
+  },
+  "conspiracy_1": {
+   "text": "Even though we live in a democracy, a few people will always run things anyway.",
+   "scale": []
+  },
+  "conspiracy_2": {
+   "text": "The people who really 'run' the country are not known to the voters",
+   "scale": []
+  },
+  "conspiracy_3": {
+   "text": "Big events like wars, recessions, and the outcomes of elections are controlled by small groups of people who are working in secret against the rest of us.",
+   "scale": []
+  },
+  "conspiracy_4": {
+   "text": "Much of our lives are being controlled by plots hatched in secret places",
+   "scale": []
+  },
   "party7": {
    "text": "Political affiliation",
    "scale": [

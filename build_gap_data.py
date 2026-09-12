@@ -53,13 +53,12 @@ OUTCOMES = [
  ("fda","pol_trust_fda","Trust","Trust in the FDA","trust"),
  ("pharma","pol_trust_pharma","Trust","Trust in pharmaceutical companies","trust"),
  ("fauci","pol_trust_fauci","Trust","Trust in Anthony Fauci","trust"),
- ("consp1","conspiracy_1","Conspiracy","A few people always run things","belief"),
- ("consp2","conspiracy_2","Conspiracy","Those who really run the country are unknown","belief"),
- ("consp3","conspiracy_3","Conspiracy","Big events controlled by secret groups","belief"),
- ("consp4","conspiracy_4","Conspiracy","Lives controlled by secret plots","belief"),
  ("denial","trump_win","Conspiracy","Election denial — Trump won in 2020","belief"),
  ("rfk","pol_trust_rfk","Outlier","Trust in Robert F. Kennedy Jr.","trust"),
  ("musk","pol_trust_musk","Outlier","Trust in Elon Musk","trust"),
+ ("trump","pol_trust_trump","Government","Trust in Donald Trump","trust"),
+ ("whitehouse","pol_trust_white_house","Government","Trust in the White House","trust"),
+ ("scotus","pol_trust_court","Government","Trust in the US Supreme Court","trust"),
 ]
 FN_OUTCOMES = [
  ("gmo","Genetically modified foods have harmful effects","Conspiracy","GM foods have hidden harmful effects"),
@@ -68,7 +67,8 @@ FN_OUTCOMES = [
  ("turbines","Wind turbines cause cancer","Conspiracy","Wind turbines cause cancer"),
  ("soros","George Soros is secretly working","Conspiracy","Soros is destabilising the US"),
 ]
-NEED = sorted({v for _,v,_,_,_ in OUTCOMES})
+CONSP=["conspiracy_1","conspiracy_2","conspiracy_3","conspiracy_4"]
+NEED = sorted({v for _,v,_,_,_ in OUTCOMES} | set(CONSP))
 
 print("loading waves...", flush=True)
 fr=[]
@@ -130,19 +130,32 @@ def y_of(var):
     if var=="trump_win" or var.startswith("conspiracy"): return (v>=4).astype(float).where(v.notna())
     return (v>=3).astype(float).where(v.notna())
 
-BASE=["age","income_cat_5","male_c"]
+for c in CONSP: d["C_"+c]=CC.num(d[c])
+CC_COLS=["C_"+c for c in CONSP]
+# The four conspiracy items are controls rather than outcomes, which is what lets them be
+# controls at all. It costs wave coverage -- the battery runs in 11 of the 15 model waves --
+# and for an outcome whose own waves barely overlap it, what survives is not a sample. Those
+# outcomes keep the uncontrolled specification and the payload records which ones.
+BASE_CTRL=["age","income_cat_5","male_c"]
+BASE=BASE_CTRL+CC_COLS
+
+def consp_viable(y):
+    ok = y.notna() & d["weight"].notna()
+    both = (ok & d[CC_COLS].notna().all(axis=1)).sum()
+    return bool(both >= 2000 and both >= 0.4*ok.sum())
 SOURCES=([(rg,REGIME_LABEL[rg],"regime",None) for rg in REGIMES]
         +[(c,CHAN[c][0],"channel",CHAN[c][1]) for c in CHAN])
 
-def fit_one(y, skey, others):
+def fit_one(y, skey, others, base=None):
     """One model; returns a closure that evaluates any contrast of predicted probabilities."""
-    keep=["weight","wave","R","E",skey]+BASE+others
+    base = BASE if base is None else base
+    keep=["weight","wave","R","E",skey]+base+others
     sub=d.assign(y=y).dropna(subset=["y"]+keep)
     if len(sub)<3000: return None
     S=sub[skey].values; R=sub["R"].values; E=sub["E"].values
     W=pd.get_dummies(sub["wave"].astype(str),prefix="w",drop_first=True).astype(float).values
     O=sub[others].values if others else np.zeros((len(sub),0))
-    ctrl=np.column_stack([sub[c].astype(float).values for c in BASE]+[O,W]) if others or True else W
+    ctrl=np.column_stack([sub[c].astype(float).values for c in base]+[O,W])
     # column block order: 1, S, R, E, S:R, S:E, R:E, S:R:E, ctrl...
     def design(s):
         s=np.full_like(S,s,dtype=float) if np.isscalar(s) else s
@@ -238,13 +251,17 @@ VARS={k:v for k,v,_,_,_ in OUTCOMES}; VARS.update({k:"FN_"+k for k,_,_,_ in FN_O
 t0=time.time(); done=0; total=len(payload["outcomes"])*len(SOURCES)
 for o in payload["outcomes"]:
     y=y_of(VARS[o["key"]])
+    o["consp_control"]=consp_viable(y)
+    base = BASE if o["consp_control"] else BASE_CTRL
+    print(f"  {o['key']:<10}conspiracy control="
+          f"{'yes' if o['consp_control'] else 'NO (exempt)'}",flush=True)
     for skey,slab,kind,parent in SOURCES:
         done+=1
         if d[skey].notna().sum()==0: continue
         AI={"AICH","pol_news1_17"}
         others=[x for x,_,k2,_ in SOURCES
                 if k2==kind and x!=skey and x not in AI and d[x].notna().any()]
-        M=fit_one(y,skey,others)
+        M=fit_one(y,skey,others,base)
         if M is None: continue
         R,E,S,wt=M["R"],M["E"],M["S"],M["wt"]; yv=M["sub"]["y"].values
         G={}

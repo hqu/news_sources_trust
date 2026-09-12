@@ -389,6 +389,10 @@ two results in about two minutes.</p>
 "use strict";
 /* ============================ data layer ============================ */
 const CHALLENGERS = ["rfk","musk"];
+/* Trust in political institutions is a different object from trust in the scientific
+   establishment, so these get their own family rather than being folded into it and
+   quietly widening what "the establishment" means. Off by default. */
+const GOVT = ["trump","whitehouse","scotus"];
 /* Ceiling of the prevalence axis. The most widely held outcome in the battery sits at 68.5%,
    so 75 is the top of the data plus a little headroom; carrying the axis to 100 left a
    quarter of every chart permanently empty. Nothing is excluded by this. */
@@ -397,13 +401,15 @@ const RC = {JS:"var(--js)",PB:"var(--pb)",SRCH:"var(--srch)",AICH:"var(--aich)",
             VLP:"var(--vlp)",PVT:"var(--pvt)",INT:"var(--int)",DEC:"var(--dec)"};
 const FAMS = [["belief","Belief in a claim","conspiracy and misinformation items"],
               ["establishment","Trust in the establishment","shown as DISTRUST, so higher = more adverse"],
-              ["challenger","Trust in the challengers","RFK Jr. and Musk — these run the other way"]];
+              ["challenger","Trust in the challengers","RFK Jr. and Musk — these run the other way"],
+              ["government","Trust in government and courts","White House, Supreme Court, Trump"]];
 let DATA=null, REG=[], RLAB={}, OUT=[], BYKEY={};
 /* short codes for the quadrant, where a full label will not fit beside a 5px dot */
 const RSHORT={JS:"JS",PB:"PB",SRCH:"SRCH",AICH:"AI",VLP:"VLP",PVT:"PVT",INT:"INT",DEC:"POD"};
 
 function famOf(o){ return o.direction==="belief" ? "belief"
-                 : (CHALLENGERS.includes(o.key) ? "challenger" : "establishment"); }
+                 : GOVT.includes(o.key) ? "government"
+                 : CHALLENGERS.includes(o.key) ? "challenger" : "establishment"; }
 /* orient every estimate so >1 is adverse; trust models are inverted and the interval swapped */
 function orient(o,e){
   return o.direction==="trust"
@@ -421,7 +427,7 @@ function prepare(raw){
     const m=o.models.all.regime;
     return {key:o.key, label:o.label, group:o.group, direction:o.direction,
             fam:famOf(o), adverse: o.direction==="trust" ? 100-m.prevalence : m.prevalence,
-            models:o.models};
+            consp:o.consp_control, models:o.models};
   }).sort((a,b)=>a.adverse-b.adverse);
   OUT.forEach(o=>BYKEY[o.key]=o);
 }
@@ -743,7 +749,8 @@ function buildOutcomeTree(){
     for(const o of list){
       const l=document.createElement("label"); l.className="row";
       l.innerHTML=`<input type="checkbox" data-out="${o.key}">
-        <span>${o.label}</span><span class="meta">${o.adverse.toFixed(0)}%</span>`;
+        <span>${o.label}${o.consp===false?' <span title="Asked in waves the conspiracy battery does not cover, so the four conspiracy items are not held fixed for this outcome.">†</span>':''}</span>
+        <span class="meta">${o.adverse.toFixed(0)}%</span>`;
       kids.appendChild(l);
     }
     wrap.appendChild(kids); host.appendChild(wrap);
@@ -783,7 +790,7 @@ function syncControls(){
     `${inw} of ${OUT.length} outcomes in view`;
   const tk=document.getElementById("ticks"); tk.innerHTML="";
   const FAMLAB={belief:"belief in a claim",establishment:"trust in an institution",
-                challenger:"trust in a challenger"};
+                challenger:"trust in a challenger",government:"trust in government"};
   for(const o of OUT){
     const i=document.createElement("i");
     i.style.left=`${pct(o.adverse)}%`;
@@ -932,7 +939,7 @@ __unlock(function boot(){
   const inline=document.getElementById("payload").textContent.trim();
   const go=raw=>{
     prepare(raw);
-    S.outcomes=new Set(OUT.filter(o=>o.fam!=="challenger").map(o=>o.key));
+    S.outcomes=new Set(OUT.filter(o=>o.fam==="belief"||o.fam==="establishment").map(o=>o.key));
     S.regimes=new Set(REG);
     buildOutcomeTree(); buildRegimeChips(); buildStrata();
     wire(); render(); initStory();

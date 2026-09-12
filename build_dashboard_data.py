@@ -9,9 +9,9 @@ JOINTLY in a single model, adjusted for party7, education, age, income, gender a
 fixed effects. Toggling predictors in the UI therefore FILTERS THE DISPLAY of one fitted
 model -- it does not re-fit. The UI says so.
 
-The conspiracy scale is not used as a control anywhere here: it is an outcome in its own
-right (conspiracy_1-4), and conditioning on it would be circular for those rows and would
-cut the wave list from 15 to 11 for the others.
+The four conspiracy items are CONTROLS in every model and are no longer outcomes. That
+removes the circularity that kept them out before, and it costs wave coverage: the battery
+runs in 11 of the 15 model waves, so every estimate here is fitted on those 11.
 """
 import pandas as pd, numpy as np, statsmodels.api as sm, os, json, sys, warnings
 warnings.filterwarnings("ignore")
@@ -77,10 +77,9 @@ OUTCOMES = [
  ("fauci","pol_trust_fauci","Elites","Trust in Anthony Fauci","trust",False),
  ("rfk","pol_trust_rfk","Elites","Trust in Robert F. Kennedy Jr.","trust",False),
  ("musk","pol_trust_musk","Elites","Trust in Elon Musk","trust",False),
- ("consp1","conspiracy_1","Conspiracy","A few people always run things","belief",False),
- ("consp2","conspiracy_2","Conspiracy","Those who really run the country are unknown","belief",False),
- ("consp3","conspiracy_3","Conspiracy","Big events controlled by secret groups","belief",False),
- ("consp4","conspiracy_4","Conspiracy","Lives controlled by secret plots","belief",False),
+ ("trump","pol_trust_trump","Government","Trust in Donald Trump","trust",False),
+ ("whitehouse","pol_trust_white_house","Government","Trust in the White House","trust",False),
+ ("scotus","pol_trust_court","Government","Trust in the US Supreme Court","trust",False),
  ("denial","trump_win","Election","Election denial — Trump won in 2020","belief",False),
 ]
 # key, claim text (matched against the codebook label), group, label, direction, default
@@ -115,7 +114,7 @@ for w in sorted(wave_rule.MODEL_WAVES, key=float):
                   if claim.lower() in l.lower()), None)
         if col and col in h: fnmap[key]=col
     havep=[c for c in PLAT if c in h]
-    cols=[c for c in have+tg+list(fnmap.values())+havep
+    cols=[c for c in have+tg+list(fnmap.values())+havep+CONSP
           +["weight","party7","education_cat","income_cat_5","age","male","female"] if c in h]
     d=pd.read_csv(f,usecols=sorted(set(cols)),low_memory=False); d["wave"]=w
     for key,_,_,_,_,_ in FN_OUTCOMES:
@@ -131,13 +130,31 @@ for w in sorted(wave_rule.MODEL_WAVES, key=float):
         if t not in d: d[t]=np.nan
     for c in ["male","female"]:
         if c not in d: d[c]=np.nan
+    for c in CONSP:
+        if c not in d: d[c]=np.nan
     fr.append(d[["wave","weight","party7","education_cat","income_cat_5","age","male","female"]
-                +NEED+["FN_"+k for k,_,_,_,_,_ in FN_OUTCOMES]+list(CHAN)+list(PLAT)+REGIMES])
+                +CONSP+NEED+["FN_"+k for k,_,_,_,_,_ in FN_OUTCOMES]+list(CHAN)+list(PLAT)+REGIMES])
 d=pd.concat(fr,ignore_index=True)
 d["edu"]=d["education_cat"].map(EDU)
 for c in ["weight","party7","income_cat_5","age"]: d[c]=pd.to_numeric(d[c],errors="coerce")
 d["male_c"]=CC.male_from(d)
-CTRL=["party7","edu","age","income_cat_5","male_c"]
+for c in CONSP: d["C_"+c]=CC.num(d[c])
+CC_COLS=["C_"+c for c in CONSP]
+BASE_CTRL=["party7","edu","age","income_cat_5","male_c"]
+CTRL=BASE_CTRL+CC_COLS
+
+def consp_viable(y):
+    """Can this outcome afford the conspiracy controls?
+
+    The battery runs in 11 of the 15 model waves, so conditioning on it trims most outcomes
+    and DESTROYS any whose own waves barely overlap it -- trust in RFK Jr. is asked in W35,
+    35.1 and 36 against a battery that stops at W35, and what survives is not a sample. Rather
+    than let such an outcome vanish, it keeps the uncontrolled specification and says so on
+    the row. Decided once per outcome from row counts, not per model, so a subgroup never ends
+    up on a different specification from the outcome it belongs to."""
+    ok = y.notna() & d["weight"].notna()
+    both = (ok & d[CC_COLS].notna().all(axis=1)).sum()
+    return bool(both >= 2000 and both >= 0.4*ok.sum())
 
 # Subgroups. party7 runs 1 Strong Republican .. 7 Strong Democrat, so leaners (3 and 5)
 # fold into the party they lean toward; only pure independents (4) stay Independent.
@@ -175,8 +192,8 @@ def outcome_series(var):
     if var.startswith("conspiracy"): return (v>=4).astype(float).where(v.notna())  # agree / strongly agree
     return (v>=3).astype(float).where(v.notna())                                    # a lot / some
 
-def run(y, preds, label, col=None, val=None):
-    ctrl=[c for c in CTRL
+def run(y, preds, label, col=None, val=None, ctrl_set=None):
+    ctrl=[c for c in (ctrl_set or CTRL)
           if not (col in ("party3","party_edu") and c=="party7")
           and not (col in ("edu4","party_edu") and c=="edu")]
     frame=d if col is None else d[d[col]==val]
@@ -201,7 +218,11 @@ def run(y, preds, label, col=None, val=None):
     # than only the terms drawn in the forest plot
     CTRL_LABEL={"party7":"Party identification (1 Strong Rep – 7 Strong Dem)",
                 "edu":"Education (5-point)","age":"Age (years)",
-                "income_cat_5":"Household income (5-point)","male_c":"Male"}
+                "income_cat_5":"Household income (5-point)","male_c":"Male",
+                "C_conspiracy_1":"Conspiracy: a few people always run things",
+                "C_conspiracy_2":"Conspiracy: those who run the country are unknown",
+                "C_conspiracy_3":"Conspiracy: big events controlled by secret groups",
+                "C_conspiracy_4":"Conspiracy: lives controlled by secret plots"}
     ctrl_rows=[]
     for c in ctrl:
         if c not in m.params.index: continue
@@ -215,17 +236,17 @@ def run(y, preds, label, col=None, val=None):
                 n_wave_dummies=int(sum(1 for c in X.columns if c.startswith("w_"))),
                 llf=float(m.llf), df_model=int(m.df_model))
 
-def build_all(y,key):
+def build_all(y,key,ctrl_set=None):
     main_reg=[r for r in REGIMES if r!="AICH" and d[r].notna().any()]
     main_chan=[c for c in CHAN if c!="pol_news1_17" and d[c].notna().any()]
     plats=[c for c in PLAT if d[c].notna().any()]
     out={}
     for skey,slabel,col,val in STRATA:
-        reg=run(y,main_reg,key,col,val)
+        reg=run(y,main_reg,key,col,val,ctrl_set)
         if reg is None: continue
-        chan=run(y,main_chan,key,col,val); plat=run(y,plats,key,col,val)
-        reg_ai=run(y,[r for r in REGIMES if d[r].notna().any()],key,col,val)
-        chan_ai=run(y,[c for c in CHAN if d[c].notna().any()],key,col,val)
+        chan=run(y,main_chan,key,col,val,ctrl_set); plat=run(y,plats,key,col,val,ctrl_set)
+        reg_ai=run(y,[r for r in REGIMES if d[r].notna().any()],key,col,val,ctrl_set)
+        chan_ai=run(y,[c for c in CHAN if d[c].notna().any()],key,col,val,ctrl_set)
         for src,dst in ((reg_ai,reg),(chan_ai,chan)):
             if src is None or dst is None: continue
             for e in src["estimates"]:
@@ -250,10 +271,11 @@ payload={"meta":{"built":pd.Timestamp.now().strftime("%Y-%m-%d"),
 for key,var,group,label,direction,default in OUTCOMES:
     y=outcome_series(var)
     if y.notna().sum()<2000: print(f"  skip {key}: unavailable"); continue
+    cc=consp_viable(y); ctrl_set=CTRL if cc else BASE_CTRL
     # AI Chat is fielded in six waves only. Entering it in the joint model would restrict
     # EVERY outcome to those six waves (and drops Fauci entirely, whose waves predate it),
     # so the main model omits it and a supplementary model adds it on its own wave subset.
-    models=build_all(y,key)
+    models=build_all(y,key,ctrl_set)
     reg=models.get("all",{}).get("regime")
     if reg is None: print(f"  skip {key}: not estimable"); continue
     chan=models.get("all",{}).get("channel"); plat=models.get("all",{}).get("platform")
@@ -262,20 +284,22 @@ for key,var,group,label,direction,default in OUTCOMES:
     #   sorted(reg["estimates"], key=lambda r: r["odds_ratio"])
     worst = []
     payload["outcomes"].append(dict(key=key,var=var,group=group,label=label,
-                                    direction=direction,is_default=default,
+                                    direction=direction,is_default=default,consp_control=cc,
                                     regime=reg,channel=chan,platform=plat,models=models,default_on=worst))
-    print(f"  {key:<8} n={reg['n']:>7,}  prev={reg['prevalence']:5.1f}%  default_on={worst}", flush=True)
+    print(f"  {key:<8} n={reg['n']:>7,}  prev={reg['prevalence']:5.1f}%  "
+          f"conspiracy control={'yes' if cc else 'NO (exempt)'}", flush=True)
 
 for key,claim,group,label,direction,default in FN_OUTCOMES:
     y=fn_series(key)
     if y.notna().sum()<2000: print(f"  skip {key}: unavailable"); continue
-    models=build_all(y,key)
+    cc=consp_viable(y); ctrl_set=CTRL if cc else BASE_CTRL
+    models=build_all(y,key,ctrl_set)
     reg=models.get("all",{}).get("regime")
     if reg is None: print(f"  skip {key}: not estimable"); continue
     chan=models.get("all",{}).get("channel"); plat=models.get("all",{}).get("platform")
     worst=[]   # see the note above: the dashboard checks every estimable regime
     payload["outcomes"].append(dict(key=key,var="FN_"+key,group=group,label=label,
-                                    direction=direction,is_default=default,
+                                    direction=direction,is_default=default,consp_control=cc,
                                     claim_text=claim,regime=reg,channel=chan,platform=plat,
                                     models=models,default_on=worst))
     print(f"  {key:<9} n={reg['n']:>7,}  prev={reg['prevalence']:5.1f}%  "
