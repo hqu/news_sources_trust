@@ -292,50 +292,17 @@ anything handed down.</figcaption>
 </figure>
 </div>
 
-<p class="lede"><b>In brief.</b> Almost everything known about political misinformation comes from
-the handful of channels an outside analyst can count, and every major intervention —
-deplatforming, downranking, labels, fact-checks, the DSA's duties — attaches to exactly
-those channels. Across fifteen waves of a national survey we map American political news use onto
-seven regimes defined not by technology but by what can be observed about them, and estimate what
-each one predicts across 32 beliefs, positions and questions about institutional trust. The regimes do predict
-belief, and not in the order platform governance assumes: on election denial, podcasts and private
-messaging run ahead of the large platforms that are the near-exclusive object of regulation. More
-than that, <b>the regimes are not one phenomenon with different strengths</b>. Giving each the same
-three candidate explanations — how common a position is overall, how much it belongs to
-the answerer's own side, and which side of politics it sits on — separates them into
-distinct kinds: podcasts track sheer rarity, partisan broadcast and the big feeds track the distance
-between the parties, mainstream news and word of mouth pull in opposite ideological directions, and
-private messaging alone tracks how out of step a position is with the user's <i>own</i> side,
-carrying no ideological direction at all. That last pattern holds on trust in the police and the
-military as firmly as on conspiracy claims, survives with about 45% of its strength among people who
-report no party whatsoever, and is therefore not a story about misinformation travelling —
-it is a story about who occupies the channels nobody can audit. <b>The theoretical cost is specific:</b>
-a diffusion account, which predicts that what matters is how far a claim has spread, is the wrong
-model for private channels and the right one for podcasts, and the governance instruments, built
-without exception on the channels that can be counted, reach neither.</p>
+<p class="lede" style="border-left:3px solid var(--faint);padding-left:14px;color:#3a4047">
+<b>Before any of it:</b> nothing on this page shows a source changing anyone's mind. People choose
+where they get their news, and the choosing runs on the same things the beliefs do. Every result
+below is <i>&ldquo;the people who use this are the people who&hellip;&rdquo;</i> and never
+<i>&ldquo;using this makes you&hellip;&rdquo;</i>. The full version of that warning is at the end.</p>
 
 <p style="font-size:12.8px;color:var(--mid);margin:-4px 0 22px">
 Unfamiliar words — <i>regime</i>, <i>odds ratio</i>, <i>adverse</i>, <i>base rate</i> — are
 defined in plain language in the <a href="#glossary" style="color:var(--qa)">glossary near the
 end</a>.</p>
 
-<h2 style="margin-top:30px">Start here: three ways a belief can be unusual</h2>
-<p class="lede">Think about where politics actually reaches you. A group chat with old friends. A
-podcast on the drive. Your brother-in-law at dinner. The feed. The evening news. It is tempting to
-sort those by how trustworthy they are — but that is not what separates them in this data. What
-separates them is <b>which kind of unusual a belief has to be</b> before a source goes with holding it.</p>
-
-<p class="lede">There are three different ways a belief can be unusual, and they come apart. Almost
-nobody thinks wind turbines cause cancer — that belief is rare <i>everywhere</i>. Trusting Donald
-Trump is not rare at all, but it is lopsided: common on one side of politics, rare on the other. And
-a belief that is <i>your own side's</i> is by definition the other side's unusual one. Those are three
-separate measurements, and in this data they barely overlap.</p>
-
-<p class="lede" style="border-left:3px solid var(--faint);padding-left:14px;color:#3a4047">
-<b>Before any of it:</b> nothing on this page shows a source changing anyone's mind. People choose
-where they get their news, and the choosing runs on the same things the beliefs do. Every result
-below is <i>&ldquo;the people who use this are the people who&hellip;&rdquo;</i> and never
-<i>&ldquo;using this makes you&hellip;&rdquo;</i>. The full version of that warning is at the end.</p>
 
 <div id="err"></div>
 <div id="app"></div>
@@ -542,100 +509,6 @@ function boot(D){
   for(const q of Q){
     h+=`<div class="panel"><h3><span class="dot" style="background:${QCOL[q.id]}"></span>${q.label}</h3>
       <p>${q.what}</p><p class="eg">${QEG[q.id]}</p></div>`;
-  }
-  h+=`</div>`;
-
-  /* ---- the grid ---- */
-  h+=`<h2>Which one each source goes with</h2>
-   <p>Every source was measured against all three at once, across 32 beliefs, positions and
-   questions about trust, separately for Democrats and Republicans — 448 estimates in all. A bar to the right
-   means the source goes with holding a belief <i>more</i> as that quantity rises; to the left, less.
-   Pale bars are too uncertain to read. The outlined box in each row is the one that source is
-   really answering to. One row has <i>two</i> boxes, drawn dashed: &ldquo;how unusual it is on your own side&rdquo;— is not a fourth column. It is the first two columns moving together, and private messaging is the only source that does that. One row is outlined in grey rather than black: search
-   engines have a best column, but the whole row is too weak to lean on.</p>
-   <table class="grid"><thead><tr><th class="src">How the news reaches you</th>`;
-  for(const q of Q) h+=`<th>${q.label}
-    <div class="axends hd"><span>${ENDS[q.id][0]}</span><span>${ENDS[q.id][1]}</span></div></th>`;
-  h+=`<th style="text-align:right">fit</th></tr></thead><tbody>`;
-  for(const r of R){
-    /* own-party prevalence IS population + gap/2, so a source answering to the respondent's
-       own side shows up as two outlined boxes rather than one */
-    const pair = r.dominant==="own";
-    const domOf = q => pair ? ((q==="pop"||q==="gap") ? 2 : 0)
-                            : (r.dominant===q ? (r.weak?3:1) : 0);
-    h+=`<tr><td class="src"><div class="srcname">${r.label}</div>
-        <div class="srceg">${r.examples}</div>
-        <span class="chip ${r.weak?"weak":"on"}">${r.weak?"weakly tracks":"tracks"} ${r.reading}</span>`;
-    if(r.flip.differs) h+=` <span class="flag" title="Fitted on its own, the middle column would average two opposite party effects for this source: ${FMT(r.flip.dem)} among Democrats against ${FMT(r.flip.rep)} among Republicans. The grid shows all three columns at once, which separates them.">direction differs by party</span>`;
-    h+=`</td>`;
-    for(const q of Q){
-      const c=r.coef[q.id], sig=Math.abs(c.t)>=2;
-      h+=`<td>${cellSvg(c,q.id,domOf(q.id))}
-        <div class="tnum${sig?" sig":""}">${FMT(c.b)} &nbsp; t ${T(c.t)}</div></td>`;
-    }
-    h+=`<td class="r2">${r.r2.toFixed(2)}</td></tr>`;
-  }
-  h+=`</tbody></table>
-   <p style="font-size:11.8px;color:var(--mid);max-width:80ch">Each number is the change in the
-   log odds of holding the belief per one percentage point of that quantity, with the other two held
-   fixed. <b>t</b> is how many standard errors the estimate sits from zero; past about 2 it is
-   unlikely to be noise. <b>fit</b> is the share of the variation across all 448 estimates that the
-   three quantities together account for.</p>`;
-
-  /* ---- row-by-row, in plain terms ---- */
-  const SAY={
-   PVT:["The group chat is where the off-script opinion lives.",
-     "The two dashed boxes are the signature. Leaning on how common a belief is overall <i>and</i> on "+
-     "how much it is your own side's, by the same amount and the same direction, is arithmetically "+
-     "what it means to track the rate inside your own party. No other source does it. Private "+
-     "messaging is also the only source here with <b>no political direction at all</b> — its "+
-     "lean bar is flat, and the pattern looks the same among Democrats and Republicans. What it goes "+
-     "with is holding a position <i>your own side mostly doesn't</i>, whatever that position happens "+
-     "to be and whichever side you are on.",
-     "If you have ever texted a friend something you would not post, you already know the shape of "+
-     "this result. It is not about believing wilder things. A Democrat who trusts the police and a "+
-     "Republican who distrusts the military are both in this pattern."],
-   DEC:["Podcasts go with what is rare everywhere, not what is rare on your side.",
-     "The bar that matters here is the first column, not the second. Podcast listeners are "+
-     "distinctive on beliefs that few people <i>anywhere</i> hold, and that distinctiveness fades as "+
-     "a belief becomes widely held. There is also a second, weaker pull toward Republican-coded "+
-     "positions.",
-     "Think of the long-tail show with a devoted audience. What travels there is not the argument "+
-     "your side is having this week — it is the thing most people have never heard of."],
-   PB:["Cable opinion and talk radio go with your own team's talking points.",
-     "The only column that moves is the middle one, and it moves the same way for both parties. "+
-     "These are the positions that separate the two sides, and partisan broadcast audiences hold "+
-     "them on their own side of the line.",
-     "This is the least surprising row on the page, and that is the point: the method had no way of "+
-     "knowing what partisan broadcast is, and it recovered it anyway."],
-   VLP:["The big feeds do the same thing, more weakly.",
-     "Facebook, X, Instagram, TikTok and YouTube sit with their users' own team's distinctive "+
-     "positions, like partisan broadcast but at roughly half the strength and with a looser fit.",
-     "Worth holding against the intuition that the feed is where the strange beliefs are. On this "+
-     "measurement the feed is where the <i>ordinary partisan</i> beliefs are."],
-   JS:["Mainstream news audiences lean one way — in both parties.",
-     "This is the strongest single relationship on the page. Following network and local news, "+
-     "newspapers and news sites goes with holding Democratic-coded positions, and it does so among "+
-     "Republicans who follow them as well as among Democrats who do.",
-     "Note what this is not. A Republican holding Democratic-coded positions looks like moderation. "+
-     "A Democrat holding <i>more</i> of them does not. Both happen here, so this is a direction, not "+
-     "a move toward the middle."],
-   INT:["Hearing about politics from people you know runs the other way.",
-     "The mirror image of the row above, at about a third the size: getting political news from "+
-     "friends, family and coworkers goes with holding Republican-coded positions — again in both "+
-     "parties.",
-     "The two rows together are the page's most uncomfortable pair, because they are symmetric. "+
-     "Neither says a source is right or wrong. They say that the company you keep and the outlets "+
-     "you follow point in opposite political directions."],
-   SRCH:["Search engines barely register.",
-     "A faint pull toward Democratic-coded positions and toward commonly held ones, but the fit is "+
-     "weak enough that this row should be read as 'not much happening' rather than as a finding.",
-     "Looking things up does not appear to sort people. That is a useful null."]};
-  h+=`<h2>Reading the rows</h2><div class="rows">`;
-  for(const r of R){
-    const s=SAY[r.id]; if(!s) continue;
-    h+=`<div class="rd"><h3>${r.label} — ${s[0]}</h3><p>${s[1]}</p>
-        <div class="you">${s[2]}</div></div>`;
   }
   h+=`</div>`;
 
@@ -870,6 +743,137 @@ function boot(D){
    <p>And the questions are not all asked equally often. A few of the 31, such as trust in Kamala
    Harris and in Elon Musk, appear in only a handful of survey waves and are measured less precisely
    than the rest.</p></div>`;
+
+  /* ---- the grid ---- */
+  h+=`<h2>Which one each source goes with</h2>
+   <p>Every source was measured against all three at once, across 32 beliefs, positions and
+   questions about trust, separately for Democrats and Republicans — 448 estimates in all. A bar to the right
+   means the source goes with holding a belief <i>more</i> as that quantity rises; to the left, less.
+   Pale bars are too uncertain to read. The outlined box in each row is the one that source is
+   really answering to. One row has <i>two</i> boxes, drawn dashed: &ldquo;how unusual it is on your own side&rdquo;— is not a fourth column. It is the first two columns moving together, and private messaging is the only source that does that. One row is outlined in grey rather than black: search
+   engines have a best column, but the whole row is too weak to lean on.</p>
+   <table class="grid"><thead><tr><th class="src">How the news reaches you</th>`;
+  for(const q of Q) h+=`<th>${q.label}
+    <div class="axends hd"><span>${ENDS[q.id][0]}</span><span>${ENDS[q.id][1]}</span></div></th>`;
+  h+=`<th style="text-align:right">fit</th></tr></thead><tbody>`;
+  for(const r of R){
+    /* own-party prevalence IS population + gap/2, so a source answering to the respondent's
+       own side shows up as two outlined boxes rather than one */
+    const pair = r.dominant==="own";
+    const domOf = q => pair ? ((q==="pop"||q==="gap") ? 2 : 0)
+                            : (r.dominant===q ? (r.weak?3:1) : 0);
+    h+=`<tr><td class="src"><div class="srcname">${r.label}</div>
+        <div class="srceg">${r.examples}</div>
+        <span class="chip ${r.weak?"weak":"on"}">${r.weak?"weakly tracks":"tracks"} ${r.reading}</span>`;
+    if(r.flip.differs) h+=` <span class="flag" title="Fitted on its own, the middle column would average two opposite party effects for this source: ${FMT(r.flip.dem)} among Democrats against ${FMT(r.flip.rep)} among Republicans. The grid shows all three columns at once, which separates them.">direction differs by party</span>`;
+    h+=`</td>`;
+    for(const q of Q){
+      const c=r.coef[q.id], sig=Math.abs(c.t)>=2;
+      h+=`<td>${cellSvg(c,q.id,domOf(q.id))}
+        <div class="tnum${sig?" sig":""}">${FMT(c.b)} &nbsp; t ${T(c.t)}</div></td>`;
+    }
+    h+=`<td class="r2">${r.r2.toFixed(2)}</td></tr>`;
+  }
+  h+=`</tbody></table>
+   <p style="font-size:11.8px;color:var(--mid);max-width:80ch">Each number is the change in the
+   log odds of holding the belief per one percentage point of that quantity, with the other two held
+   fixed. <b>t</b> is how many standard errors the estimate sits from zero; past about 2 it is
+   unlikely to be noise. <b>fit</b> is the share of the variation across all 448 estimates that the
+   three quantities together account for.</p>`;
+
+  /* ---- row-by-row, in plain terms ---- */
+  const SAY={
+   PVT:["The group chat is where the off-script opinion lives.",
+     "The two dashed boxes are the signature. Leaning on how common a belief is overall <i>and</i> on "+
+     "how much it is your own side's, by the same amount and the same direction, is arithmetically "+
+     "what it means to track the rate inside your own party. No other source does it. Private "+
+     "messaging is also the only source here with <b>no political direction at all</b> — its "+
+     "lean bar is flat, and the pattern looks the same among Democrats and Republicans. What it goes "+
+     "with is holding a position <i>your own side mostly doesn't</i>, whatever that position happens "+
+     "to be and whichever side you are on.",
+     "If you have ever texted a friend something you would not post, you already know the shape of "+
+     "this result. It is not about believing wilder things. A Democrat who trusts the police and a "+
+     "Republican who distrusts the military are both in this pattern."],
+   DEC:["Podcasts go with what is rare everywhere, not what is rare on your side.",
+     "The bar that matters here is the first column, not the second. Podcast listeners are "+
+     "distinctive on beliefs that few people <i>anywhere</i> hold, and that distinctiveness fades as "+
+     "a belief becomes widely held. There is also a second, weaker pull toward Republican-coded "+
+     "positions.",
+     "Think of the long-tail show with a devoted audience. What travels there is not the argument "+
+     "your side is having this week — it is the thing most people have never heard of."],
+   PB:["Cable opinion and talk radio go with your own team's talking points.",
+     "The only column that moves is the middle one, and it moves the same way for both parties. "+
+     "These are the positions that separate the two sides, and partisan broadcast audiences hold "+
+     "them on their own side of the line.",
+     "This is the least surprising row on the page, and that is the point: the method had no way of "+
+     "knowing what partisan broadcast is, and it recovered it anyway."],
+   VLP:["The big feeds do the same thing, more weakly.",
+     "Facebook, X, Instagram, TikTok and YouTube sit with their users' own team's distinctive "+
+     "positions, like partisan broadcast but at roughly half the strength and with a looser fit.",
+     "Worth holding against the intuition that the feed is where the strange beliefs are. On this "+
+     "measurement the feed is where the <i>ordinary partisan</i> beliefs are."],
+   JS:["Mainstream news audiences lean one way — in both parties.",
+     "This is the strongest single relationship on the page. Following network and local news, "+
+     "newspapers and news sites goes with holding Democratic-coded positions, and it does so among "+
+     "Republicans who follow them as well as among Democrats who do.",
+     "Note what this is not. A Republican holding Democratic-coded positions looks like moderation. "+
+     "A Democrat holding <i>more</i> of them does not. Both happen here, so this is a direction, not "+
+     "a move toward the middle."],
+   INT:["Hearing about politics from people you know runs the other way.",
+     "The mirror image of the row above, at about a third the size: getting political news from "+
+     "friends, family and coworkers goes with holding Republican-coded positions — again in both "+
+     "parties.",
+     "The two rows together are the page's most uncomfortable pair, because they are symmetric. "+
+     "Neither says a source is right or wrong. They say that the company you keep and the outlets "+
+     "you follow point in opposite political directions."],
+   SRCH:["Search engines barely register.",
+     "A faint pull toward Democratic-coded positions and toward commonly held ones, but the fit is "+
+     "weak enough that this row should be read as 'not much happening' rather than as a finding.",
+     "Looking things up does not appear to sort people. That is a useful null."]};
+  h+=`<h2>Reading the rows</h2><div class="rows">`;
+  for(const r of R){
+    const s=SAY[r.id]; if(!s) continue;
+    h+=`<div class="rd"><h3>${r.label} — ${s[0]}</h3><p>${s[1]}</p>
+        <div class="you">${s[2]}</div></div>`;
+  }
+  h+=`</div>`;
+
+  /* ---- the primer and the summary, moved below the charts 2026-09-13 ---- */
+  h+=`<h2>The three ways, in full</h2>
+<p class="lede">Think about where politics actually reaches you. A group chat with old friends. A
+podcast on the drive. Your brother-in-law at dinner. The feed. The evening news. It is tempting to
+sort those by how trustworthy they are — but that is not what separates them in this data. What
+separates them is <b>which kind of unusual a belief has to be</b> before a source goes with holding it.</p>
+
+<p class="lede">There are three different ways a belief can be unusual, and they come apart. Almost
+nobody thinks wind turbines cause cancer — that belief is rare <i>everywhere</i>. Trusting Donald
+Trump is not rare at all, but it is lopsided: common on one side of politics, rare on the other. And
+a belief that is <i>your own side's</i> is by definition the other side's unusual one. Those are three
+separate measurements, and in this data they barely overlap.</p>
+
+`;
+
+  h+=`<p class="lede"><b>In brief.</b> Almost everything known about political misinformation comes from
+the handful of channels an outside analyst can count, and every major intervention —
+deplatforming, downranking, labels, fact-checks, the DSA's duties — attaches to exactly
+those channels. Across fifteen waves of a national survey we map American political news use onto
+seven regimes defined not by technology but by what can be observed about them, and estimate what
+each one predicts across 32 beliefs, positions and questions about institutional trust. The regimes do predict
+belief, and not in the order platform governance assumes: on election denial, podcasts and private
+messaging run ahead of the large platforms that are the near-exclusive object of regulation. More
+than that, <b>the regimes are not one phenomenon with different strengths</b>. Giving each the same
+three candidate explanations — how common a position is overall, how much it belongs to
+the answerer's own side, and which side of politics it sits on — separates them into
+distinct kinds: podcasts track sheer rarity, partisan broadcast and the big feeds track the distance
+between the parties, mainstream news and word of mouth pull in opposite ideological directions, and
+private messaging alone tracks how out of step a position is with the user's <i>own</i> side,
+carrying no ideological direction at all. That last pattern holds on trust in the police and the
+military as firmly as on conspiracy claims, survives with about 45% of its strength among people who
+report no party whatsoever, and is therefore not a story about misinformation travelling —
+it is a story about who occupies the channels nobody can audit. <b>The theoretical cost is specific:</b>
+a diffusion account, which predicts that what matters is how far a claim has spread, is the wrong
+model for private channels and the right one for podcasts, and the governance instruments, built
+without exception on the channels that can be counted, reach neither.</p>`;
 
   /* =============== glossary =============== */
   const GLOSS=[
