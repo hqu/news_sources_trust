@@ -80,6 +80,10 @@ table.dot td.nm{font-weight:600;white-space:nowrap}
 figure.map{margin:14px 0 6px;border:1px solid var(--hair);border-radius:11px;padding:12px;
   background:#fff;overflow-x:auto}
 figure.map img{display:block;width:100%;min-width:900px;height:auto}
+.tgrid{display:grid;grid-template-columns:minmax(0,1fr) 470px;gap:22px;align-items:start}
+@media(max-width:980px){.tgrid{grid-template-columns:1fr}.tgrid figure{order:-1}}
+.tgrid figure{margin:2px 0 0}
+.tgrid figcaption{font-size:10.8px;color:var(--mid);line-height:1.45;margin-top:7px}
 .theory{border:1px solid var(--hair);border-left:3px solid var(--qc);border-radius:0 11px 11px 0;
   padding:15px 18px;margin:16px 0 22px;background:#fcfbfd}
 .theory h3{font-size:14px;font-weight:700;margin:0 0 7px}
@@ -218,7 +222,7 @@ interventions stop.</p>
   and onward into private channels, with each regime tagged by the quantity its association runs on.">
 </figure>
 
-<div class="theory">
+<div class="theory"><div class="tgrid"><div>
 <h3>The idea the map is a revision of</h3>
 <p>In 1944, studying how people made up their minds in a presidential campaign, Paul Lazarsfeld and
 his colleagues found something they had not gone looking for: mass media moved fewer votes than
@@ -245,6 +249,47 @@ every instrument in the bottom band stops. The measurement problem and the theor
 problem: <b>the step that does the work is the step nobody can see.</b></p>
 <p class="cite">Lazarsfeld, Berelson &amp; Gaudet (1944); Katz &amp; Lazarsfeld (1955); Hunt &amp;
 Gruszczynski (2024). Full entries in the bibliography.</p>
+</div>
+<figure>
+<svg viewBox="0 0 486 292" width="100%" role="img" aria-label="Two-step flow as concentric circles. In 1944 to 1955 you sit at the centre, a ring of peers around you and news media outside that; influence arrives through one peer tie, and a small arrow back shows the exchange runs both ways. Today you sit at the centre and every ring reaches you directly, which is news finding you, while the peer ring carries lateral peer-to-peer arrows for expression rather than a downward flow.">
+<defs><marker id="ai" markerWidth="7" markerHeight="7" refX="5.6" refY="2.6" orient="auto"><path d="M0,0 L5.6,2.6 L0,5.2 z" fill="#71777f"/></marker><marker id="af" markerWidth="7" markerHeight="7" refX="5.6" refY="2.6" orient="auto"><path d="M0,0 L5.6,2.6 L0,5.2 z" fill="#a8642a"/></marker><marker id="ap" markerWidth="6" markerHeight="6" refX="4.8" refY="2.2" orient="auto"><path d="M0,0 L4.8,2.2 L0,4.4 z" fill="#6b4c9a"/></marker><marker id="as" markerWidth="5" markerHeight="5" refX="4" refY="1.9" orient="auto"><path d="M0,0 L4,1.9 L0,3.8 z" fill="#8d959d"/></marker></defs>
+<text x="118" y="20" text-anchor="middle" font-size="9.6" font-weight="700" fill="#71777f" letter-spacing="1.3">1944 – 55</text>
+<circle cx="118" cy="152" r="54" fill="none" stroke="#e6e9ec" stroke-width="1.2"/>
+<circle cx="118" cy="152" r="92" fill="none" stroke="#e6e9ec" stroke-width="1.2"/>
+<line x1="36.8" y1="195.2" x2="68.6" y2="178.3" stroke="#71777f" stroke-width="1.5" marker-end="url(#ai)"/>
+<line x1="72.1" y1="176.4" x2="96.8" y2="163.3" stroke="#71777f" stroke-width="1.5" marker-end="url(#ai)"/>
+<line x1="103.5" y1="173.6" x2="92.8" y2="189.3" stroke="#8d959d" stroke-width="1.1" marker-end="url(#as)"/>
+<circle cx="118" cy="152" r="21" fill="#16181d"/><text x="118" y="155.6" text-anchor="middle" font-size="10.5" font-weight="700" fill="#fff">you</text>
+<rect x="79.8" y="90.5" width="76.4" height="11.8" fill="#fff"/><text x="118.0" y="101.2" text-anchor="middle" font-size="9.4" fill="#16181d">opinion leader</text>
+<rect x="89.6" y="52.5" width="56.9" height="11.8" fill="#fff"/><text x="118.0" y="63.2" text-anchor="middle" font-size="9.4" fill="#16181d">news media</text>
+<text x="118" y="272" text-anchor="middle" font-size="9.4" fill="#71777f">influence arrives through one tie</text>
+<text x="118" y="284" text-anchor="middle" font-size="9" fill="#8d959d">and the smaller arrow back is the exchange</text>
+<text x="356" y="20" text-anchor="middle" font-size="9.6" font-weight="700" fill="#16181d" letter-spacing="1.3">TODAY</text>
+<circle cx="356" cy="152" r="52" fill="none" stroke="#e6e9ec" stroke-width="1.2"/>
+<circle cx="356" cy="152" r="80" fill="none" stroke="#e6e9ec" stroke-width="1.2"/>
+<circle cx="356" cy="152" r="108" fill="none" stroke="#e6e9ec" stroke-width="1.2"/>
+<line x1="262.5" y1="98.0" x2="285.0" y2="111.0" stroke="#71777f" stroke-width="1.5" marker-end="url(#ai)"/>
+<line x1="288.5" y1="113.0" x2="309.2" y2="125.0" stroke="#71777f" stroke-width="1.5" marker-end="url(#ai)"/>
+<line x1="312.7" y1="127.0" x2="335.2" y2="140.0" stroke="#71777f" stroke-width="1.5" marker-end="url(#ai)"/>
+<line x1="315.5" y1="252.1" x2="347.0" y2="174.3" stroke="#a8642a" stroke-width="1.3" stroke-dasharray="4 3" marker-end="url(#af)"/>
+<line x1="378.1" y1="228.9" x2="362.6" y2="175.1" stroke="#a8642a" stroke-width="1.3" stroke-dasharray="4 3" marker-end="url(#af)"/>
+<line x1="394.6" y1="186.8" x2="373.8" y2="168.1" stroke="#a8642a" stroke-width="1.3" stroke-dasharray="4 3" marker-end="url(#af)"/>
+<path d="M405.5,135.9 A52,52 0 0,0 370.3,102.0" fill="none" stroke="#6b4c9a" stroke-width="1.6" marker-end="url(#ap)"/>
+<path d="M368.1,109.7 A44,44 0 0,1 397.8,138.4" fill="none" stroke="#6b4c9a" stroke-width="1.6" marker-end="url(#ap)"/>
+<text x="406.5" y="106.0" font-size="9" font-weight="700" fill="#6b4c9a">expression</text>
+<circle cx="356" cy="152" r="21" fill="#16181d"/><text x="356" y="155.6" text-anchor="middle" font-size="10.5" font-weight="700" fill="#fff">you</text>
+<rect x="339.8" y="92.5" width="32.4" height="11.8" fill="#fff"/><text x="356.0" y="103.2" text-anchor="middle" font-size="9.4" fill="#16181d">peers</text>
+<rect x="332.4" y="64.5" width="47.1" height="11.8" fill="#fff"/><text x="356.0" y="75.2" text-anchor="middle" font-size="9.4" fill="#16181d">creators</text>
+<rect x="308.0" y="36.5" width="96.0" height="11.8" fill="#fff"/><text x="356.0" y="47.2" text-anchor="middle" font-size="9.4" fill="#16181d">news organisations</text>
+<text x="356" y="272" text-anchor="middle" font-size="9.4" font-weight="700" fill="#a8642a">every ring reaches you directly — news finds you</text>
+<text x="356" y="284" text-anchor="middle" font-size="9" fill="#6b4c9a">and the peer ring runs sideways, not down</text>
+</svg>
+<figcaption>Not a flow chart, because the flow is not the point. You are at the centre of both.
+In 1944 influence reached you through a single tie, and the smaller arrow back is the exchange
+that tie also carried. Today every ring reaches you directly, which is what &ldquo;news finds
+me&rdquo; describes, and what is left running along the peer ring is sideways talk rather than
+anything handed down.</figcaption>
+</figure>
 </div>
 
 <p class="lede"><b>In brief.</b> Almost everything known about political misinformation comes from
