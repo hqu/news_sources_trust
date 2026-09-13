@@ -123,24 +123,12 @@ READING = {
           "they are Democrats or Republicans."),
 }
 
-CASE = "scotus"          # the worked example: one outcome carried through every panel
 MIRROR = ["trump", "police", "military", "education", "fauci", "scotus"]
 
 def fitline(E, col):
     m = wls(E, [col])
     return {"a": float(m.params[0]), "b": float(m.params[1]),
             "t": float(m.tvalues[1]), "r2": float(m.rsquared)}
-
-def ladder_cells(rg, outcome):
-    f = os.path.join(CELLS, f"{rg.lower()}_ladder_cells.csv")
-    if not os.path.exists(f): return None
-    L = pd.read_csv(f)
-    L = L[L.outcome == outcome]
-    out = {}
-    for _, r in L.iterrows():
-        out[r["rung"]] = {"lor": round(float(r.logOR), 5), "se": round(float(r.se), 5),
-                          "base": round(float(r.base), 2), "n": int(r.n)}
-    return out or None
 
 def build():
     regimes, cells, outmeta = [], [], {}
@@ -213,32 +201,8 @@ def build():
                            pure=float(m.params[1] + m.params[3]),
                            diff=float(m.params[3]), p=float(m.pvalues[3])))
 
-    # ---- the worked example, carried through every panel -------------------------------
+    # `prep` output is reused by the mirror pairs below
     caseE = {rg: prep(rg) for rg, *_ in REGIMES}
-    any_e = caseE["PVT"]
-    crow = any_e[any_e.outcome == CASE]
-    dem = crow[crow.party == "Dem"].iloc[0]; rep = crow[crow.party == "Rep"].iloc[0]
-    byreg = []
-    for rg, label, examples, _ in REGIMES:
-        E = caseE[rg]; sub = E[E.outcome == CASE]
-        one = {}
-        for _, r in sub.iterrows():
-            one[r.party] = {"or": round(float(np.exp(r.logOR)), 4),
-                            "lo": round(float(np.exp(r.logOR - 1.96 * r.se)), 4),
-                            "hi": round(float(np.exp(r.logOR + 1.96 * r.se)), 4),
-                            "n": int(r.n)}
-        byreg.append(dict(id=rg, label=label, examples=examples, arms=one,
-                          ladder=ladder_cells(rg, CASE)))
-    wv = pd.read_csv(os.path.join(CELLS, "scotus_trust_by_wave.csv"))
-    series = [dict(date=str(r["date"]), dem=round(float(r["dem"]), 1),
-                   rep=round(float(r["rep"]), 1), all=round(float(r["all_some"]), 1))
-              for _, r in wv.iterrows()]
-    case = dict(id=CASE, label="the US Supreme Court",
-                question="How much do you trust the US Supreme Court to do what is right?",
-                dem_base=round(float(dem.own), 1), rep_base=round(float(rep.own), 1),
-                lean=round(float(dem.own - rep.own), 1),
-                pop=round(float((dem.own + rep.own) / 2), 1),
-                byregime=byreg, series=series)
 
     # ---- mirror pairs: private messaging, same target, two parties ----------------------
     P = caseE["PVT"]; mirror = []
@@ -258,15 +222,13 @@ def build():
         sample_ladder="all respondents, split by strength of party attachment",
         quantities=[dict(id=i, label=l, what=w, means=m) for i, l, w, m in QUANTS],
         regimes=regimes, outcomes=sorted(outmeta.values(), key=lambda d: d["lean"]),
-        cells=cells, ladder=ladder, case=case, mirror=mirror)
+        cells=cells, ladder=ladder, mirror=mirror)
     with open(OUT, "w") as fh:
         json.dump(doc, fh, separators=(",", ":"))
     kb = os.path.getsize(OUT) / 1024
     print(f"wrote quantities.json  {kb:.0f} KB  "
           f"{len(regimes)} sources, {len(outmeta)} outcomes, {len(cells)} cells, {len(ladder)} ladders, "
-          f"case study + {len(mirror)} mirror pairs\n")
-    print(f"  case: {case['label']} \u2014 Democrats {case['dem_base']}%, Republicans "
-          f"{case['rep_base']}%, {len(case['series'])} waves\n")
+          f"{len(mirror)} mirror pairs\n")
     print(f"  {'source':<22}{'runs on':<26}{'R2':>6}{'pop t':>9}{'gap t':>9}{'lean t':>9}  flip?")
     for r in regimes:
         fl = "yes" if r["flip"]["differs"] else "no"
