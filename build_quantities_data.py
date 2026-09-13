@@ -204,6 +204,42 @@ def build():
     # `prep` output is reused by the mirror pairs below
     caseE = {rg: prep(rg) for rg, *_ in REGIMES}
 
+    # ---- occupancy over time, for the stacked chart above figure 1 --------------------
+    # Occupancies are NOT mutually exclusive: a respondent can report several regimes in the
+    # same 24 hours, so the columns sum to 180-210 rather than 100. The stack height is
+    # therefore regime-uses per 100 people, which is the co-occupancy quantity the chapter
+    # already reports as regimes per respondent. AI Chat is excluded: it enters the battery
+    # only at W33, and drawing it as zero before that would read as absence rather than as
+    # a question nobody was asked.
+    occ = pd.read_csv(os.path.join(CELLS, "regime_occupancy_by_wave.csv"))
+    occ = occ[(occ.battery == "pol_news1") & (occ.regime_v2 != "AI Chat")]
+    OCC_LABEL = {"Decentralized and Unmoderated": "Podcasts",
+                 "Very Large Platform": "Big social platforms",
+                 "Journalistic Standard": "Mainstream news",
+                 "Partisan Broadcast": "Partisan broadcast",
+                 "Interpersonal Ties": "People you know",
+                 "Private Messaging": "Private messaging",
+                 "Search Engine": "Search engines"}
+    OCC_KEY = {"Decentralized and Unmoderated": "DEC", "Very Large Platform": "VLP",
+               "Journalistic Standard": "JS", "Partisan Broadcast": "PB",
+               "Interpersonal Ties": "INT", "Private Messaging": "PVT", "Search Engine": "SRCH"}
+    waves = sorted(occ.wave.unique(), key=float)
+    series = []
+    for rg, g in occ.groupby("regime_v2"):
+        g = g.set_index("wave")
+        pts = [round(float(g.loc[w, "pct_weighted"]), 1) if w in g.index else None for w in waves]
+        first = next(x for x in pts if x is not None)
+        last = next(x for x in reversed(pts) if x is not None)
+        series.append(dict(id=OCC_KEY[rg], label=OCC_LABEL[rg], pts=pts,
+                           first=first, last=last, pp=round(last - first, 1),
+                           rel=round(100 * (last / first - 1))))
+    series.sort(key=lambda d: -d["pp"])
+    occupancy = dict(
+        waves=[dict(w=str(w), start=str(occ[occ.wave == w].start_date.iloc[0])) for w in waves],
+        series=series,
+        span=[str(occ[occ.wave == waves[0]].start_date.iloc[0]),
+              str(occ[occ.wave == waves[-1]].end_date.iloc[0])])
+
     # ---- mirror pairs: private messaging, same target, two parties ----------------------
     P = caseE["PVT"]; mirror = []
     for k in MIRROR:
@@ -222,13 +258,13 @@ def build():
         sample_ladder="all respondents, split by strength of party attachment",
         quantities=[dict(id=i, label=l, what=w, means=m) for i, l, w, m in QUANTS],
         regimes=regimes, outcomes=sorted(outmeta.values(), key=lambda d: d["lean"]),
-        cells=cells, ladder=ladder, mirror=mirror)
+        cells=cells, ladder=ladder, mirror=mirror, occupancy=occupancy)
     with open(OUT, "w") as fh:
         json.dump(doc, fh, separators=(",", ":"))
     kb = os.path.getsize(OUT) / 1024
     print(f"wrote quantities.json  {kb:.0f} KB  "
           f"{len(regimes)} sources, {len(outmeta)} outcomes, {len(cells)} cells, {len(ladder)} ladders, "
-          f"{len(mirror)} mirror pairs\n")
+          f"{len(mirror)} mirror pairs, {len(occupancy['series'])} occupancy series\n")
     print(f"  {'source':<22}{'runs on':<26}{'R2':>6}{'pop t':>9}{'gap t':>9}{'lean t':>9}  flip?")
     for r in regimes:
         fl = "yes" if r["flip"]["differs"] else "no"
