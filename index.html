@@ -80,6 +80,15 @@ figure.map{margin:14px 0 6px;border:1px solid var(--hair);border-radius:11px;pad
   background:#fff;overflow-x:auto}
 figure.map img{display:block;width:100%;min-width:900px;height:auto}
 figure.map figcaption{font-size:11.4px;color:var(--mid);margin-top:9px;line-height:1.55;max-width:96ch}
+table.gloss{border-collapse:collapse;width:100%;margin:4px 0 14px}
+table.gloss th{text-align:left;font-size:12.6px;font-weight:600;color:var(--ink);
+  padding:9px 16px 9px 0;border-bottom:1px solid var(--hair);vertical-align:top;
+  width:208px;line-height:1.35}
+table.gloss td{font-size:12.6px;color:#3a4047;padding:9px 0;border-bottom:1px solid var(--hair);
+  vertical-align:top;line-height:1.55}
+@media(max-width:640px){table.gloss th,table.gloss td{display:block;width:auto;
+  border-bottom:none;padding:2px 0}
+  table.gloss tr{display:block;border-bottom:1px solid var(--hair);padding:8px 0}}
 ol.bib{margin:6px 0 0;padding-left:22px}
 ol.bib li{font-size:12.4px;line-height:1.55;margin:0 0 7px;color:#3a4047}
 ol.bib li b{font-weight:600;color:var(--ink)}
@@ -206,6 +215,11 @@ it is a story about who occupies a layer nobody can audit. <b>The theoretical co
 a diffusion account, which predicts that what matters is how far a claim has spread, is the wrong
 model for the private layer and the right one for podcasts, and the governance instruments built on
 the observable layer cannot reach either.</p>
+
+<p style="font-size:12.8px;color:var(--mid);margin:-4px 0 22px">
+Unfamiliar words — <i>regime</i>, <i>odds ratio</i>, <i>adverse</i>, <i>base rate</i> — are
+defined in plain language in the <a href="#glossary" style="color:var(--qa)">glossary near the
+end</a>.</p>
 
 <h2 style="margin-top:30px">Start here: three ways a belief can be unusual</h2>
 <p class="lede">Think about where politics actually reaches you. A group chat with old friends. A
@@ -769,6 +783,50 @@ function boot(D){
    <p>And the questions are not all asked equally often. A few of the 31, such as trust in Kamala
    Harris and in Elon Musk, appear in only a handful of survey waves and are measured less precisely
    than the rest.</p></div>`;
+
+  /* =============== glossary =============== */
+  const GLOSS=[
+   ["What is being measured",[
+    ["News-source regime","A group of channels sorted by what an outsider can observe about them, not by technology. Podcasts and email newsletters sit together because neither has a countable audience; Facebook and TikTok sit together because both have one. There are seven."],
+    ["Channel","A single item on the survey — podcasts, a news website, a messaging app. Several channels make up a regime."],
+    ["Using a source","Having got political news that way <i>in the previous 24 hours</i>. A narrow window on purpose: it asks what someone actually did, not what they would call themselves."],
+    ["Outcome","The thing being predicted. Here that is 31 things: six claims people either believe or don't, and 25 questions about trusting a person or an institution."],
+    ["Adverse direction","Used on dashboard 3. Every outcome is turned to face the same way — believing the claim, or <i>dis</i>trusting the institution — so they can share one axis. That is an editorial choice about presentation, not something the models say."]]],
+   ["Reading the numbers",[
+    ["Odds ratio, shown as ×","The headline number everywhere on these pages. <b>1× means users and non-users look the same.</b> Above 1× the position is more common among users, below 1× less. Worth knowing that odds are not the same as chances: if 20 of every 100 non-users hold a view, an odds ratio of 1.5× works out to about 27 of every 100 users, not 30."],
+    ["Percentage point","The gap between two percentages. Moving from 40% to 45% is five percentage <i>points</i>. It is not a 5% rise — that would be 42%."],
+    ["Base rate, or prevalence","How many people already hold a position, before any comparison is made. Used as the horizontal axis on most of the charts here."],
+    ["Adjusted, or holding constant","The comparison is made between people who match on everything in the list — party, education, income, age, gender, every other news source, four standing conspiracy questions, and which survey they answered. It narrows what is left to explain. It does not make a comparison into an experiment."],
+    ["Confidence interval, the bar through a dot","The range the real value could plausibly sit in. When it crosses 1× the result cannot be told apart from no difference at all."],
+    ["t","How many standard errors an estimate sits away from zero. Past about 2 it is unlikely to be noise. It says nothing about whether the size matters."],
+    ["Fit, or R²","How much of the variation between estimates a pattern accounts for. 0 is none of it, 1 is all of it. 0.5 is a strong pattern for data like this."],
+    ["Estimate, or cell","One number out of one model: one outcome, one party, one source. This page rests on 434 of them."]]],
+   ["Party words",[
+    ["Leaner","Someone who calls themselves independent but admits leaning toward a party. Counted on the side they lean to, which is long-standing practice because leaners vote and think much like the party's own members."],
+    ["Pure independent","No party and no lean. About one American in five, and the subject of one whole section here."],
+    ["Party attachment","Four rungs: strong partisan, not-so-strong partisan, leaner, none. Used to ask what survives when there is no side to be out of step with."],
+    ["Democratic-coded, Republican-coded","A description of where a position sits, worked out from how many in each party hold it — not a judgement about whether it is right. Trusting the Supreme Court is Republican-coded because 62% of Republicans and 40% of Democrats do."]]],
+   ["The three quantities this page is about",[
+    ["How common it is overall","The plain headcount, both parties together."],
+    ["Your own side's position","How much more common a position is among people who share your politics than among people who don't — measured from where the person answering stands, so the same position is 'my side's' for one party and 'theirs' for the other."],
+    ["Which side it belongs to","How much more common a position is among Democrats than Republicans, regardless of who is being asked. A fact about the position, not the person."]]],
+   ["Chart words",[
+    ["Small multiples","The same chart repeated with one thing changed, laid side by side so the shapes can be compared without having to remember the last one."],
+    ["Scissors","Two fitted lines crossing. Here it means a source does opposite things to Democrats and Republicans, which is how a source that pulls in one political direction looks when you measure from each party's own side."],
+    ["Forest plot","Dashboard 2. One row per source, a dot for the estimate and a bar for its range, all on one axis."],
+    ["Dumbbell","Dashboard 4. Two dots joined by a line, showing two groups and the distance between them."]]],
+   ["Words from the map",[
+    ["Enumerable","Countable. An outsider can list what was published and who saw it. Nearly every intervention anyone has built needs this to be true."],
+    ["Accountability","Whether a named person can be held responsible for what was published. It does not travel with enumerability: a Wikipedia edit is completely countable and its author unreachable."]]]];
+  let ng=0; GLOSS.forEach(g=>ng+=g[1].length);
+  h+=`<h2 id="glossary">Glossary</h2>
+   <p>${ng} terms used across the four dashboards, in plain language. Nothing here is a formal
+   definition; each one is the shortest true thing that is useful while reading.</p>`;
+  for(const [grp,items] of GLOSS){
+    h+=`<div class="bibgrp">${grp}</div><table class="gloss"><tbody>`;
+    for(const [t,d] of items) h+=`<tr><th scope="row">${t}</th><td>${d}</td></tr>`;
+    h+=`</tbody></table>`;
+  }
 
   /* =============== bibliography =============== */
   const BIB=[
