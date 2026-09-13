@@ -252,7 +252,7 @@ the handful of channels an outside analyst can count, and every major interventi
 deplatforming, downranking, labels, fact-checks, the DSA's duties — attaches to exactly
 those channels. Across fifteen waves of a national survey we map American political news use onto
 seven regimes defined not by technology but by what can be observed about them, and estimate what
-each one predicts across 31 beliefs and questions about institutional trust. The regimes do predict
+each one predicts across 32 beliefs, positions and questions about institutional trust. The regimes do predict
 belief, and not in the order platform governance assumes: on election denial, podcasts and private
 messaging run ahead of the large platforms that are the near-exclusive object of regulation. More
 than that, <b>the regimes are not one phenomenon with different strengths</b>. Giving each the same
@@ -502,8 +502,8 @@ function boot(D){
 
   /* ---- the grid ---- */
   h+=`<h2>Which one each source goes with</h2>
-   <p>Every source was measured against all three at once, across 31 beliefs and questions about
-   trust, separately for Democrats and Republicans — 434 estimates in all. A bar to the right
+   <p>Every source was measured against all three at once, across 32 beliefs, positions and
+   questions about trust, separately for Democrats and Republicans — 448 estimates in all. A bar to the right
    means the source goes with holding a belief <i>more</i> as that quantity rises; to the left, less.
    Pale bars are too uncertain to read. The outlined box in each row is the one that source is
    really answering to. One row has <i>two</i> boxes, drawn dashed: &ldquo;how unusual it is on your own side&rdquo;— is not a fourth column. It is the first two columns moving together, and private messaging is the only source that does that. One row is outlined in grey rather than black: search
@@ -534,7 +534,7 @@ function boot(D){
    <p style="font-size:11.8px;color:var(--mid);max-width:80ch">Each number is the change in the
    log odds of holding the belief per one percentage point of that quantity, with the other two held
    fixed. <b>t</b> is how many standard errors the estimate sits from zero; past about 2 it is
-   unlikely to be noise. <b>fit</b> is the share of the variation across all 434 estimates that the
+   unlikely to be noise. <b>fit</b> is the share of the variation across all 448 estimates that the
    three quantities together account for.</p>`;
 
   /* ---- row-by-row, in plain terms ---- */
@@ -601,7 +601,7 @@ function boot(D){
    <p>Each dot is one estimate: a single belief or trust question, among Democrats or among
    Republicans. Left to right is the quantity that source turns out to answer to. Up and down is how
    much more likely its users are to hold the position — 1× means no difference, 2× means twice
-   the odds. The line is the pattern across all 62 dots. <b>Hover any dot to see which question it is.</b></p>
+   the odds. The line is the pattern across all 64 dots. <b>Hover any dot to see which question it is.</b></p>
    <div class="grid4">`;
   for(const r of R){
     const q=r.fit_q, ends= q==="lean"?["Republican-coded","Democratic-coded"]
@@ -719,7 +719,7 @@ function boot(D){
   const pvtC=BR.PVT.arms, pbC=BR.PB.arms, jsC=BR.JS.arms;
   h+=`<h2>A worked example: the Supreme Court</h2>
    <div class="case">
-   <p style="font-size:14.6px">Everything above is an average over 31 questions. It is worth walking
+   <p style="font-size:14.6px">Everything above is an average over 32 questions. It is worth walking
    one of them all the way through, and the Supreme Court is the best one to pick — because it
    is <b>lopsided between the parties and almost exactly even nationally</b>. That combination lets
    the three quantities pull apart instead of moving together.</p>
@@ -787,7 +787,7 @@ function boot(D){
    idea in one chart, and it is the reason the group chat keeps turning up in these results: it is
    the room where the cost of saying the out-of-step thing is lowest.</p>
    <p style="font-size:12.6px;color:var(--mid)">One outcome is a small amount of evidence and this
-   panel is not a proof. Across all 31 questions the same thing happens more modestly — the
+   panel is not a proof. Across all 32 questions the same thing happens more modestly — the
    pattern loses about 45% of its strength when the party goes, not all of it.</p>
    </div></div>
 
@@ -832,7 +832,7 @@ function boot(D){
     ["News-source regime","A group of channels sorted by what an outsider can observe about them, not by technology. Podcasts and email newsletters sit together because neither has a countable audience; Facebook and TikTok sit together because both have one. There are seven."],
     ["Channel","A single item on the survey — podcasts, a news website, a messaging app. Several channels make up a regime."],
     ["Using a source","Having got political news that way <i>in the previous 24 hours</i>. A narrow window on purpose: it asks what someone actually did, not what they would call themselves."],
-    ["Outcome","The thing being predicted. Here that is 31 things: six claims people either believe or don't, and 25 questions about trusting a person or an institution."],
+    ["Outcome","The thing being predicted. Here that is 32 things: six claims people either believe or don't, 25 questions about trusting a person or an institution, and whether the respondent has had a COVID-19 vaccine."],
     ["Adverse direction","Used on dashboard 3. Every outcome is turned to face the same way — believing the claim, or <i>dis</i>trusting the institution — so they can share one axis. That is an editorial choice about presentation, not something the models say."]]],
    ["Reading the numbers",[
     ["Odds ratio, shown as ×","The headline number everywhere on these pages. <b>1× means users and non-users look the same.</b> Above 1× the position is more common among users, below 1× less. Worth knowing that odds are not the same as chances: if 20 of every 100 non-users hold a view, an odds ratio of 1.5× works out to about 27 of every 100 users, not 30."],
@@ -842,7 +842,7 @@ function boot(D){
     ["Confidence interval, the bar through a dot","The range the real value could plausibly sit in. When it crosses 1× the result cannot be told apart from no difference at all."],
     ["t","How many standard errors an estimate sits away from zero. Past about 2 it is unlikely to be noise. It says nothing about whether the size matters."],
     ["Fit, or R²","How much of the variation between estimates a pattern accounts for. 0 is none of it, 1 is all of it. 0.5 is a strong pattern for data like this."],
-    ["Estimate, or cell","One number out of one model: one outcome, one party, one source. This page rests on 434 of them."]]],
+    ["Estimate, or cell","One number out of one model: one outcome, one party, one source. This page rests on 448 of them."]]],
    ["Party words",[
     ["Leaner","Someone who calls themselves independent but admits leaning toward a party. Counted on the side they lean to, which is long-standing practice because leaners vote and think much like the party's own members."],
     ["Pure independent","No party and no lean. About one American in five, and the subject of one whole section here."],

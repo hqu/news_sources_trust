@@ -89,6 +89,14 @@ weighted occupancy share.
   fitted separately.
 - Trust outcomes are coded "a lot" or "some"; conspiracy items "agree" or "strongly agree";
   election denial is agreement that Trump would have won a fairly counted 2020 election.
+- Two **health positions** were added 2026-09-13, coded exactly as `paper2/eda/diploma_divide.py`
+  codes them. `vaccine` is `vaccine_get` in {1, 2, 4, 5} — at least one dose of a COVID-19
+  vaccine. The codes are *not* ordinal: 3 is "No" and sits between "two doses" and "three
+  doses", so this is set membership and a `>=` threshold would be wrong. 13 waves. `mmr` is
+  `vac_mmr >= 4` — approve or strongly approve of the childhood MMR mandate, on a 1-5
+  disapprove-to-approve scale. **W35 only**, so its model carries no wave fixed effect; the
+  page prints "0 wave dummies" on the row rather than hiding it. Both are `direction: "trust"`,
+  which in this payload means only that 1 is the non-adverse answer.
 - These are **cross-sectional associations confounded with selective exposure by
   construction**. They fix the ordering of predictors, not transmission rates, and nothing
   here identifies a causal effect of using a channel.
@@ -155,8 +163,13 @@ unchanged, so `index.html` still fetches `quantities.json`.
 
 Different input: this one reads **no microdata at all**. It takes the fourteen already-aggregated
 cell files in `../paper3/data/chip50_derived/` (`*_expanded_cells.csv`, `*_ladder_cells.csv`,
-produced there by `regime_ladder.py`) and writes `quantities.json` — 59 KB, seven sources, 31
-outcomes, 434 fitted cells. Every number on `quantities.html` is generated from that file; none is
+produced there by `regime_ladder.py`) and writes `quantities.json` — seven sources, 32
+outcomes, 448 fitted cells. **`mmr` is not among them.** W35 is its only wave and W35 carries
+`conspiracy_1`-`conspiracy_4` as columns that are 100% null, so the conspiracy controls in
+`regime_ladder.py` drop every row. That file has no conspiracy-exempt path the way
+`build_dashboard_data.py` and `build_gap_data.py` do, and adding one would pool a
+differently-controlled cell into a second stage where nothing else is — so `mmr` appears on
+dashboards 2, 3 and 4 and not on dashboard 1. Every number on `quantities.html` is generated from that file; none is
 typed by hand.
 
     python3 embed_quantities.py

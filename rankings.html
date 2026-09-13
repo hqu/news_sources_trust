@@ -360,7 +360,22 @@ const PRIMARY=["science"];
 // appointive agencies alternate with partisan control and the profession does not.
 const DISCLOSE=[["The profession and the industry",["doctors","pharma"]],
                 ["Named individuals",["rfk","musk","trump"]],
-                ["Government, agencies and courts",["cdc","fda","fauci","whitehouse","scotus"]]];
+                ["Government, agencies and courts",["cdc","fda","fauci","whitehouse","scotus"]],
+                // Neither a trust target nor a claim: the respondent's own position. Both are
+                // coded so that 1 is the pro-vaccination answer, which is what the rest of the
+                // page means by direction "trust".
+                ["Vaccination positions",["vaccine","mmr"]]];
+/* Those two take neither of the page's verb pairs, which are keyed off `direction` and so
+   have only two values. Their wording sits here; every other outcome falls through to the
+   trust/belief default passed in at each site. */
+const WORDS={
+  vaccine:{pct:"vaccinated", it:"being vaccinated", s:"vaccinated",
+           more:"more likely vaccinated", less:"less likely vaccinated"},
+  mmr:{pct:"approving", it:"approving", s:"approves",
+       more:"more likely to approve", less:"less likely to approve"}};
+/* Named WORD, not W: the forest plot already binds a local `const W` for its width, which
+   shadows anything called W inside draw(). */
+const WORD=(o,slot,dflt)=>((WORDS[o.key]||{})[slot])||dflt;
 // A third element asks for the group to be ordered by how many people hold the belief,
 // read from the payload rather than fixed here, so it stays right if the data change.
 // The four conspiracy items are controls in every model now rather than outcomes, so the
@@ -618,6 +633,8 @@ function init(){
 }
 function codingOf(o){
   if(o.var==="trump_win") return "said Trump would have won a fairly counted 2020 election";
+  if(o.var==="vaccine_get") return "reported at least one dose of a COVID-19 vaccine";
+  if(o.var==="vac_mmr") return "approved or strongly approved of the MMR mandate";
   return "answered “a lot” or “some”";}
 function outRow(k){const o=O(k);
   const l=document.createElement("label"); l.className="row";
@@ -762,8 +779,8 @@ function draw(){
     // outcome, because below 1 means less trust on a trust question and less belief on a
     // belief one.
     {const tr=o.direction==="trust";
-     const L=tr?["trust it less",PAL.obs]:["believe it less",PAL.obs];
-     const R=tr?["trust it more",PAL.priv]:["believe it more",PAL.priv];
+     const L=[WORD(o,"less",tr?"trust it less":"believe it less"),PAL.obs];
+     const R=[WORD(o,"more",tr?"trust it more":"believe it more"),PAL.priv];
      svg+=`<text x="${OX+6}" y="${H-6}" fill="${L[1]}" font-size="10.4" font-weight="600">← ${L[0]}</text>
            <text x="${OX+X1}" y="${H-6}" fill="${R[1]}" font-size="10.4" font-weight="600" text-anchor="end">${R[0]} →</text>`;}
 
@@ -781,12 +798,13 @@ function draw(){
     const sublab = f==="all" ? "" : `<span style="font-weight:400;color:${PAL.priv}"> · ${pretty}</span>`;
     d.innerHTML=`<h3>${o.label}${sublab}</h3><p class="pmeta">${
       f==="all"?"All respondents":pretty} · ${fb?fb.prevalence.toFixed(1):"–"}% ${
-      o.direction==="trust"?"trusting":"believing"}${fb?" · n="+fb.n.toLocaleString():""}${
+      WORD(o,"pct",o.direction==="trust"?"trusting":"believing")}${fb?" · n="+fb.n.toLocaleString():""}${
       o.consp_control===false?' · <span title="'+DAGGER+'">conspiracy items not held fixed †</span>':""
       }</p>${svg}</svg>
       <p class="note" style="margin-top:7px">Each row compares people who reported that source in
-      the last 24 hours with people who did not. <b>1.0 means no difference.</b> 1.5 means their
-      odds of ${o.direction==="trust"?"trusting":"believing"} it are about half again as high, 0.7
+      the last 24 hours with people who did not.<br>
+      <b>1.0 means no difference.</b> 1.5 means their
+      odds of ${WORD(o,"it",(o.direction==="trust"?"trusting":"believing")+" it")} are about half again as high, 0.7
       about a third lower — with party, education, age, income, gender, survey date and every other
       source held equal. The bar is the range the data are consistent with; grey means it crosses
       1.0.</p>`;
@@ -807,7 +825,7 @@ function draw(){
                    const ia=ord.indexOf(a.key), ib=ord.indexOf(b.key);
                    return (ia<0?999:ia)-(ib<0?999:ib);});
       const div=document.createElement("div"); div.style.marginBottom="22px";
-      const outcomeWord=o.direction==="trust"?"trusts":"believes";
+      const outcomeWord=WORD(o,"s",o.direction==="trust"?"trusts":"believes");
       const fl=(DATA.meta.strata.find(s=>s.key===f)||{}).label||f;
       div.innerHTML=`<h3 style="font-size:13px;margin:0 0 3px">${o.label}
           <span style="font-weight:400;color:${PAL.mid}">· ${fl} · ${lv}-level model</span></h3>

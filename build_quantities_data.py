@@ -64,6 +64,11 @@ BELIEF_LABEL = {
     "FN_cia": "A dying CIA agent confessed to a political assassination",
     "FN_turbines": "Wind turbines cause cancer",
     "FN_soros": "George Soros is secretly working against the country",
+    # Two health positions rather than beliefs about a claim, but they share the shape: the
+    # respondent's own position, coded 1 for the pro-vaccination answer. Listed here so the
+    # label is used verbatim instead of being prefixed with "Trusts".
+    "vaccine": "Has had a COVID-19 vaccine",
+    "mmr": "Approves the childhood MMR mandate",
 }
 TRUST_LABEL = {
     "science": "scientists and researchers", "doctors": "hospitals and doctors",
@@ -77,7 +82,9 @@ TRUST_LABEL = {
     "city": "your city government", "state": "your state government",
     "religion": "organized religion", "education": "colleges and universities",
 }
-THIN = {"harris", "musk"}   # 2-4 waves; shown but marked
+# 2-4 waves; shown but marked. `mmr` is the extreme case -- ONE wave (W35), so its cell
+# carries no wave fixed effect at all and its interval is not comparable with the rest.
+THIN = {"harris", "musk", "mmr"}
 
 def prep(rg):
     f = os.path.join(CELLS, f"{rg.lower()}_expanded_cells.csv")

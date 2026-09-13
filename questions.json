@@ -244,6 +244,26 @@
     "3 = Not sure"
    ]
   },
+  "vaccine_get": {
+   "text": "Have you ever received a COVID-19 vaccine?",
+   "scale": [
+    "1 = Yes, one dose",
+    "2 = Yes, two doses",
+    "4 = Yes, three doses",
+    "5 = Yes, four or more doses",
+    "3 = No"
+   ]
+  },
+  "vac_mmr": {
+   "text": "Do you approve or disapprove of mandatory vaccination for measles, mumps, and rubella (MMR) for children?",
+   "scale": [
+    "5 = Strongly approve",
+    "4 = Approve",
+    "3 = Neither approve nor disapprove",
+    "2 = Disapprove",
+    "1 = Strongly disapprove"
+   ]
+  },
   "__stem_pol_trust": {
    "text": "How much do you trust the following people and organizations to do what is right?",
    "scale": []

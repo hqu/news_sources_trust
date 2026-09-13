@@ -312,6 +312,11 @@ const HIDDEN_OUTCOMES=["rfk","musk"];
 /* Regrouped in the page rather than in the payload so the change did not need a refit; the
    build emits the same grouping from its next run. Idempotent either way. */
 const REGROUP={cdc:"Government",fda:"Government",fauci:"Government"};
+/* The two health items are positions, not trust in a target or belief in a claim, so the
+   verb pairs below -- which are keyed off `direction` and have only two values -- do not fit
+   them. Their wording sits here; every other outcome falls through to the default. */
+const OUTWORD={vaccine:"have had one", mmr:"approve"};
+const SHAREWORD={vaccine:"share who have had at least one dose", mmr:"share who approve"};
 const S={compare:"source", split:{party:true, diploma:false, source:true},
          source:"DEC", outcome:"denial", adjusted:true};
 const PANEL_LABEL={"":"Everyone",dem:"Democrats",rep:"Republicans",
@@ -408,15 +413,16 @@ function buildSrcTree(){
 }
 function buildOutTree(){
   const h=document.getElementById("outTree"); h.innerHTML="";
-  for(const g of ["Trust","Conspiracy","Outlier","Government"]){
+  for(const g of ["Trust","Conspiracy","Outlier","Government","Health"]){
     const list=OUT.filter(o=>o.group===g); if(!list.length) continue;
     const d=document.createElement("div"); d.className="grp";
     const title={Trust:"The profession and the industry",Conspiracy:"Conspiracy belief",
-                 Outlier:"The two outliers",Government:"Government, agencies and courts"}[g];
+                 Outlier:"The two outliers",Government:"Government, agencies and courts",
+                 Health:"Vaccination positions"}[g];
     d.innerHTML=`<div class="grph">${title}</div>`;
     const k=document.createElement("div"); k.className="kids";
     list.forEach(o=>k.insertAdjacentHTML("beforeend",
-      `<label class="row" title="${o.direction==="belief"?"share who agree":"share who trust them"}">
+      `<label class="row" title="${SHAREWORD[o.key]||(o.direction==="belief"?"share who agree":"share who trust them")}">
         <input type="radio" name="out" value="${o.key}" ${S.outcome===o.key?"checked":""}>
         <span>${o.label}</span>
         <span class="meta">${o.prev==null?"":o.prev+"%"}</span></label>`));
@@ -437,7 +443,8 @@ function tip(node,html){
 function draw(){
   const host=document.getElementById("chart"); host.innerHTML="";
   const c=cell(), pk=panels(), [la,lb,ca,cb,ta,tb]=ENDS[S.compare]();
-  const outcomeWord = outObj().direction==="belief" ? "believe it" : "trust them";
+  const outcomeWord = OUTWORD[outObj().key]
+                   || (outObj().direction==="belief" ? "believe it" : "trust them");
   contrastNote();
   document.getElementById("chartTitle").textContent=outObj().label||"";
   document.getElementById("chartQ").textContent=outObj().q||"";
@@ -557,7 +564,8 @@ function drawRanking(){
   // The tick numbers sit above the bars, so the unit goes underneath them, where an axis
    // title is looked for. The caption above says what is being compared; this says in what.
   svg.appendChild(txt(`percentage-point gap — further right, more `
-    +`${outObj().direction==="belief"?"believing":"trusting"}`,
+    +`${({vaccine:"vaccinated",mmr:"approving"})[outObj().key]
+        ||(outObj().direction==="belief"?"believing":"trusting")}`,
     {x:M.l+iw/2,y:H-10,"text-anchor":"middle",fill:"var(--mid)","font-size":11}));
   rows.forEach((r,i)=>{
     const y=M.t+i*RH+RH/2, on=r.key===S.source, col=on?"var(--use)":"var(--faint)";

@@ -433,6 +433,14 @@ const CHALLENGERS = ["rfk","musk"];
    establishment, so these get their own family rather than being folded into it and
    quietly widening what "the establishment" means. Off by default. */
 const GOVT = ["cdc","fda","fauci","trump","whitehouse","scotus"];
+/* Two health POSITIONS: the respondent's own behaviour and their own view of a mandate, not
+   trust in a target and not belief in a claim. They get their own family for the same reason
+   GOVT does -- the quadrant averages one geometric mean over `belief` and one over
+   `establishment`, and folding a vaccination item into either would quietly change what those
+   two axes mean. Off by default, as the government and challenger families are. */
+const HEALTH = ["vaccine","mmr"];
+/* Their adverse-side wording: the default pair is keyed off `direction`, which has two values. */
+const ADVERSE = {vaccine:"are not vaccinated", mmr:"do not approve"};
 /* Ceiling of the prevalence axis. The most widely held outcome in the battery sits at 68.5%,
    so 75 is the top of the data plus a little headroom; carrying the axis to 100 left a
    quarter of every chart permanently empty. Nothing is excluded by this. */
@@ -444,12 +452,16 @@ const FAMS = [["belief","Belief in a claim","conspiracy and misinformation items
                "scientists, doctors, pharma — shown as DISTRUST, so higher = more adverse"],
               ["challenger","Trust in the challengers","RFK Jr. and Musk — these run the other way"],
               ["government","Trust in government, agencies and courts",
-               "CDC, FDA, Fauci, White House, Supreme Court, Trump"]];
+               "CDC, FDA, Fauci, White House, Supreme Court, Trump"],
+              ["health","Vaccination positions",
+               "COVID vaccination and the childhood MMR mandate — shown as the adverse side, so "
+               +"higher = unvaccinated or opposed"]];
 let DATA=null, REG=[], RLAB={}, OUT=[], BYKEY={};
 /* short codes for the quadrant, where a full label will not fit beside a 5px dot */
 const RSHORT={JS:"JS",PB:"PB",SRCH:"SRCH",AICH:"AI",VLP:"VLP",PVT:"PVT",INT:"INT",DEC:"POD"};
 
-function famOf(o){ return o.direction==="belief" ? "belief"
+function famOf(o){ return HEALTH.includes(o.key) ? "health"
+                 : o.direction==="belief" ? "belief"
                  : GOVT.includes(o.key) ? "government"
                  : CHALLENGERS.includes(o.key) ? "challenger" : "establishment"; }
 /* orient every estimate so >1 is adverse; trust models are inverted and the interval swapped */
@@ -857,7 +869,8 @@ function syncControls(){
     `${inw} of ${OUT.length} outcomes in view`;
   const tk=document.getElementById("ticks"); tk.innerHTML="";
   const FAMLAB={belief:"belief in a claim",establishment:"trust in an institution",
-                challenger:"trust in a challenger",government:"trust in government"};
+                challenger:"trust in a challenger",government:"trust in government",
+                health:"a vaccination position"};
   for(const o of OUT){
     const i=document.createElement("i");
     i.style.left=`${pct(o.adverse)}%`;
@@ -872,7 +885,7 @@ function syncControls(){
       const state = !s2 ? "not selected" : (w2 ? "in the window" : "outside the window");
       const m=(x.models[S.stratum]||{}).regime;
       return `<div style="margin-top:3px">${x.key===o.key?"<b>":""}${x.label}${x.key===o.key?"</b>":""}<br>
-        <span style="opacity:.75">${x.adverse.toFixed(1)}% ${x.direction==="belief"?"believe it":"distrust them"}
+        <span style="opacity:.75">${x.adverse.toFixed(1)}% ${ADVERSE[x.key]||(x.direction==="belief"?"believe it":"distrust them")}
         · ${FAMLAB[x.fam]}${m?" · n="+m.n.toLocaleString()+" · "+m.waves.length+" waves":""}
         · ${state}</span></div>`;
     };

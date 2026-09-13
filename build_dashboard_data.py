@@ -81,6 +81,17 @@ OUTCOMES = [
  ("whitehouse","pol_trust_white_house","Government","Trust in the White House","trust",False),
  ("scotus","pol_trust_court","Government","Trust in the US Supreme Court","trust",False),
  ("denial","trump_win","Election","Election denial — Trump won in 2020","belief",False),
+ # Two health POSITIONS rather than trust targets, added 2026-09-13. Both are coded so that
+ # 1 is the pro-vaccination answer, which is what `direction="trust"` means everywhere in this
+ # payload: higher y is the non-adverse side, and the pages invert it to face the same way as
+ # the belief items. The coding is taken from paper2/eda/diploma_divide.py unchanged --
+ # vaccine_get 1,2,4,5 = "yes, n doses" (3 = No, and the codes are NOT ordinal), vac_mmr >= 4 =
+ # approve or strongly approve on a 1-5 disapprove-to-approve scale.
+ ("vaccine","vaccine_get","Health","Has had a COVID-19 vaccine","trust",False),
+ # SINGLE WAVE (W35). It cannot carry a wave fixed effect and no wave dummy is fitted for it;
+ # `n_wave_dummies` on the row is 0 and the pages print it. Marked thin the way Harris and Musk
+ # are on dashboard 1.
+ ("mmr","vac_mmr","Health","Approves the childhood MMR mandate","trust",False),
 ]
 # key, claim text (matched against the codebook label), group, label, direction, default
 FN_OUTCOMES = [
@@ -189,6 +200,10 @@ def fn_series(key):
 def outcome_series(var):
     v=CC.num(d[var])
     if var=="trump_win": return (v>=4).astype(float).where(v.notna())
+    # vaccine_get is not an ordinal scale: 1 = one dose, 2 = two doses, 4 = three, 5 = four or
+    # more, and 3 = No. A >= threshold would score "No" as vaccinated, so it is membership.
+    if var=="vaccine_get": return v.isin([1,2,4,5]).astype(float).where(v.notna())
+    if var=="vac_mmr": return (v>=4).astype(float).where(v.notna())    # approve / strongly approve
     if var.startswith("conspiracy"): return (v>=4).astype(float).where(v.notna())  # agree / strongly agree
     return (v>=3).astype(float).where(v.notna())                                    # a lot / some
 

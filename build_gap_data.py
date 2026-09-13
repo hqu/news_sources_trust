@@ -59,6 +59,13 @@ OUTCOMES = [
  ("trump","pol_trust_trump","Government","Trust in Donald Trump","trust"),
  ("whitehouse","pol_trust_white_house","Government","Trust in the White House","trust"),
  ("scotus","pol_trust_court","Government","Trust in the US Supreme Court","trust"),
+ # Two health POSITIONS, added 2026-09-13. Coded exactly as paper2/eda/diploma_divide.py does:
+ # vaccine_get in {1,2,4,5} = received at least one dose (3 = No; the codes are not ordinal),
+ # vac_mmr >= 4 = approve or strongly approve. direction "trust" because 1 is the non-adverse
+ # side, which is the only thing the pages read that field for.
+ ("vaccine","vaccine_get","Health","Has had a COVID-19 vaccine","trust"),
+ # W35 only: no wave fixed effect is estimable, so this model carries none. Thin by design.
+ ("mmr","vac_mmr","Health","Approves the childhood MMR mandate","trust"),
 ]
 FN_OUTCOMES = [
  ("gmo","Genetically modified foods have harmful effects","Conspiracy","GM foods have hidden harmful effects"),
@@ -132,6 +139,9 @@ def y_of(var):
     v=CC.num(d[var])
     if var.startswith("FN_"): return (v==1).astype(float).where(v.notna())
     if var=="trump_win" or var.startswith("conspiracy"): return (v>=4).astype(float).where(v.notna())
+    # vaccine_get is membership, not a threshold: 3 = "No" sits between 2 and 4 on the code list.
+    if var=="vaccine_get": return v.isin([1,2,4,5]).astype(float).where(v.notna())
+    if var=="vac_mmr": return (v>=4).astype(float).where(v.notna())
     return (v>=3).astype(float).where(v.notna())
 
 for c in CONSP: d["C_"+c]=CC.num(d[c])
