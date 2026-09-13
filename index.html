@@ -179,8 +179,8 @@ addEventListener("DOMContentLoaded",function(){
 </script>
 
 <h1>The channels that cannot be counted are the ones that matter most</h1>
-<p class="sub">Where Americans get political news, what they believe, and why the interventions
-  built for platforms reach the wrong layer.<br>
+<p class="sub">How political news reaches Americans, what they end up believing, and why the
+  interventions built for platforms act on the wrong layer.<br>
   Civic Health and Institutions Project (CHIP50), June 2022 – May 2026.
   <span id="stamp" style="color:#ccd1d6"></span></p>
 <div class="rule"></div>
@@ -435,7 +435,7 @@ function boot(D){
    Pale bars are too uncertain to read. The outlined box in each row is the one that source is
    really answering to. One row has <i>two</i> boxes, drawn dashed: &ldquo;how unusual it is on your own side&rdquo;— is not a fourth column. It is the first two columns moving together, and private messaging is the only source that does that. One row is outlined in grey rather than black: search
    engines have a best column, but the whole row is too weak to lean on.</p>
-   <table class="grid"><thead><tr><th class="src">Where the news comes from</th>`;
+   <table class="grid"><thead><tr><th class="src">How the news reaches you</th>`;
   for(const q of Q) h+=`<th>${q.label}
     <div class="axends hd"><span>${ENDS[q.id][0]}</span><span>${ENDS[q.id][1]}</span></div></th>`;
   h+=`<th style="text-align:right">fit</th></tr></thead><tbody>`;
@@ -522,7 +522,7 @@ function boot(D){
   h+=`</div>`;
 
   /* =============== the map =============== */
-  h+=`<h2>The same seven, on the map of where news comes from</h2>
+  h+=`<h2>The same seven, on the map of how news reaches people</h2>
    <p>This is the landscape the estimates were made across: who produces political news, how it is
    moderated, who passes it on, and where the available interventions stop. The coloured tag inside
    each box is the answer from the grid above — what that source's association actually runs on.</p>
@@ -682,7 +682,7 @@ function boot(D){
 
    <h3>Step 2 — what each source predicts</h3>
    <div class="two"><div>
-   <table class="dot"><thead><tr><th>where the news comes from</th>
+   <table class="dot"><thead><tr><th>how the news reaches you</th>
      <th style="width:210px">more likely to trust the Court</th></tr></thead><tbody>`;
   for(const b of C.byregime){
     h+=`<tr><td class="nm">${b.label}</td><td>${orRow(b.arms,206)}
