@@ -166,7 +166,7 @@ tr.sep td{border-bottom:1px solid var(--faint);padding:0;height:0}
      implying a protection that is not there. -->
 <div id="gate">
   <form id="gateform" autocomplete="off">
-    <div class="gt">CHIP50 · Civic Health and Institutions Project</div>
+    <div class="gt"><a class="chip50" href="https://www.chip50.org/" target="_blank" rel="noopener noreferrer">CHIP50 · Civic Health and Institutions Project</a></div>
     <h2>This dashboard is not public yet.</h2>
     <p>Enter the shared access word to continue.</p>
     <input type="password" id="gatepw" aria-label="Access word" autocomplete="current-password">
@@ -223,6 +223,14 @@ window.__unlock=function(run){
   <a data-p="gaps"><b>4</b><i>Gaps between people</i><span>the same result as a difference in percentage points</span></a>
 </nav>
 <style>
+a.chip50{color:inherit;text-decoration:underline;text-decoration-color:#ccd1d6;
+  text-underline-offset:2px}
+a.chip50:hover{text-decoration-color:currentColor}
+footer.pgfoot{margin:40px 0 0;padding-top:16px;border-top:1px solid #e6e9ec;
+  display:flex;flex-wrap:wrap;gap:6px 22px;align-items:baseline;
+  font-size:12px;color:#71777f;line-height:1.6}
+footer.pgfoot .who{font-weight:600;color:#16181d;font-size:12.6px}
+footer.pgfoot a{color:inherit}
 .dnav{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:0 0 22px}
 .dnav a{display:block;border:1px solid #e6e9ec;border-radius:10px;padding:9px 12px;
   text-decoration:none;color:#16181d;background:#fff}
@@ -256,7 +264,7 @@ addEventListener("DOMContentLoaded",function(){
   <p class="sub">Pick an outcome and all seven news-source regimes are ranked against each other on it,
      adjusted for party, education, income, age, gender, wave and four standing conspiracy questions.
      These are associations, not effects: people choose their sources.<br>
-     Aggregated estimates from the Civic Health and Institutions Project (CHIP50), June 2022 – May 2026.
+     Aggregated estimates from the <a class="chip50" href="https://www.chip50.org/" target="_blank" rel="noopener noreferrer">Civic Health and Institutions Project (CHIP50)</a>, June 2022 – May 2026.
      <span id="buildstamp" style="color:#ccd1d6"></span></p>
   <div class="rule"></div>
 
@@ -326,6 +334,11 @@ addEventListener("DOMContentLoaded",function(){
     <div><div class="qhead">Outcomes</div><div id="qoutcome"></div></div>
     <div><div class="qhead">Control variables</div><div id="qcontrol"></div></div>
   </div>
+<footer class="pgfoot">
+  <span class="who">Hong Qu</span>
+  <span>Data last updated <span class="dupd">—</span></span>
+  <span>Survey data from the <a class="chip50" href="https://www.chip50.org/" target="_blank" rel="noopener noreferrer">Civic Health and Institutions Project (CHIP50)</a></span>
+</footer>
 </div>
 
 <script id="payload" type="application/json">__PAYLOAD__</script>
@@ -433,7 +446,8 @@ function renderQuestions(){
 function stamp(){
   const m=DATA.meta, n=(DATA.outcomes||[]).length, st=(m.strata||[]).length;
   document.getElementById("buildstamp").textContent =
-    ` · data built ${m.built} · ${n} outcomes · ${st} subgroups`;}
+    ` · data built ${m.built} · ${n} outcomes · ${st} subgroups`;
+  document.querySelectorAll(".dupd").forEach(e=>e.textContent=m.built);}
 /* ---------------------------------------------------------------------------
    TEMPORARILY HIDDEN OUTCOMES. The models, the payload and the rendering code
    are all untouched; these keys are filtered out at load. Empty the array to

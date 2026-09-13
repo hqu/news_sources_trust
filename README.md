@@ -9,10 +9,16 @@ There are **three pages**:
 | # | page | data | question it answers |
 |---|---|---|---|
 | **1** | `index.html` | `quantities.json` | **What each source actually tracks** — the landing page. A belief can be unusual in three ways that come apart here: rare everywhere, lopsided toward one party, or sitting on one side of politics. Static explanatory page for a general reader: a coefficient grid, the flow map, four sets of small multiples (one panel per source, the party-split "scissors" test, the attachment ladder, the mirror pairs), a Simpson's-paradox panel, a four-step case study on trust in the Supreme Court, a 26-term plain-language glossary covering
-all four pages, and a bibliography. Hover gives point identity; no other interaction. |
+all four pages, and a 31-entry bibliography. Opens with the flow map and a note placing it
+in the two-step-flow tradition. Hover gives point identity; no other interaction. |
 | **2** | `rankings.html` | `data.json` | For a given outcome, how do the news-source regimes rank? Forest plot, live multivariate model, party and diploma-divide subgroups. |
 | **3** | `explorer.html` | `data.json` | How that ranking **changes with how widely the belief is held**. Guided walkthrough of the two headline results, then a prevalence-window explorer. |
 | **4** | `gaps.html` | `gap_data.json` | **Who the gap belongs to.** The same associations as a difference between two groups of people, in percentage points — Democrats vs Republicans, graduates vs non-graduates, or users vs non-users of a source. |
+
+**Attribution and dating.** Every page carries a footer with the author and the date its payload
+was built, read live from `meta.built` (or `built`) rather than hard-coded, so a rebuilt payload
+updates the page without an HTML edit. Every visible mention of the Civic Health and Institutions
+Project links to <https://www.chip50.org/>.
 
 ## Access word
 

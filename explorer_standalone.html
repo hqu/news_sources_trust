@@ -141,7 +141,7 @@ svg{display:block;overflow:visible}
      implying a protection that is not there. -->
 <div id="gate">
   <form id="gateform" autocomplete="off">
-    <div class="gt">CHIP50 · Civic Health and Institutions Project</div>
+    <div class="gt"><a class="chip50" href="https://www.chip50.org/" target="_blank" rel="noopener noreferrer">CHIP50 · Civic Health and Institutions Project</a></div>
     <h2>This dashboard is not public yet.</h2>
     <p>Enter the shared access word to continue.</p>
     <input type="password" id="gatepw" aria-label="Access word" autocomplete="current-password">
@@ -199,6 +199,14 @@ window.__unlock=function(run){
   <a data-p="gaps"><b>4</b><i>Gaps between people</i><span>the same result as a difference in percentage points</span></a>
 </nav>
 <style>
+a.chip50{color:inherit;text-decoration:underline;text-decoration-color:#ccd1d6;
+  text-underline-offset:2px}
+a.chip50:hover{text-decoration-color:currentColor}
+footer.pgfoot{margin:40px 0 0;padding-top:16px;border-top:1px solid #e6e9ec;
+  display:flex;flex-wrap:wrap;gap:6px 22px;align-items:baseline;
+  font-size:12px;color:#71777f;line-height:1.6}
+footer.pgfoot .who{font-weight:600;color:#16181d;font-size:12.6px}
+footer.pgfoot a{color:inherit}
 .dnav{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:0 0 22px}
 .dnav a{display:block;border:1px solid #e6e9ec;border-radius:10px;padding:9px 12px;
   text-decoration:none;color:#16181d;background:#fff}
@@ -409,7 +417,12 @@ two results in about two minutes.</p>
 </section>
 
 </div>
-<div class="tip" id="tip"></div>
+<div class="tip" id="tip"><footer class="pgfoot">
+  <span class="who">Hong Qu</span>
+  <span>Data last updated <span class="dupd">—</span></span>
+  <span>Survey data from the <a class="chip50" href="https://www.chip50.org/" target="_blank" rel="noopener noreferrer">Civic Health and Institutions Project (CHIP50)</a></span>
+</footer>
+</div>
 
 <script id="payload" type="application/json">{
  "meta": {
@@ -182093,6 +182106,7 @@ function orient(o,e){
 const HIDDEN_OUTCOMES=["rfk","musk"];
 function prepare(raw){
   DATA=raw;
+  document.querySelectorAll(".dupd").forEach(e=>e.textContent=DATA.meta.built);
   raw.outcomes=raw.outcomes.filter(o=>!HIDDEN_OUTCOMES.includes(o.key));
   REG = raw.meta.regimes.map(r=>r.key);
   raw.meta.regimes.forEach(r=>RLAB[r.key]=r.label);

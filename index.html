@@ -80,6 +80,20 @@ figure.map{margin:14px 0 6px;border:1px solid var(--hair);border-radius:11px;pad
   background:#fff;overflow-x:auto}
 figure.map img{display:block;width:100%;min-width:900px;height:auto}
 figure.map figcaption{font-size:11.4px;color:var(--mid);margin-top:9px;line-height:1.55;max-width:96ch}
+.theory{border:1px solid var(--hair);border-left:3px solid var(--qc);border-radius:0 11px 11px 0;
+  padding:15px 18px;margin:16px 0 22px;background:#fcfbfd}
+.theory h3{font-size:14px;font-weight:700;margin:0 0 7px}
+.theory p{font-size:13.2px;line-height:1.62;margin:0 0 10px;max-width:84ch}
+.theory p:last-child{margin:0}
+.theory .cite{font-size:11.6px;color:var(--mid)}
+a.chip50{color:inherit;text-decoration:underline;text-decoration-color:#ccd1d6;
+  text-underline-offset:2px}
+a.chip50:hover{text-decoration-color:currentColor}
+footer.pgfoot{margin:40px 0 0;padding-top:16px;border-top:1px solid #e6e9ec;
+  display:flex;flex-wrap:wrap;gap:6px 22px;align-items:baseline;
+  font-size:12px;color:#71777f;line-height:1.6}
+footer.pgfoot .who{font-weight:600;color:#16181d;font-size:12.6px}
+footer.pgfoot a{color:inherit}
 table.gloss{border-collapse:collapse;width:100%;margin:4px 0 14px}
 table.gloss th{text-align:left;font-size:12.6px;font-weight:600;color:var(--ink);
   padding:9px 16px 9px 0;border-bottom:1px solid var(--hair);vertical-align:top;
@@ -106,7 +120,7 @@ ol.bib li b{font-weight:600;color:var(--ink)}
 <!-- ============================ access gate ============================ -->
 <div id="gate">
   <form id="gateform" autocomplete="off">
-    <div class="gt">CHIP50 · Civic Health and Institutions Project</div>
+    <div class="gt"><a class="chip50" href="https://www.chip50.org/" target="_blank" rel="noopener noreferrer">CHIP50 · Civic Health and Institutions Project</a></div>
     <h2>This dashboard is not public yet.</h2>
     <p>Enter the shared access word to continue.</p>
     <input type="password" id="gatepw" aria-label="Access word" autocomplete="current-password">
@@ -190,7 +204,7 @@ addEventListener("DOMContentLoaded",function(){
 <h1>The channels that cannot be counted are the ones that matter most</h1>
 <p class="sub">How political news reaches Americans, what they end up believing, and why the
   interventions built for platforms act on the wrong layer.<br>
-  Civic Health and Institutions Project (CHIP50), June 2022 – May 2026.
+  <a class="chip50" href="https://www.chip50.org/" target="_blank" rel="noopener noreferrer">Civic Health and Institutions Project (CHIP50)</a>, June 2022 – May 2026.
   <span id="stamp" style="color:#ccd1d6"></span></p>
 <div class="rule"></div>
 
@@ -210,6 +224,35 @@ the reverse. Almost every intervention anyone has built attaches to the first ax
 right-hand edge. <b>The coloured tag inside each box is the answer this page arrives at</b> —
 what that source's association actually runs on. It will mean more on a second look, once the three
 quantities below are in hand.</figcaption></figure>
+
+<div class="theory">
+<h3>The idea the map is a revision of</h3>
+<p>In 1944, studying how people made up their minds in a presidential campaign, Paul Lazarsfeld and
+his colleagues found something they had not gone looking for: mass media moved fewer votes than
+expected, and the people who did move were reached <i>by other people</i>. They called it the
+<b>two-step flow</b> — ideas travel from media to a smaller set of attentive people who
+interpret them, and from those people outward to everyone else. The second step happens in
+conversation, and it was always the harder one to see.</p>
+<p>The obvious thing to say about the digital version is that algorithms removed the second step,
+delivering content straight from producer to person. That reading gets the theory wrong. Lazarsfeld
+and Katz never defined an opinion leader by closeness of tie; they defined one by <b>function</b>
+— someone who follows media more closely than most and interprets it for others,
+positioned <i>within</i> a group rather than above it. A podcaster, a newsletter writer or an
+influencer occupies exactly that slot, and a recommender does not replace step two so much as decide
+which step-two node you meet.</p>
+<p>What has changed is the <b>direction</b>. The classic account is vertical: media at the top,
+opinion leaders below, the public below that. Hunt and Gruszczynski call what replaced it a
+<b>&ldquo;horizontal&rdquo; two-step flow</b>, in which influence moves sideways within peer strata
+in decentralised environments rather than descending from elites.</p>
+<p><b>That is what the right-hand side of the map is.</b> Read it from the middle outward: the reader
+receives, and then passes on — into group chats, into messages, into conversation. The
+classic second step ran through people whose influence could at least be described. This one runs
+through channels where the content and the audience cannot be counted at all, which is exactly where
+every instrument in the bottom band stops. The measurement problem and the theory are the same
+problem: <b>the step that does the work is the step nobody can see.</b></p>
+<p class="cite">Lazarsfeld, Berelson &amp; Gaudet (1944); Katz &amp; Lazarsfeld (1955); Hunt &amp;
+Gruszczynski (2024). Full entries in the bibliography.</p>
+</div>
 
 <p class="lede"><b>In brief.</b> Almost everything known about political misinformation comes from
 the handful of channels an outside analyst can count, and every major intervention —
@@ -259,6 +302,11 @@ below is <i>&ldquo;the people who use this are the people who&hellip;&rdquo;</i>
 <div id="err"></div>
 <div id="app"></div>
 
+<footer class="pgfoot">
+  <span class="who">Hong Qu</span>
+  <span>Data last updated <span class="dupd">—</span></span>
+  <span>Survey data from the <a class="chip50" href="https://www.chip50.org/" target="_blank" rel="noopener noreferrer">Civic Health and Institutions Project (CHIP50)</a></span>
+</footer>
 </div>
 
 <script id="payload" type="application/json"></script>
@@ -446,6 +494,7 @@ function tseries(S){
 
 function boot(D){
   document.getElementById("stamp").textContent="Built "+D.built;
+  document.querySelectorAll(".dupd").forEach(e=>e.textContent=D.built.split(" ")[0]);
   const R=D.regimes, Q=D.quantities;
   const order=["own","pop","gap","lean"];
   R.sort((a,b)=>order.indexOf(a.dominant)-order.indexOf(b.dominant)||b.r2-a.r2);
@@ -830,6 +879,10 @@ function boot(D){
 
   /* =============== bibliography =============== */
   const BIB=[
+   ["How influence is supposed to flow",[
+    ["Lazarsfeld PF, Berelson B, Gaudet H (1944)","<i>The People's Choice: How the Voter Makes Up His Mind in a Presidential Campaign.</i> New York: Duell, Sloan and Pearce. The study that found the two-step flow."],
+    ["Katz E, Lazarsfeld PF (1955)","<i>Personal Influence: The Part Played by People in the Flow of Mass Communications.</i> Glencoe, IL: Free Press. Where the opinion leader is defined by function rather than by closeness of tie."],
+    ["Hunt K, Gruszczynski M (2024)","\u201cHorizontal\u201d two-step flow: the role of opinion leaders in directing attention to social movements in decentralized information environments. <i>Social Media + Society</i> 10(1)."]]],
    ["Why a measurement gap exists at all",[
     ["Budak C, Nyhan B, Rothschild DM, Thorson E, Watts DJ (2024)","Misunderstanding the harms of online misinformation. <i>Nature</i> 630(8015):45–53."],
     ["Allen J, Howland B, Mobius M, Rothschild D, Watts DJ (2020)","Evaluating the fake news problem at the scale of the information ecosystem. <i>Science Advances</i> 6:eaay3539."],
@@ -864,7 +917,7 @@ function boot(D){
     ["Ernala SK, Burke M, Bruckman AS, Kramer ADI (2020)","How well do people report time spent on Facebook? <i>Proceedings of the 2020 CHI Conference on Human Factors in Computing Systems.</i>"]]],
    ["The survey these numbers come from",[
     ["Ognyanova K, Druckman JN, Schulman J, Baum MA, Perlis RH, Lazer D (2025)","Information from social ties predicts conspiracy beliefs: evidence from the attempted assassination of Donald Trump. <i>PNAS Nexus</i> 4(6):pgaf193."],
-    ["Civic Health and Institutions Project (CHIP50)","A 50-state survey, successor to the COVID States Project. Waves fielded June 2022 – May 2026; the news-source battery appears in 15 of them. <span style='color:var(--mid)'>civichealthproject.org</span>"]]]];
+    ["<a class=\"chip50\" href=\"https://www.chip50.org/\" target=\"_blank\" rel=\"noopener noreferrer\">Civic Health and Institutions Project (CHIP50)</a>","A 50-state survey, successor to the COVID States Project. Waves fielded June 2022 – May 2026; the news-source battery appears in 15 of them. <span style='color:var(--mid)'>civichealthproject.org</span>"]]]];
   let nb=0; BIB.forEach(g=>nb+=g[1].length);
   h+=`<h2>What this is built on</h2>
    <p>${nb} works, grouped by the part of the page each one bears on. The dashboards themselves make
