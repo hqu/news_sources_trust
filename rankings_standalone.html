@@ -765,6 +765,9 @@ function draw(){
     const o=O(selOut[0]), OX=ci===0?152:0;
     const fb=blk(f,"regime"), flabel=(DATA.meta.strata.find(s=>s.key===f)||{}).label||f;
     const d=document.createElement("div"); d.className="plot";
+    // .plot is flex:none, so the box sizes to max-content and a long note would stretch it
+    // instead of wrapping inside it. Pin the width to the svg the note sits under.
+    d.style.width=(W+OX)+"px";
     let svg=`<svg width="${W+OX}" height="${H}" font-family="Helvetica Neue,Helvetica,Arial">`;
     [0.5,0.7,1,1.5,2,3].filter(t=>t>=lo*.98&&t<=hi*1.02).forEach(t=>{
       svg+=`<text x="${OX+sx(t)}" y="${H-24}" fill="${PAL.mid}" font-size="10" text-anchor="middle">${t}</text>
