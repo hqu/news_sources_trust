@@ -8,7 +8,7 @@ There are **three pages**:
 
 | # | page | data | question it answers |
 |---|---|---|---|
-| **1** | `index.html` | `quantities.json` | **What each source actually tracks** — the landing page. A belief can be unusual in three ways that come apart here: rare everywhere, lopsided toward one party, or sitting on one side of politics. Static explanatory page for a general reader: a stacked occupancy chart, a coefficient grid, the flow map, four sets of small multiples (one panel per source, the party-split "scissors" test, the attachment ladder, the mirror pairs), a Simpson's-paradox panel, a 26-term plain-language glossary covering
+| **1** | `index.html` | `quantities.json` | **What each source actually tracks** — the landing page. A belief can be unusual in three ways that come apart here: rare everywhere, lopsided toward one party, or sitting on one side of politics. Static explanatory page for a general reader: an occupancy chart, a coefficient grid, the flow map, four sets of small multiples (one panel per source, the party-split "scissors" test, the attachment ladder, the mirror pairs), a Simpson's-paradox panel, a 26-term plain-language glossary covering
 all four pages, and a 31-entry bibliography. Opens with the flow map and a note placing it
 in the two-step-flow tradition. Hover gives point identity; no other interaction. |
 | **2** | `rankings.html` | `data.json` | For a given outcome, how do the news-source regimes rank? Forest plot, live multivariate model, party and diploma-divide subgroups. |

@@ -233,7 +233,7 @@ def build():
         series.append(dict(id=OCC_KEY[rg], label=OCC_LABEL[rg], pts=pts,
                            first=first, last=last, pp=round(last - first, 1),
                            rel=round(100 * (last / first - 1))))
-    series.sort(key=lambda d: -d["pp"])
+    series.sort(key=lambda d: -d["last"])   # descending by current occupancy
     occupancy = dict(
         waves=[dict(w=str(w), start=str(occ[occ.wave == w].start_date.iloc[0])) for w in waves],
         series=series,
