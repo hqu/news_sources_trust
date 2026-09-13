@@ -44,29 +44,6 @@ button{font:inherit;cursor:pointer}
 .note{color:var(--mid);font-size:11.8px;line-height:1.65;margin-top:9px}
 .warn{color:#9a3b30;font-size:11.5px}
 
-/* ======== scrollytelling ======== */
-#story{position:relative;margin:0 0 18px}
-.storygrid{display:grid;grid-template-columns:minmax(300px,400px) minmax(0,1fr);gap:40px;align-items:start}
-.panes{padding:6vh 0 40vh}
-.pane{min-height:74vh;display:flex;align-items:center}
-.pane .card{border-left:3px solid var(--hair);padding:4px 0 4px 20px;
-  opacity:.26;transition:opacity .35s,border-color .35s}
-.pane.active .card{opacity:1;border-left-color:var(--ink)}
-.pane .step{font-size:10.5px;letter-spacing:.19em;text-transform:uppercase;color:var(--mid);
-  font-weight:700;margin-bottom:7px}
-.pane h3{font-size:21px;margin:0 0 10px;line-height:1.25;font-weight:700}
-.pane p{margin:0 0 10px;font-size:14px;color:#3a4048}
-.pane .big{font-size:30px;font-weight:700;letter-spacing:-.02em;margin:6px 0 2px}
-.pane .bigsub{font-size:11.6px;color:var(--mid);margin:0 0 8px}
-.sticky{position:sticky;top:14px;height:min(86vh,700px);display:flex;flex-direction:column;
-  border:2.5px solid var(--ink);border-radius:13px;padding:14px 16px 10px;background:#fff}
-.storybar{display:flex;align-items:center;gap:8px;margin-bottom:6px}
-.dots{display:flex;gap:5px;margin-left:auto}
-.dot{width:7px;height:7px;border-radius:50%;background:var(--faint)}
-.dot.on{background:var(--ink)}
-@media(max-width:1060px){.storygrid{grid-template-columns:1fr}.sticky{height:62vh}.panes{padding:2vh 0 10vh}
-  .pane{min-height:auto;padding:14px 0}}
-
 /* ======== explorer ======== */
 .cols{display:grid;grid-template-columns:206px minmax(0,1fr);gap:18px;align-items:start}
 @media(max-width:1120px){.cols{grid-template-columns:184px minmax(0,1fr);gap:14px}}
@@ -253,18 +230,19 @@ causes: people choose their news as well as being shaped by it.</span></p>
 claims, trust in an institution, or both at once. Then use the slider under the chart to keep only
 the beliefs few people hold, or only the ones most do. Everything redraws from the same models;
 nothing is re-estimated when you change the selection.
-<b>New here?</b> <a href="#story" style="color:var(--vlp)">The walkthrough underneath</a> explains the
-two results in about two minutes.</p>
+</p>
 
 <div class="cols">
   <div>
     <div class="panel">
       <div class="track" style="margin-bottom:8px">Outcomes</div>
       <div class="ctlrow">
-        <button class="btn" data-quick="all">All 18</button>
-        <button class="btn" data-quick="belief">Belief 10</button>
-        <button class="btn" data-quick="establishment">Establishment 6</button>
-        <button class="btn" data-quick="challenger">Challengers 2</button>
+        <!-- labels are filled at boot by labelQuickChips(); hardcoding the counts left
+             "All 18" on a page showing 17 -->
+        <button class="btn" data-quick="all">All</button>
+        <button class="btn" data-quick="belief">Belief</button>
+        <button class="btn" data-quick="establishment">Establishment</button>
+        <button class="btn" data-quick="challenger">Challengers</button>
         <button class="btn" data-quick="none">None</button>
       </div>
       <div id="outcomeTree"></div>
@@ -337,83 +315,6 @@ two results in about two minutes.</p>
     </div>
   </div>
 </div>
-</section>
-<div class="rule"></div>
-
-<!-- ========================= SCROLLYTELLING ========================= -->
-<section id="story">
-  <h2>The two results, in six steps</h2>
-  <p class="sub" style="margin-bottom:14px">Scroll the panes on the left; the chart on the right
-  follows along. Everything it shows is also reachable by hand in the explorer above.</p>
-  <div class="storygrid">
-    <div class="panes" id="panes">
-      <div class="pane" data-step="0"><div class="card">
-        <div class="step">Start here</div>
-        <h3>Eighteen outcomes, eight ways of getting political news.</h3>
-        <p>Each dot is one regime's association with one outcome. Its position across is the odds
-        ratio; to the <b>right</b> of the heavy line means the regime predicts the adverse direction —
-        believing a false or conspiratorial claim, or distrusting an institution.</p>
-        <p>How far <b>up</b> a dot sits is how much of the population is already in that adverse state.
-        Reading the chart bottom to top is watching a belief spread, and that axis turns out to matter
-        more than the topic does.</p>
-      </div></div>
-
-      <div class="pane" data-step="1"><div class="card">
-        <div class="step">Takeaway 1</div>
-        <h3>Podcasts are the strongest predictor in the taxonomy.</h3>
-        <div class="big">11 of 17</div>
-        <p class="bigsub">outcomes where podcasts rank first. No other news source leads more than twice.</p>
-        <p>It leads six of the nine institutional-trust outcomes, three of the six belief items
-        and both vaccination positions, and ranks first or second on fourteen of the seventeen —
-        a mean rank of 1.8 out of 7, a place and a half clear of the next regime.</p>
-      </div></div>
-
-      <div class="pane" data-step="2" data-needs="challenger"><div class="card">
-        <div class="step">Takeaway 1, continued</div>
-        <h3>But it is substitution, not cynicism.</h3>
-        <div class="big">1.97×</div>
-        <p class="bigsub">gap between how podcasts track the establishment and how they track its challengers.</p>
-        <p>Podcast listening predicts distrust of the CDC, FDA, doctors, scientists, pharma and Fauci —
-        and it <b>reverses</b> for Robert F.&nbsp;Kennedy&nbsp;Jr. and Elon Musk, where listeners are
-        1.40× and 1.59× <em>more</em> trusting. Every other regime sits between 0.62 and 1.33 on that ratio.</p>
-        <p>The sign is identical in all three parties, the reversal included among Democrats.</p>
-      </div></div>
-
-      <div class="pane" data-step="3"><div class="card">
-        <div class="step">Takeaway 2</div>
-        <h3>Private messaging predicts the claims a minority holds — and nothing once a claim is common.</h3>
-        <div class="big">r = −0.855</div>
-        <p class="bigsub">correlation between how widely a claim is believed and private messaging's log odds ratio.</p>
-        <p>It is the strongest predictor of the CIA&nbsp;9/11 claim (22% believed), election denial (31%)
-        and wind turbines (15%) — and is <em>negatively</em> associated with the two most widely
-        believed items in the battery.</p>
-        <p><b>Big social platforms runs the opposite way, at r&nbsp;=&nbsp;+0.953.</b> Because the signs
-        differ across regimes, this cannot be the odds scale compressing near saturation — that would
-        move every regime the same way.</p>
-      </div></div>
-
-      <div class="pane" data-step="4"><div class="card">
-        <div class="step">Takeaway 2, continued</div>
-        <h3>One behaves like transmission. The other like a milieu.</h3>
-        <p>Private messaging discriminates while a claim is still confined to a minority and adds
-        nothing once it is widespread. Big social platforms is strongest precisely on the attitudes most
-        people already hold — ambient exposure, not transmission.</p>
-        <p>Holding all four conspiracy items fixed does not flatten this. The gradient <em>steepens</em>,
-        to r&nbsp;=&nbsp;−0.890, so conspiracy predisposition explains part of the level and none of the pattern.</p>
-      </div></div>
-
-    </div>
-
-    <div class="sticky">
-      <div class="storybar">
-        <span class="track" id="storyTitle">The full picture</span>
-        <button class="btn" id="skip">Back to the explorer ↑</button>
-        <button class="btn" id="replay">Replay</button>
-        <div class="dots" id="dots"></div>
-      </div>
-      <div id="storyChart" style="flex:1;min-height:0"></div>
-    </div>
-  </div>
 </section>
 
 </div>
@@ -809,6 +710,16 @@ const S={outcomes:new Set(), lo:0, hi:PMAX, regimes:new Set(), aiFits:false, str
    overrides it for as long as the pointer is there. */
 const EMPHASIS="PVT";   // changed from DEC 2026-09-13: private messaging is the headline
 
+function labelQuickChips(){
+  document.querySelectorAll("[data-quick]").forEach(b=>{
+    const k=b.dataset.quick;
+    if(k==="none") return;
+    const n=OUT.filter(o=>k==="all"||o.fam===k).length;
+    b.textContent=b.textContent.replace(/\s+\d+$/,"")+(n?" "+n:"");
+    b.style.display=n?"":"none";        // an empty family offers a button that selects nothing
+  });
+}
+
 function buildOutcomeTree(){
   const host=document.getElementById("outcomeTree"); host.innerHTML="";
   for(const [fk,flab,fnote] of FAMS){
@@ -910,68 +821,6 @@ function render(){
   drawTable(S);
 }
 
-/* ---- scrollytelling ---- */
-const STEPS=[
-  {title:"The full picture", st:o=>({...o,outcomes:new Set(OUT.map(x=>x.key)),lo:0,hi:PMAX}),
-   opts:{faint:true,noLines:true}},
-  {title:"Podcasts lead 11 of 17", st:o=>({...o,outcomes:new Set(OUT.filter(x=>x.fam!=="challenger").map(x=>x.key))}),
-   opts:{emphasis:["DEC"],annotate:{lines:["Podcasts","first on 11 of 17 outcomes"],w:196,h:40}}},
-  {title:"…but it reverses for the challengers", needs:"challenger",
-   st:o=>({...o,outcomes:new Set(OUT.map(x=>x.key))}),
-   opts:{emphasis:["DEC"],annotate:{lines:["▲ RFK and Musk sit LEFT of 1","podcast listeners trust them more"],w:240,h:40}}},
-  {title:"Private messaging against Big social platforms",
-   st:o=>({...o,outcomes:new Set(OUT.filter(x=>x.fam==="belief").map(x=>x.key))}),
-   opts:{emphasis:["PVT","VLP"],annotate:{lines:["PVT leans left going up, r = −0.855","VLP leans right, r = +0.953"],w:252,h:40}}},
-  {title:"Transmission against milieu",
-   st:o=>({...o,outcomes:new Set(OUT.filter(x=>x.fam==="belief").map(x=>x.key))}),
-   opts:{emphasis:["PVT","VLP","DEC"],annotate:{lines:["the signs differ across regimes,","so this is not a scale artifact"],w:230,h:40}}}
-];
-let storyStep=-1;
-function showStep(i){
-  if(i===storyStep) return; storyStep=i;
-  const s=LIVE[i]; if(!s) return;
-  document.getElementById("storyTitle").textContent=s.title;
-  const host=document.getElementById("storyChart");
-  const st=s.st({...S,regimes:new Set(REG),stratum:"all",lo:0,hi:PMAX,aiFits:false});
-  drawScatter(host,st,{...s.opts,height:host.clientHeight||420});
-  document.querySelectorAll("#dots .dot").forEach((d,j)=>d.classList.toggle("on",j===i));
-  document.querySelectorAll("#panes .pane").forEach((p,j)=>p.classList.toggle("active",j===i));
-}
-let LIVE=STEPS;
-function initStory(){
-  /* A walkthrough pane that argues about outcomes which are not on the page would annotate an
-     empty chart, so a step can declare the outcome family it needs. Dropping one renumbers the
-     rest, since the pane's data-step indexes this list. */
-  const keep=STEPS.map((s,i)=>({s,i})).filter(({s})=>!s.needs||OUT.some(o=>o.fam===s.needs));
-  LIVE=keep.map(x=>x.s);
-  [...document.querySelectorAll("#panes .pane")].forEach(p=>{
-    const ni=keep.findIndex(x=>x.i===+p.dataset.step);
-    if(ni<0) p.remove(); else p.dataset.step=ni;
-  });
-  const dots=document.getElementById("dots");
-  dots.innerHTML=LIVE.map(()=>'<span class="dot"></span>').join("");
-  const panes=[...document.querySelectorAll("#panes .pane")];
-  if(typeof IntersectionObserver==="function"){
-    const io=new IntersectionObserver(es=>{
-      es.forEach(e=>{ if(e.isIntersecting) showStep(+e.target.dataset.step); });
-    },{rootMargin:"-45% 0px -45% 0px"});
-    panes.forEach(p=>io.observe(p));
-  }else{
-    const onScroll=()=>{
-      const mid=innerHeight/2; let best=0, bd=Infinity;
-      panes.forEach(p=>{ const r=p.getBoundingClientRect();
-        const d=Math.abs((r.top+r.bottom)/2-mid); if(d<bd){bd=d;best=+p.dataset.step;} });
-      showStep(best);
-    };
-    addEventListener("scroll",onScroll,{passive:true}); onScroll();
-  }
-  showStep(0);
-  /* optional-call so a headless check without scrollIntoView does not report a false error */
-  const goTo=id=>document.getElementById(id)?.scrollIntoView?.({behavior:"smooth"});
-  document.getElementById("skip").addEventListener("click",()=>goTo("explore"));
-  document.getElementById("replay").addEventListener("click",()=>goTo("story"));
-}
-
 /* ---- explorer wiring, all delegated ---- */
 function wire(){
   document.getElementById("outcomeTree").addEventListener("change",e=>{
@@ -1023,7 +872,7 @@ function wire(){
   });
   let rt=null;
   addEventListener("resize",()=>{ clearTimeout(rt); rt=setTimeout(()=>{
-    render(); const i=storyStep; storyStep=-1; showStep(i); },180); });
+    render(); },180); });
 }
 
 /* ---- boot (last, so every const above is initialised) ---- */
@@ -1033,8 +882,8 @@ __unlock(function boot(){
     prepare(raw);
     S.outcomes=new Set(OUT.filter(o=>o.fam==="belief"||o.fam==="establishment").map(o=>o.key));
     S.regimes=new Set(REG);
-    buildOutcomeTree(); buildRegimeChips(); buildStrata();
-    wire(); render(); initStory();
+    buildOutcomeTree(); labelQuickChips(); buildRegimeChips(); buildStrata();
+    wire(); render();
   };
   if(inline && inline!=="__PAY"+"LOAD__"){ go(JSON.parse(inline)); return; }
   fetch("data.json").then(r=>{

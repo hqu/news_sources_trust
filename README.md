@@ -12,7 +12,7 @@ There are **three pages**:
 all four pages, and a 31-entry bibliography. Opens with the flow map and a note placing it
 in the two-step-flow tradition. Hover gives point identity; no other interaction. |
 | **2** | `rankings.html` | `data.json` | For a given outcome, how do the news-source regimes rank? Forest plot, live multivariate model, party and diploma-divide subgroups. |
-| **3** | `explorer.html` | `data.json` | How that ranking **changes with how widely the belief is held**. Guided walkthrough of the two headline results, then a prevalence-window explorer. |
+| **3** | `explorer.html` | `data.json` | How that ranking **changes with how widely the belief is held**. A prevalence-window explorer: pick outcomes, slide the window, watch the ranking change. |
 | **4** | `gaps.html` | `gap_data.json` | **Who the gap belongs to.** The same associations as a difference between two groups of people, in percentage points — Democrats vs Republicans, graduates vs non-graduates, or users vs non-users of a source. |
 
 **Attribution and dating.** Every page carries a footer with the author and the date its payload
