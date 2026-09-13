@@ -175,4 +175,11 @@ typed by hand.
     python3 embed_quantities.py
 
 Inlines the payload into `index_standalone.html`, and base64-inlines
-`figures/information_flow_map.png` so the standalone copy carries the figure too.
+`figures/information_flow_map_dashboard.png` so the standalone copy carries the figure too.
+
+That file is the **dashboard variant** of figure 1. One source,
+`../paper3/figures/make_flow_map.py`, emits two PNGs: run it bare for the proposal's
+`information_flow_map.png`, which says *Very Large Platform*, and with the argument
+`dashboard` for this one, which says *Big social platforms*. The term is a DSA designation
+in the proposal and jargon here; other lanes can be forked the same way by adding a key
+to `LBL` in that script.
