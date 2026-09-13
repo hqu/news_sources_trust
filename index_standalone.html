@@ -410,11 +410,17 @@ function ladderChart(rungs,w,h,hero){
 function drawOccupancy(host, O){
   const ix=O.annual, yrs=ix.map(i=>O.waves[i].start.slice(0,4));
   const ymax=Math.ceil(Math.max(...O.series.flatMap(s=>ix.map(i=>s.pts[i]||0)))/10)*10;
-  const W=250, H=132, L=8, R=8, T=10, B=26, iw=W-L-R, ih=H-T-B;
+  const W=250, H=152, L=8, R=8, T=32, B=26, iw=W-L-R, ih=H-T-B;
   const bw=iw/ix.length*0.56, gap=iw/ix.length;
   const X=j=>L+gap*j+(gap-bw)/2, Y=v=>T+ih-(v/ymax)*ih;
   const panels=O.series.map(s=>{
-    let g=`<line x1="${L}" y1="${T+ih}" x2="${W-R}" y2="${T+ih}" stroke="#ccd1d6" stroke-width="1"/>`;
+    // relative change, called out inside the panel; pp sits in the header below the title
+    const sign=s.rel>=0?"+":"\u2212";   // the sign carries direction; an arrow beside it was noise
+    let g=`<text x="${L}" y="20" font-size="17" font-weight="700" fill="var(--ink)">${
+        sign}${Math.abs(s.rel)}%</text>
+      <text x="${W-R}" y="20" text-anchor="end" font-size="9.6" fill="var(--mid)">since 2022</text>
+      <line x1="${L}" y1="${T-9}" x2="${W-R}" y2="${T-9}" stroke="#f0f2f4" stroke-width="1"/>
+      <line x1="${L}" y1="${T+ih}" x2="${W-R}" y2="${T+ih}" stroke="#ccd1d6" stroke-width="1"/>`;
     ix.forEach((i,j)=>{
       const v=s.pts[i]; if(v==null) return;
       g+=`<rect x="${X(j).toFixed(1)}" y="${Y(v).toFixed(1)}" width="${bw.toFixed(1)}"
@@ -430,7 +436,7 @@ function drawOccupancy(host, O){
     return `<div class="pn occ" style="padding:9px 10px 4px">
       <div class="ph" style="font-size:12.4px">${s.label}</div>
       <div style="font-size:10.6px;color:var(--mid);margin:1px 0 2px">
-        ${s.first}% → ${s.last}% &nbsp;<span style="color:var(--ink)">${d}${Math.abs(s.pp).toFixed(1)}</span></div>
+        ${s.first}% → ${s.last}% &nbsp;<span style="color:var(--ink)">${d}${Math.abs(s.pp).toFixed(1)} points</span></div>
       <svg width="100%" viewBox="0 0 ${W} ${H}" role="img"
         aria-label="${s.label}, ${yrs.map((y,j)=>y+" "+s.pts[ix[j]]+"%").join(", ")}">${g}</svg>
     </div>`;
