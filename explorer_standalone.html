@@ -361,11 +361,11 @@ two results in about two minutes.</p>
       <div class="pane" data-step="1"><div class="card">
         <div class="step">Takeaway 1</div>
         <h3>Podcasts are the strongest predictor in the taxonomy.</h3>
-        <div class="big">15 of 18</div>
+        <div class="big">11 of 17</div>
         <p class="bigsub">outcomes where podcasts rank first. No other news source leads more than twice.</p>
-        <p>It leads every one of the six misinformation claims, three of the four conspiracy items,
-        and six of the eight institutional-trust outcomes — a mean rank of 1.4 out of 7, more than two
-        full places clear of the next regime.</p>
+        <p>It leads eight of the eleven institutional-trust outcomes and three of the six
+        misinformation claims, and ranks first or second on fourteen of the seventeen — a mean rank
+        of 1.8 out of 7, a place and a half clear of the next regime.</p>
       </div></div>
 
       <div class="pane" data-step="2" data-needs="challenger"><div class="card">
@@ -200498,7 +200498,7 @@ function drawScatter(host,state,opts={}){
    hit targets survive the hover. Inline `style` wins over the presentation attribute, and
    clearing it restores whatever the draw function set. */
 /* One isolation routine. `pred` picks the nodes to keep; null restores whatever the draw
-   function set, which is what preserves the opening emphasis on podcasts. Regime hover comes
+   function set, which is what preserves the opening emphasis on private messaging. Regime hover comes
    from the rank bars and the quadrant, outcome hover from the ticks under the slider. */
 function isolate(pred){
   const host=document.getElementById("scatter"); if(!host) return;
@@ -200632,10 +200632,10 @@ const S={outcomes:new Set(), lo:0, hi:PMAX, regimes:new Set(), aiFits:false, str
 /* Podcasts stay picked out of the scatter whatever else changes -- a different outcome
    selection, a different window, a different stratum. Drawing seven fitted lines at once is
    unreadable and picking a different one each time the selection changes would be worse. The
-   way out is the Podcasts chip in the regime list: switch it off and the emphasis goes with
-   it, because there is nothing left to emphasise. Hovering a bar in the ranking panel
+   way out is the Private Messaging chip in the regime list: switch it off and the emphasis goes
+   with it, because there is nothing left to emphasise. Hovering a bar in the ranking panel
    overrides it for as long as the pointer is there. */
-const EMPHASIS="DEC";
+const EMPHASIS="PVT";   // changed from DEC 2026-09-13: private messaging is the headline
 
 function buildOutcomeTree(){
   const host=document.getElementById("outcomeTree"); host.innerHTML="";
@@ -200742,8 +200742,8 @@ function render(){
 const STEPS=[
   {title:"The full picture", st:o=>({...o,outcomes:new Set(OUT.map(x=>x.key)),lo:0,hi:PMAX}),
    opts:{faint:true,noLines:true}},
-  {title:"Podcasts lead 15 of 18", st:o=>({...o,outcomes:new Set(OUT.filter(x=>x.fam!=="challenger").map(x=>x.key))}),
-   opts:{emphasis:["DEC"],annotate:{lines:["Podcasts","first on 15 of 18 outcomes"],w:196,h:40}}},
+  {title:"Podcasts lead 11 of 17", st:o=>({...o,outcomes:new Set(OUT.filter(x=>x.fam!=="challenger").map(x=>x.key))}),
+   opts:{emphasis:["DEC"],annotate:{lines:["Podcasts","first on 11 of 17 outcomes"],w:196,h:40}}},
   {title:"…but it reverses for the challengers", needs:"challenger",
    st:o=>({...o,outcomes:new Set(OUT.map(x=>x.key))}),
    opts:{emphasis:["DEC"],annotate:{lines:["▲ RFK and Musk sit LEFT of 1","podcast listeners trust them more"],w:240,h:40}}},
