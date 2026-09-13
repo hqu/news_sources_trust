@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Where political news comes from, and what people believe — CHIP50</title>
+<style>
+:root{--ink:#16181d;--mid:#71777f;--faint:#ccd1d6;--hair:#e6e9ec;
+      --obs:#2f6f8f;--semi:#4f5f9e;--priv:#6b4c9a;--bg:#fff;--wash:#f4f7f9}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;font-size:14px;line-height:1.5}
+.wrap{max-width:1560px;margin:0 auto;padding:34px 30px 60px}
+h1{font-size:25px;font-weight:700;margin:0 0 5px}
+.sub{color:var(--mid);font-size:14px;margin:0}
+.track{letter-spacing:.19em;text-transform:uppercase;font-size:10.5px;font-weight:700;color:var(--mid)}
+.rule{height:1px;background:var(--hair);margin:18px 0 22px}
+/* Three columns are the layout. The middle one has to hold a fixed-width plot, so the side
+   columns shrink twice before the grid gives up, and the plot itself is narrower than it was.
+   Collapsing to one column is the last resort, not the first. */
+.cols{display:grid;grid-template-columns:236px minmax(0,1fr) 206px;gap:18px;
+  grid-template-areas:"news plots outcome" "news model model";align-items:start}
+.a-news{grid-area:news}
+.a-plots{grid-area:plots}
+.a-outcome{grid-area:outcome}
+.a-model{grid-area:model;min-width:0}
+@media(max-width:1120px){.cols{grid-template-columns:208px minmax(0,1fr) 186px;gap:14px}
+  .cols .panel{padding:12px 12px}
+  .a-news label.row,.a-outcome label.row{font-size:11.4px}}
+@media(max-width:980px){.cols{grid-template-columns:190px minmax(0,1fr) 170px;gap:12px}
+  .cols .panel{padding:10px 10px}
+  .a-news label.row,.a-outcome label.row{font-size:10.8px;line-height:1.35}
+  .a-news .meta,.a-outcome .meta{font-size:9.6px}}
+@media(max-width:890px){
+  .cols{grid-template-columns:1fr;grid-template-areas:"outcome" "news" "plots" "model"}}
+
+/* forest plot gets a heavy frame so it reads as the focal object */
+.plotbox{border:2.5px solid #16181d;border-radius:13px;padding:16px 18px 12px}
+.plotbox>.track{margin-bottom:10px}
+
+/* the outcome column is dense, so everything inside it steps down a size */
+.a-outcome .panel{padding:12px 12px}
+.a-outcome label.row{font-size:11.6px;padding:2.5px 0;gap:6px}
+.a-outcome .meta{font-size:10.2px;padding-left:5px}
+.a-outcome .track{font-size:9.5px;letter-spacing:.16em}
+.a-outcome .disc{margin-top:7px}
+.a-outcome .disc>summary{font-size:11.4px;padding:6px 9px}
+.a-outcome .disc .inner{padding:6px 9px 7px}
+.a-outcome .ogrid{grid-template-columns:1fr;gap:0}
+.a-outcome input[type=checkbox],.a-outcome input[type=radio]{margin-top:2px;transform:scale(.88);transform-origin:left center}
+.xgrid th.axh{font-size:9.6px;letter-spacing:.16em;text-transform:uppercase;color:var(--mid);
+  font-weight:700;padding-bottom:3px;border-bottom:1px solid var(--hair)}
+.sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;
+  clip:rect(0 0 0 0);white-space:nowrap;border:0}
+.dag{color:#9a3b30;font-weight:700;cursor:help}
+.panel{border:1px solid var(--hair);border-radius:11px;padding:15px 16px}
+.panel+.panel{margin-top:16px}
+label.row{display:flex;gap:8px;align-items:flex-start;padding:3.5px 0;cursor:pointer;font-size:13px}
+input[type=checkbox],input[type=radio]{margin:3px 0 0;accent-color:var(--obs);flex:none}
+.meta{color:var(--mid);font-size:11.2px;margin-left:auto;padding-left:8px;white-space:nowrap}
+
+/* ---- news-source tree ---- */
+.node{border-top:1px solid var(--hair)}
+.node:first-child{border-top:none}
+.nrow{display:flex;align-items:center;gap:7px;padding:6px 0}
+.tw{width:15px;text-align:center;color:var(--faint);cursor:pointer;font-size:10px;
+    user-select:none;flex:none;transition:transform .15s}
+.tw.open{transform:rotate(90deg);color:var(--mid)}
+.tw.leaf{visibility:hidden}
+.kids{display:none;padding:0 0 5px 22px;border-left:1px solid var(--hair);margin-left:7px}
+.kids.open{display:block}
+.nrow label{flex:1;display:flex;gap:7px;align-items:center;cursor:pointer;font-size:13px}
+.kids label{font-size:12.3px;color:var(--mid)}
+.platcap{font-size:9.6px;letter-spacing:.12em;text-transform:uppercase;color:var(--mid);
+  font-weight:700;margin:7px 0 2px;padding-top:6px;border-top:1px dotted var(--faint)}
+.platcap span{display:block;letter-spacing:0;text-transform:none;font-weight:400;
+  font-size:10.2px;color:var(--faint);line-height:1.35}
+.nrow .ch{color:var(--mid);font-size:11.4px}
+.grouphdr{padding:7px 0 5px}
+.grouphdr .ghl{font-size:12.4px;font-weight:600;color:var(--ink)}
+.grouphdr .ghn{margin-left:auto;font-size:10.2px;color:var(--faint);font-style:italic}
+.na{opacity:.34}
+.na label{cursor:not-allowed}
+
+/* ---- outcome disclosure ---- */
+.disc{border:1px solid var(--hair);border-radius:9px;margin-top:9px;overflow:hidden}
+.disc>summary{list-style:none;cursor:pointer;padding:8px 12px;background:var(--wash);
+  font-size:12.6px;font-weight:600;display:flex;align-items:center;gap:8px}
+.disc>summary::-webkit-details-marker{display:none}
+.disc>summary:after{content:"▸";color:var(--faint);margin-left:auto;font-size:11px}
+.disc[open]>summary:after{content:"▾"}
+.disc .inner{padding:8px 12px 10px}
+.ogrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:0 20px}
+
+.plots{display:flex;gap:22px;padding-bottom:6px}
+.plot{flex:none}
+.plot h3{font-size:13px;margin:0 0 1px;font-weight:600}
+.plot .pmeta{color:var(--mid);font-size:11px;margin:0 0 7px}
+table{border-collapse:collapse;width:100%;font-size:12.3px;margin-top:6px}
+th,td{text-align:right;padding:5px 9px;border-bottom:1px solid var(--hair);white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+th{color:var(--mid);font-weight:600;font-size:10.6px;letter-spacing:.05em;text-transform:uppercase}
+tbody tr:hover{background:var(--wash)}
+tr.ctrl td{color:var(--mid)}
+tr.sep td{border-bottom:1px solid var(--faint);padding:0;height:0}
+.note{color:var(--mid);font-size:11.8px;line-height:1.65;margin-top:9px}
+.legend{color:var(--mid);font-size:10.8px;margin:0 0 9px;line-height:1.4}
+.legend b{font-weight:600;color:var(--ink)}
+.a-outcome .legend{font-size:10px;margin-bottom:7px}
+.btn{border:1px solid var(--hair);background:var(--bg);border-radius:7px;padding:5px 10px;
+  font:inherit;font-size:11.6px;color:var(--mid);cursor:pointer;margin-right:6px}
+.btn:hover{background:var(--wash);color:var(--ink)}
+.empty{color:var(--mid);padding:40px 0;font-style:italic}
+.defs{columns:2;column-gap:40px;font-size:12.8px;line-height:1.62;color:var(--ink)}
+.defs p{margin:0 0 11px;break-inside:avoid}
+.defs b{font-weight:600}
+.tabsets{border-top:1px solid var(--hair);margin-top:14px;padding-top:11px}
+.xgrid{border-collapse:separate;border-spacing:3px;width:100%;table-layout:fixed}
+.xgrid th{font-size:9.4px;letter-spacing:.07em;text-transform:uppercase;color:var(--mid);
+  font-weight:700;text-align:center;padding:0 0 2px;border:0;white-space:normal;line-height:1.25}
+.xgrid th.rowh{text-align:right;padding-right:6px;width:74px;text-transform:none;
+  letter-spacing:0;font-size:10.6px;color:var(--ink);font-weight:600}
+.xgrid td{padding:0;border:0}
+.xcell{display:block;width:100%;border:1px solid var(--hair);background:var(--bg);
+  border-radius:7px;padding:5px 2px;font-family:inherit;font-size:10px;font-weight:400;
+  color:var(--mid);cursor:pointer;line-height:1.3}
+.xcell:hover:not([disabled]){background:var(--wash);color:var(--ink)}
+.xcell.on{background:var(--ink);border-color:var(--ink);color:#fff}
+.xcell[disabled]{opacity:.3;cursor:not-allowed}
+.xcell .xn{display:block;font-size:8.8px;opacity:.72}
+.xcell.marg{background:var(--wash)}
+.xcell.marg.on{background:var(--ink)}
+.tabset{display:flex;align-items:center;gap:5px;margin-bottom:6px;flex-wrap:nowrap}
+.tlab{font-size:9px;letter-spacing:.11em;text-transform:uppercase;color:var(--mid);
+  font-weight:700;width:96px;flex:none;line-height:1.25}
+.tab{border:1px solid var(--hair);background:var(--bg);border-radius:20px;padding:3.5px 9px;
+  font-family:inherit;font-weight:400;font-size:10.4px;color:var(--mid);cursor:pointer;
+  white-space:nowrap}
+.tab:hover{background:var(--wash)}
+.tab.on{background:var(--ink);border-color:var(--ink);color:#fff}
+.tab.off{font-style:italic}
+.tab.xparty{padding:3.5px 7px;min-width:34px}
+.xsep{color:var(--faint);font-size:11px;margin:0 3px}
+.tab.off.on{background:var(--ink);border-color:var(--ink);color:#fff;font-style:normal}
+.tab[disabled]{opacity:.35;cursor:not-allowed}
+.qcols{display:grid;grid-template-columns:repeat(3,1fr);gap:30px}
+@media(max-width:1000px){.qcols{grid-template-columns:1fr}}
+.qhead{font-size:12px;font-weight:600;margin-bottom:8px;padding-bottom:5px;
+  border-bottom:1px solid var(--hair)}
+.q{margin:0 0 11px;font-size:12.1px;line-height:1.55}
+.q .qv{font-family:"SF Mono",Menlo,monospace;font-size:10.4px;color:var(--faint);display:block}
+.q .qs{color:var(--mid);font-size:11.2px}
+.qstem{background:var(--wash);border-radius:7px;padding:8px 10px;margin:0 0 12px;
+  font-size:11.8px;line-height:1.5}
+.defs .ch{color:var(--mid)}
+.eq{font-family:"SF Mono",Menlo,monospace;font-size:11.6px;color:var(--mid);
+    background:var(--wash);border-radius:7px;padding:9px 11px;margin:2px 0 10px;overflow-x:auto}
+</style>
+</head>
+<body>
+<!-- ============================ access gate ============================
+     A SHARED WORD, NOT SECURITY. This page is served from a public URL and its data file
+     can be fetched directly without going through this dialog, so the gate keeps the work
+     from being stumbled on or indexed; it does not protect anything. Real access control
+     needs a server that checks before it serves. The dialog says so too, rather than
+     implying a protection that is not there. -->
+<div id="gate">
+  <form id="gateform" autocomplete="off">
+    <div class="gt">CHIP50 · Civic Health and Institutions Project</div>
+    <h2>This dashboard is not public yet.</h2>
+    <p>Enter the shared access word to continue.</p>
+    <input type="password" id="gatepw" aria-label="Access word" autocomplete="current-password">
+    <button type="submit">Open</button>
+    <p id="gateerr"></p>
+    <p class="gatenote">A deterrent, not a protection: the page is served from a public URL
+      and its aggregated data file can be requested directly. Nothing here is respondent-level.</p>
+  </form>
+</div>
+<style>
+#gate{position:fixed;inset:0;background:#fff;z-index:9999;display:none;
+  align-items:center;justify-content:center;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif}
+#gate form{max-width:400px;padding:30px 32px;border:1px solid #e6e9ec;border-radius:14px}
+#gate .gt{letter-spacing:.19em;text-transform:uppercase;font-size:10px;font-weight:700;color:#71777f}
+#gate h2{font-size:19px;margin:9px 0 6px;color:#16181d}
+#gate p{font-size:13px;color:#71777f;margin:0 0 14px;line-height:1.55}
+#gate input{width:100%;font:inherit;font-size:14px;padding:8px 10px;border:1px solid #ccd1d6;
+  border-radius:8px;margin-bottom:9px}
+#gate input:focus{outline:none;border-color:#16181d}
+#gate button{font:inherit;font-size:13px;padding:7px 16px;border-radius:8px;border:1px solid #16181d;
+  background:#16181d;color:#fff;cursor:pointer}
+#gate #gateerr{color:#9a3b30;font-size:12.5px;margin:10px 0 0;min-height:16px}
+#gate .gatenote{font-size:11.2px;margin-top:14px;color:#a3a9b0}
+</style>
+<script>
+/* FNV-1a of the shared word. Hashing keeps the literal out of the source; it does not make
+   the gate secure, because the check runs on the reader's machine either way. */
+window.__unlock=function(run){
+  var KEY="chip50_open", WANT=3176098963;
+  function h(s){var x=0x811c9dc5;for(var i=0;i<s.length;i++){x^=s.charCodeAt(i);x=Math.imul(x,0x01000193)>>>0;}return x>>>0;}
+  var g=document.getElementById("gate");
+  if(sessionStorage.getItem(KEY)==="1"){ g.remove(); run(); return; }
+  g.style.display="flex";
+  document.getElementById("gateform").addEventListener("submit",function(e){
+    e.preventDefault();
+    if(h(document.getElementById("gatepw").value.trim())===WANT){
+      sessionStorage.setItem(KEY,"1"); g.remove(); run();
+    } else {
+      document.getElementById("gateerr").textContent="That is not the word.";
+      document.getElementById("gatepw").select();
+    }
+  });
+  document.getElementById("gatepw").focus();
+};
+</script>
+<!-- ========================== end access gate ========================== -->
+
+<div class="wrap">
+<!-- ---------------------------- cross-page nav ---------------------------- -->
+<nav class="dnav" data-here="rankings">
+  <a data-p="index"><b>1</b><i>What each source tracks</i><span>three different ways a belief can be unusual</span></a>
+  <a data-p="rankings"><b>2</b><i>Rankings</i><span>which source ranks where, one outcome at a time</span></a>
+  <a data-p="explorer"><b>3</b><i>Rare vs common</i><span>how that ranking changes with how common a belief is</span></a>
+  <a data-p="gaps"><b>4</b><i>Gaps between people</i><span>the same result as a difference in percentage points</span></a>
+</nav>
+<style>
+.dnav{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:0 0 22px}
+.dnav a{display:block;border:1px solid #e6e9ec;border-radius:10px;padding:9px 12px;
+  text-decoration:none;color:#16181d;background:#fff}
+.dnav a[href]:hover{background:#f4f7f9;border-color:#ccd1d6}
+.dnav a.on{border-color:#16181d;border-width:1.5px;cursor:default}
+.dnav b{display:inline-block;font-size:9.5px;font-weight:700;letter-spacing:.14em;
+  color:#a3a9b0;margin-right:7px;vertical-align:1px}
+.dnav a.on b{color:#16181d}
+.dnav i{font-style:normal;font-size:13px;font-weight:600}
+.dnav span{display:block;font-size:10.8px;color:#71777f;line-height:1.4;margin-top:2px}
+@media(max-width:980px){.dnav{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:620px){.dnav{grid-template-columns:1fr}.dnav span{display:none}}
+</style>
+<script>
+/* The three pages ship in two forms: served (index.html + data.json) and self-contained
+   (index_standalone.html with the payload inlined). A link has to point at the sibling of the
+   same kind, or a reader who opened the standalone copy from Finder lands on a page that
+   cannot fetch its data. Decided at load from whether this page's own payload is inlined. */
+addEventListener("DOMContentLoaded",function(){
+  var nav=document.querySelector(".dnav"), here=nav.dataset.here;
+  var el=document.getElementById("payload");
+  var solo=!!(el && el.textContent.trim()[0]==="{");
+  nav.querySelectorAll("a").forEach(function(a){
+    if(a.dataset.p===here){ a.className="on"; return; }
+    a.href=a.dataset.p+(solo?"_standalone":"")+".html";
+  });
+});
+</script>
+<!-- -------------------------- end cross-page nav -------------------------- -->
+  <h1>Where political news comes from, and what people believe</h1>
+  <p class="sub">Aggregated estimates from the Civic Health and Institutions Project (CHIP50), June 2022 – May 2026.
+     <span id="buildstamp" style="color:#ccd1d6"></span></p>
+  <div class="rule"></div>
+
+  <div class="cols">
+    <!-- COLUMN 1 — news source tree -->
+    <div class="a-news">
+      <div class="panel">
+        <div class="track" style="margin-bottom:2px">News source</div>
+        <p class="legend">Grey % = share of respondents <b>using</b> this source</p>
+        <div id="tree"></div>
+        <div style="margin-top:12px">
+          <button class="btn" id="resetPred">All regimes</button>
+          <button class="btn" id="allPred">Everything</button>
+          <button class="btn" id="nonePred">None</button>
+        </div>
+        <p class="note" style="margin-top:10px">Open a regime to check its individual channels.
+          Regime and channel estimates come from two separate models.</p>
+      </div>
+    </div>
+
+    <!-- COLUMN 2 — forest plots -->
+    <div class="a-plots">
+      <div class="plotbox">
+        <div class="track">Forest plots</div>
+        <div class="plots" id="plots"></div>
+        <div class="tabsets">
+          <div class="track" style="margin-bottom:7px">Subgroup</div>
+          <table class="xgrid" id="xgrid"></table>
+          <p class="note" style="margin-top:9px">Click any cell. The top-left cell is every
+            respondent; the top row holds the diploma divide on its own, the left column party on its own,
+            and the interior cells cross the two. Leaners fold into the party they lean toward.
+            Each cell is its own fitted model rather than an interaction term, and the variables
+            defining it leave the control set inside it. Cells thin out toward the bottom right —
+            the count is on every cell, so check it before reading much into one.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- COLUMN 3 — outcome -->
+    <div class="a-outcome">
+      <div class="panel">
+        <div class="track" style="margin-bottom:2px">Outcome</div>
+        <p class="legend">One at a time. Grey % = share <b>holding</b> this view</p>
+        <div id="primary"></div>
+        <div id="discs"></div>
+      </div>
+    </div>
+
+    <!-- ROW 2 — model, spanning columns 2 and 3 -->
+    <div class="a-model">
+      <div class="track" style="margin:4px 0 6px">Multivariate model</div>
+      <div id="regression"></div>
+      <div class="track" style="margin:20px 0 8px">What the columns mean</div>
+      <div class="defs" id="coldefs"></div>
+      <p class="note" id="footnote"></p>
+    </div>
+  </div>
+
+  <div class="rule" style="margin:34px 0 18px"></div>
+  <div class="track" style="margin-bottom:12px">How the regimes are defined</div>
+  <div class="defs" id="defs"></div>
+
+  <div class="rule" style="margin:30px 0 18px"></div>
+  <div class="track" style="margin-bottom:12px">Exact survey wording</div>
+  <div class="qcols">
+    <div><div class="qhead">News source — the inputs</div><div id="qsource"></div></div>
+    <div><div class="qhead">Outcomes</div><div id="qoutcome"></div></div>
+    <div><div class="qhead">Control variables</div><div id="qcontrol"></div></div>
+  </div>
+</div>
+
+<script id="payload" type="application/json">__PAYLOAD__</script>
+<script id="questions" type="application/json">__QUESTIONS__</script>
+<script>
+const PAL={ink:"#16181d",mid:"#71777f",faint:"#ccd1d6",hair:"#e6e9ec",
+           obs:"#2f6f8f",semi:"#4f5f9e",priv:"#6b4c9a",bg:"#fff",wash:"#f4f7f9"};
+let DATA=null, QTEXT=null, selOut=[], selPred=new Set(), openNodes=new Set(),
+   
+    selStratum="all";
+
+const DAGGER="The four conspiracy items are controls in every model. This outcome is asked in "
+  +"waves the conspiracy battery does not cover, so holding them fixed would leave no sample and "
+  +"they are omitted here instead.";
+const DAGGER_NOTE="† the four conspiracy items are held fixed in every model except these, which are asked in waves the conspiracy battery does not cover";
+const PRIMARY=["science"];
+// The CDC, the FDA and Fauci sit with government rather than with science: they are two
+// federal agencies and a federal official, which is what §5 of the trust chapter is about --
+// appointive agencies alternate with partisan control and the profession does not.
+const DISCLOSE=[["The profession and the industry",["doctors","pharma"]],
+                ["Named individuals",["rfk","musk","trump"]],
+                ["Government, agencies and courts",["cdc","fda","fauci","whitehouse","scotus"]]];
+// A third element asks for the group to be ordered by how many people hold the belief,
+// read from the payload rather than fixed here, so it stays right if the data change.
+// The four conspiracy items are controls in every model now rather than outcomes, so the
+// group they used to head is gone from here and their wording sits in the control column.
+const ALSO=[["Election denial",["denial"]],
+            ["Misinformation claims",["gmo","machines","cia","turbines","soros"],"prevalence"]];
+
+const COLDEFS=[
+ ["Term","the variable whose coefficient that row reports. The upper block holds the news sources — a regime, or an individual channel, coded 1 if the respondent reported getting political news from it in the previous 24 hours and 0 otherwise. Below the rule sit the control variables, which are in every model and are not shown in the plot. A source greyed and marked <i>not shown</i> was in the fitted model but is currently unchecked in the left column, so it is adjusted for without being drawn."],
+ ["Odds ratio","the exponentiated coefficient: how the odds of the outcome change for someone who uses that source, holding every other term in the model fixed. One means no difference. Above one means higher odds of the outcome — more trusting on a trust measure, more believing on a conspiracy or denial measure. Below one means lower odds. An odds ratio of 1.50 is a 50% increase in the odds, not in the probability, and the two diverge as the outcome becomes common."],
+ ["95% CI","the confidence interval around the odds ratio. Read it as the range of values the data are consistent with. An interval that excludes one is conventionally called significant and is drawn in colour in the plot; an interval spanning one is drawn in grey and open. Intervals here are model-based on survey-weighted estimates, so they quantify uncertainty conditional on the panel and its weighting, not selection into the panel."],
+ ["p","the two-sided p-value for the null that the odds ratio is one. With samples in the hundreds of thousands almost everything clears conventional thresholds, so the interval and the size of the estimate carry more information than the p-value does, and the ordering of sources matters more than any single test."],
+ ["Occupancy","the weighted share of respondents in that model who reported using the source in the previous 24 hours. It is a property of the predictor, not of the outcome, so it does not change when the outcome changes. It matters for reading the rest of the row: a large odds ratio on a source occupied by 2% of adults describes far fewer people than a modest one on a source occupied by 60%, and controls have no occupancy, marked with a dash."]];
+
+const DEFS=[
+ ["JS","Journalistic Standard","network and local television, print newspapers, news websites and apps, community papers",
+  "Professionally produced reporting with an identifiable editorial operation: named accountable editors, correction norms, and legal review before publication. What distinguishes it is an editor standing between the author and the audience."],
+ ["PB","Partisan Broadcast","cable news, talk radio, late-night political comedy",
+  "Professionally produced, with a real editorial operation, but organised around ideological commentary rather than reporting. It shares Journalistic Standard's accountability structure — named hosts, a corporate publisher, exposure to defamation — and does not share its editorial filter on claims. Separated from Journalistic Standard in September 2026 because the two behave differently: pooled, they predict election denial at an odds ratio of 0.998, which is the average of 0.83 for the reporting channels and 1.24 for these."],
+ ["VLP","Very Large Platform","social media — Facebook, Twitter/X, YouTube, Instagram, TikTok",
+  "Content distributed by an algorithmic feed operated by a single company, with a moderation policy the operator writes and enforces. This is the regime nearly all platform governance addresses — designation thresholds, systemic-risk audits, content-moderation duties."],
+ ["DEC","Podcasts","the only channel in the regime the taxonomy calls Decentralized",
+  "Public content with no platform gatekeeper: RSS-style distribution where host discretion is the only filter. Nothing sits between the publisher and the audience, so there is no operator surface for moderation to act on. Note this is a single-channel regime, so its estimates are podcast estimates and cannot separate the governance property from the format."],
+ ["PVT","Private Messaging","messaging apps — Facebook Messenger, WhatsApp, Snapchat",
+  "One-to-one and small-group messaging. Neither the content nor the audience can be enumerated from outside, so nothing can be counted, corrected or audited. The only available levers are structural — forwarding limits and group size caps."],
+ ["INT","Interpersonal Ties","friends and family",
+  "Political information received in conversation from people the respondent knows. Fully attributable to a named person and leaving no durable record, which is the mirror image of a pseudonymous post. No intervention reaches it."],
+ ["SRCH","Search Engine","search engines",
+  "Queries that route a user to sources rather than publishing content. Highly enumerable and highly controllable, and the only regime with a protective association on most outcomes here."],
+ ["AICH","AI Chat","AI chatbots",
+  "Generative systems that compose an answer rather than pointing to one. The output is not enumerable — it is produced once, for one person, and not retained in any public record — while the input is the most controllable of any regime, because a single operator sets the model's behaviour. The AI chatbot item was added to the questionnaire partway through the series, so it is asked in 6 of the 15 waves and its estimates come from a separate model on those waves."],
+ ["SPM","Semi-Public Messaging","not measured",
+  "Large group chats on WhatsApp, Telegram and Discord: joinable by a researcher but not countable from outside. The regime exists in the taxonomy and has no CHIP50 channel of its own, so it cannot appear in any estimate here."],
+ ["CRW","Crowdsourced","Wikipedia, Reddit",
+  "Publicly logged, community-moderated content written under pseudonyms. Perfectly countable and permanently preserved, with an author beyond the reach of defamation — the clearest case of the two axes coming apart. Reddit and Wikipedia appear only in the question that lists individual platforms, asked in 6 of the 15 waves; the question asked in all 15 offers only the generic category “a social media website or app”. There is therefore no item to estimate at the regime level: Crowdsourced appears in the selector as a heading over its two channels rather than as a regime you can check."]];
+
+function fail(msg){document.getElementById("plots").innerHTML=
+  '<div style="border:1px solid #e6e9ec;border-radius:11px;padding:20px;color:#6b4c9a">'+
+  '<strong>The dashboard could not load its data.</strong><br>'+msg+'</div>';}
+function loadQuestions(){
+  const el=document.getElementById("questions"), raw=el?el.textContent.trim():"";
+  if(raw&&raw[0]==="{"){QTEXT=JSON.parse(raw); renderQuestions(); return;}
+  fetch("questions.json").then(r=>r.json()).then(q=>{QTEXT=q;renderQuestions();}).catch(()=>{});}
+// Each stem heads the items it actually governs, so a reader can see which battery a
+// variable came from — the two news batteries differ in wave coverage and it matters.
+const STEM_NOTE={
+  pol_news1:"Asked in all 15 waves, in generic categories. Every regime-level and channel-level estimate uses this question.",
+  pol_news2:"The same question, but listing individual platforms by name. Asked in 6 of the 15 waves — 23, 26, 27, 28, 35 and 35.1 — so every platform-level estimate rests on those six.",
+  pol_trust:"Asked in the waves carrying each target; coverage differs by target.",
+  conspiracy:"Four items forming the conspiracy-predisposition battery.",
+  fn:"A rotating battery; each claim runs in its own subset of waves."};
+function renderQuestions(){
+  if(!QTEXT)return;
+  // Which regime each answer option belongs to, read from the payload rather than written out
+  // here, so a taxonomy change reaches this section too. Only the news-source battery has one;
+  // outcomes and controls are left bare.
+  const RG={};
+  REG().forEach(r=>(r.channels||[]).forEach(c=>{RG[c.key]=r.label;}));
+  PLATS().forEach(p=>{RG[p.key]=labelOf(p.parent);});
+  const item=(k,e)=>`<p class="q"><span class="qv">${k}${RG[k]?" ("+RG[k]+")":""}</span>${e.text}`
+      +(e.scale&&e.scale.length?`<br><span class="qs">${e.scale.join(" · ")}</span>`:"")+`</p>`;
+  const put=(id,grp)=>{
+    const host=document.getElementById(id); if(!host)return;
+    const ent=QTEXT[grp]||{};
+    const ORDER=["pol_news1","pol_news2","pol_trust","conspiracy","fn"];
+    const stems=Object.keys(ent).filter(k=>k.startsWith("__stem_")).map(k=>k.replace("__stem_",""))
+                      .sort((a,b)=>ORDER.indexOf(a)-ORDER.indexOf(b));
+    const used=new Set(); let html="";
+    stems.forEach(st=>{
+      const kids=Object.keys(ent).filter(k=>!k.startsWith("__stem_")&&
+        (k.startsWith(st+"_")||k.toLowerCase().startsWith("fn_")&&st==="fn"));
+      if(!kids.length) return;
+      html+=`<p class="qstem">${ent["__stem_"+st].text}`
+           +(STEM_NOTE[st]?`<br><span class="qs">${STEM_NOTE[st]}</span>`:"")+`</p>`;
+      kids.sort((a,b)=>{const n=x=>parseInt((x.match(/_(\d+)$/)||[0,0])[1]);return n(a)-n(b)||a.localeCompare(b);});
+      kids.filter(k=>!HIDDEN_VARS.includes(k))
+          .forEach(k=>{used.add(k); html+=item(k,ent[k]);});
+    });
+    Object.keys(ent).filter(k=>!k.startsWith("__stem_")&&!used.has(k)&&!HIDDEN_VARS.includes(k))
+      .forEach(k=>{html+=item(k,ent[k]);});
+    host.innerHTML=html||'<p class="q" style="color:#ccd1d6">not available</p>';};
+  put("qsource","source"); put("qoutcome","outcome"); put("qcontrol","control");}
+function stamp(){
+  const m=DATA.meta, n=(DATA.outcomes||[]).length, st=(m.strata||[]).length;
+  document.getElementById("buildstamp").textContent =
+    ` · data built ${m.built} · ${n} outcomes · ${st} subgroups`;}
+/* ---------------------------------------------------------------------------
+   TEMPORARILY HIDDEN OUTCOMES. The models, the payload and the rendering code
+   are all untouched; these keys are filtered out at load. Empty the array to
+   bring them back -- nothing else has to change.
+   --------------------------------------------------------------------------- */
+const HIDDEN_OUTCOMES=["rfk","musk"];
+const HIDDEN_VARS=["pol_trust_rfk","pol_trust_musk"];
+function boot(d){try{
+  DATA=d; DATA.outcomes=DATA.outcomes.filter(o=>!HIDDEN_OUTCOMES.includes(o.key));
+  init();loadQuestions();stamp();
+}catch(e){fail("Error building the view: "+e.message);throw e;}}
+
+const O=k=>DATA.outcomes.find(o=>o.key===k);
+const REG=()=>DATA.meta.regimes;
+const PLATS=()=>DATA.meta.platforms||[];
+const chanOf=k=>{for(const r of REG()){const c=r.channels.find(c=>c.key===k); if(c)return c;} return null;};
+const platOf=k=>PLATS().find(p=>p.key===k)||null;
+const isRegime=k=>REG().some(r=>r.key===k);
+const isPlat=k=>!!platOf(k);
+const labelOf=k=>GROUPONLY[k]?GROUPONLY[k]
+                : isRegime(k)?REG().find(r=>r.key===k).label
+                : isPlat(k)?platOf(k).label
+                : (chanOf(k)?chanOf(k).label:k);
+// three separate fitted models: regime and channel on all 15 waves, platform on the 6
+// waves whose questionnaire names individual platforms
+const blockFor=(o,k)=>isRegime(k)?o.regime:(isPlat(k)?o.platform:o.channel);
+const estOf=(o,k)=>((blockFor(o,k))||{estimates:[]}).estimates.find(e=>e.key===k);
+// every selectable node, grouped by regime so a channel never floats away from its parent
+function orderedNodes(){
+  const out=[];
+  REG().forEach(r=>{
+    out.push({key:r.key,level:"regime",parent:null});
+    r.channels.forEach(c=>{if(r.channels.length>1) out.push({key:c.key,level:"channel",parent:r.key});});
+    PLATS().filter(p=>p.parent===r.key).forEach(p=>out.push({key:p.key,level:"platform",parent:r.key}));
+  });
+  // regimes with platform detail but no 24-hour item of their own (Crowdsourced)
+  const orphanParents=[...new Set(PLATS().map(p=>p.parent))].filter(pk=>!REG().some(r=>r.key===pk));
+  orphanParents.forEach(pk=>{
+    out.push({key:pk,level:"grouponly",parent:null});
+    PLATS().filter(p=>p.parent===pk).forEach(p=>out.push({key:p.key,level:"platform",parent:pk}));
+  });
+  return out;}
+const GROUPONLY={CRW:"Crowdsourced"};
+// Parents whose named platforms are expanded and checked from the start. Crowdsourced is
+// here because it has no 24-hour item of its own -- Reddit and Wikipedia are the only way it
+// appears at all, so leaving them unchecked hides the regime completely.
+const OPEN_BY_DEFAULT=["VLP","PVT","CRW"];
+// On load and on every outcome change, switch on all eight regimes — but only those the
+// chosen outcome can actually estimate, since a regime absent from its waves (AI Chat on
+// the pre-2024 items) would otherwise sit checked with nothing to draw.
+function defaultsFor(keys){
+  const s=new Set();
+  keys.forEach(k=>{const o=O(k); if(!o)return;
+    REG().forEach(r=>{if(estOf(o,r.key)) s.add(r.key);});
+    // These parents start with their named platforms checked. Those come from the 6-wave
+    // named-platform model rather than the 15-wave one, so the plot marks each such row.
+    PLATS().filter(p=>OPEN_BY_DEFAULT.includes(p.parent))
+           .forEach(p=>{if(estOf(o,p.key)) s.add(p.key);});});
+  return s;}
+
+function strata(kind){return (DATA.meta.strata||[]).filter(s=>s.kind===kind);}
+function modelsFor(k){return O(k).models||{};}
+// Exactly one stratum is ever drawn, so there is only ever one forest plot and no
+// horizontal scroll. The interior cells cross party with the diploma divide; each is its
+// own fitted model, so a crossed cell is not the product of its two margins.
+function facets(){
+  const avail=modelsFor(selOut[0]);
+  return [avail[selStratum]?selStratum:"all"];}
+const PARTY_ROWS=[["all","All parties"],["dem","Democrat"],["ind","Independent"],["rep","Republican"]];
+const EDU_COLS=[["all","All levels"],["High_school_or_less","High school or less"],
+                ["Some_college","Some college"],["College_degree","College degree"],
+                ["Graduate_degree","Graduate degree"]];
+const PARTY_FULL={dem:"Democrat",ind:"Independent",rep:"Republican"};
+// every cell of the grid maps onto exactly one fitted stratum
+function cellKey(p,e){
+  if(p==="all"&&e==="all") return "all";
+  if(e==="all") return "party_"+PARTY_FULL[p];
+  if(p==="all") return "edu_"+e;
+  return "x_"+p+"_"+e;}
+function renderTabs(){
+  const avail=modelsFor(selOut[0]);
+  const g=document.getElementById("xgrid"); g.innerHTML="";
+  const axes=document.createElement("tr");
+  axes.innerHTML='<th class="rowh axh">Party</th>'
+    +`<th class="axh" colspan="${EDU_COLS.length}">Diploma divide</th>`;
+  g.appendChild(axes);
+  const head=document.createElement("tr");
+  head.innerHTML='<th class="rowh"></th>'+EDU_COLS.map(([,l])=>`<th>${l}</th>`).join("");
+  g.appendChild(head);
+  PARTY_ROWS.forEach(([p,plab])=>{
+    const tr=document.createElement("tr");
+    tr.innerHTML=`<th class="rowh">${plab}</th>`;
+    EDU_COLS.forEach(([e])=>{
+      const key=cellKey(p,e), m=avail[key];
+      const marg=(p==="all"||e==="all");
+      const td=document.createElement("td");
+      const b=document.createElement("button");
+      b.className="xcell"+(marg?" marg":"")+(selStratum===key?" on":"");
+      b.dataset.stratum=key;
+      if(!m){b.disabled=true; b.innerHTML="—"; b.title="Not estimable for this outcome";}
+      else b.innerHTML=(key==="all"?"Everyone":"&nbsp;")+
+            `<span class="xn">${m.regime.n.toLocaleString()}</span>`;
+      td.appendChild(b); tr.appendChild(td);
+    });
+    g.appendChild(tr);
+  });
+}
+document.addEventListener("click",e=>{
+  const b=e.target.closest(".xcell"); if(!b||b.disabled)return;
+  selStratum = (selStratum===b.dataset.stratum) ? "all" : b.dataset.stratum;
+  renderTabs(); draw();});
+
+function init(){
+  OPEN_BY_DEFAULT.forEach(k=>openNodes.add(k));
+  // ---- outcome: primary, disclosures, then the always-visible extras
+  const prim=document.getElementById("primary");
+  PRIMARY.forEach(k=>O(k)&&prim.appendChild(outRow(k)));
+  const discs=document.getElementById("discs");
+  // Conspiracy and election denial are primary outcomes and sit directly under
+  // trust in science; the collapsible institution groups come after them.
+  ALSO.forEach(([name,keys,sortBy])=>{
+    let av=keys.filter(k=>O(k)); if(!av.length)return;
+    if(sortBy==="prevalence")
+      av=av.sort((a,b)=>O(a).regime.prevalence-O(b).regime.prevalence);
+    const h=document.createElement("div");
+    h.className="track"; h.style.cssText="margin:13px 0 3px";
+    h.textContent=name; discs.appendChild(h);
+    const g=document.createElement("div"); g.className="ogrid";
+    av.forEach(k=>g.appendChild(outRow(k))); discs.appendChild(g);
+  });
+  if(DATA.outcomes.some(o=>o.consp_control===false))
+    discs.insertAdjacentHTML("beforeend",
+      `<p class="legend" style="margin:11px 0 0">${DAGGER_NOTE}</p>`);
+  DISCLOSE.forEach(([name,keys])=>{
+    const av=keys.filter(k=>O(k)); if(!av.length)return;
+    const d=document.createElement("details"); d.className="disc"; d.open=true;
+    d.innerHTML=`<summary>${name} <span class="meta" style="margin-left:0">${av.length}</span></summary>`;
+    const inner=document.createElement("div"); inner.className="inner ogrid";
+    av.forEach(k=>inner.appendChild(outRow(k))); d.appendChild(inner); discs.appendChild(d);
+  });
+  document.getElementById("primary").parentNode.addEventListener("change",e=>{
+    if(e.target.type!=="radio"||!e.target.dataset.out)return;
+    // one outcome at a time; its most adverse sources come on automatically
+    selOut=[e.target.value];
+    selPred=defaultsFor(selOut);
+    selStratum="all";        // a subgroup chosen for the previous outcome should not carry over
+    renderTabs();renderTree();draw();});
+
+  document.getElementById("allPred").onclick=()=>{      // regimes plus every channel and platform
+    selPred=new Set(orderedNodes().filter(nd=>nd.level!=="grouponly").map(nd=>nd.key));
+    renderTree();draw();};
+  document.getElementById("nonePred").onclick=()=>{selPred=new Set();renderTree();draw();};
+  document.getElementById("resetPred").onclick=()=>{
+    selPred=defaultsFor(selOut); OPEN_BY_DEFAULT.forEach(k=>openNodes.add(k));
+    renderTree();draw();};
+
+  // definitions
+  document.getElementById("coldefs").innerHTML=COLDEFS.map(([n,txt])=>
+    `<p><b>${n}</b> — ${txt}</p>`).join("");
+  document.getElementById("defs").innerHTML=DEFS.map(([s,n,ch,txt])=>
+    `<p><b>${n}</b> <span class="ch">(${s}) — ${ch}.</span> ${txt}</p>`).join("");
+
+  const first=DATA.outcomes.find(o=>o.is_default)||DATA.outcomes[0];
+  selOut=[first.key];
+  document.querySelector(`input[data-out][value="${first.key}"]`).checked=true;
+  selPred=defaultsFor(selOut);
+  renderTabs();renderTree();draw();
+}
+function codingOf(o){
+  if(o.var==="trump_win") return "said Trump would have won a fairly counted 2020 election";
+  return "answered “a lot” or “some”";}
+function outRow(k){const o=O(k);
+  const l=document.createElement("label"); l.className="row";
+  const pct=o.regime.prevalence;
+  const exempt = o.consp_control===false;
+  // The dagger is a sighted marker only: hidden from assistive technology, which gets the
+  // sentence instead, and the hover title sits on the row rather than on the glyph so there is
+  // one tooltip target rather than a 6px one nested inside a larger one.
+  const dag = exempt ? ' <span class="dag" aria-hidden="true">†</span>'
+                     + '<span class="sr"> — conspiracy items not held fixed for this outcome</span>' : '';
+  l.innerHTML=`<input type="radio" name="outcome" data-out="1" value="${k}">
+               <span>${o.label}${dag}</span>
+               <span class="meta">${pct.toFixed(0)}%</span>`;
+  if(exempt) l.title=DAGGER;
+  return l;}
+
+// ---------- news-source tree ----------
+function renderTree(){
+  const host=document.getElementById("tree"); host.innerHTML="";
+  const parents=[...REG().map(r=>r.key), ...Object.keys(GROUPONLY)
+                  .filter(k=>PLATS().some(p=>p.parent===k))];
+  parents.forEach(pk=>{
+    const r=REG().find(x=>x.key===pk);
+    const kidsList=[]
+      .concat(r&&r.channels.length>1?r.channels.map(c=>({key:c.key,label:c.label,six:false})):[])
+      .concat(PLATS().filter(p=>p.parent===pk).map(p=>({key:p.key,label:p.label,six:true})));
+    const solo=r&&r.channels.length===1&&!kidsList.length;
+    const hasKids=kidsList.length>0;
+    const open=openNodes.has(pk);
+    const e=(r&&selOut.length)?estOf(O(selOut[0]),pk):null;
+    const na=r&&selOut.length&&!e;          // regime not fielded for this outcome
+    const node=document.createElement("div"); node.className="node";
+    const soloTag=(solo && r.channels[0].label!==labelOf(pk))
+        ? ` <span class="ch">(${r.channels[0].label})</span>` : "";
+    // A regime with no 24-hour item of its own (Crowdsourced) has nothing to check at the
+    // regime level. Draw it as a group heading rather than as a row whose checkbox is
+    // missing, which reads as broken.
+    node.innerHTML = r
+      ? `<div class="nrow${na?" na":""}"${na?' title="Not fielded in the waves that carry this outcome"':""}>
+           <span class="tw ${hasKids?"":"leaf"} ${open?"open":""}" data-tw="${pk}">▶</span>
+           <label><input type="checkbox" data-pred="1" value="${pk}" ${selPred.has(pk)?"checked":""}${na?" disabled":""}>
+             <span>${labelOf(pk)}${soloTag}</span></label>
+           <span class="meta">${e?e.pct_occupying.toFixed(0)+"%":""}</span>
+         </div>
+         ${hasKids?`<div class="kids ${open?"open":""}" data-kids="${pk}"></div>`:""}`
+      : `<div class="nrow grouphdr">
+           <span class="tw ${open?"open":""}" data-tw="${pk}">▶</span>
+           <span class="ghl">${labelOf(pk)}</span>
+           <span class="ghn">select a channel below</span>
+         </div>
+         <div class="kids ${open?"open":""}" data-kids="${pk}"></div>`;
+    if(hasKids){
+      const kids=node.querySelector(".kids");
+      let platHdr=false;
+      kidsList.forEach(c=>{
+        if(c.six&&!platHdr){
+          platHdr=true;
+          const cap=document.createElement("div"); cap.className="platcap";
+          cap.innerHTML=`named platforms <span>separate model on 6 waves — not a breakdown of
+            ${labelOf(pk)} above</span>`;
+          kids.appendChild(cap);
+        }
+        const ce=selOut.length?estOf(O(selOut[0]),c.key):null;
+        const cna=selOut.length&&!ce;
+        const l=document.createElement("label"); l.className="row"+(cna?" na":"");
+        if(cna) l.title="Not fielded in the waves that carry this outcome";
+        l.innerHTML=`<input type="checkbox" data-pred="1" value="${c.key}" ${selPred.has(c.key)?"checked":""}${cna?" disabled":""}>
+                     <span>${c.label}</span>
+                     <span class="meta">${ce?ce.pct_occupying.toFixed(0)+"%":""}</span>`;
+        kids.appendChild(l);
+      });
+    }
+    host.appendChild(node);
+  });
+}
+document.addEventListener("click",e=>{
+  const tw=e.target.closest("[data-tw]"); if(!tw||tw.classList.contains("leaf"))return;
+  const k=tw.dataset.tw, kids=document.querySelector(`[data-kids="${k}"]`);
+  if(!kids) return;                       // single-channel regime: nothing to expand
+  openNodes.has(k)?openNodes.delete(k):openNodes.add(k);
+  tw.classList.toggle("open");
+  kids.classList.toggle("open");
+});
+function childrenOf(rk){
+  const r=REG().find(x=>x.key===rk);
+  const ch=(r&&r.channels.length>1)?r.channels.map(c=>c.key):[];
+  return ch.concat(PLATS().filter(p=>p.parent===rk).map(p=>p.key));}
+document.addEventListener("change",e=>{
+  if(e.target.type!=="checkbox"||!e.target.dataset.pred)return;
+  const k=e.target.value;
+  if(e.target.checked) selPred.add(k);
+  else{
+    selPred.delete(k);
+    // a regime switched off takes its channels and platforms with it: leaving them
+    // checked would show rows nested under a parent that is no longer in the plot
+    if(isRegime(k)) childrenOf(k).forEach(c=>selPred.delete(c));
+  }
+  renderTree(); draw();});
+
+// ---------- plots, table, regression ----------
+function draw(){
+  const plots=document.getElementById("plots"), reg=document.getElementById("regression");
+  plots.innerHTML=""; reg.innerHTML="";
+  if(!selOut.length||!selPred.size){
+    plots.innerHTML='<div class="empty">Choose at least one outcome and one news source.</div>';
+    document.getElementById("footnote").textContent="";return;}
+  const F=facets(), M=modelsFor(selOut[0]);
+  const blk=(f,lv)=>((M[f]||{})[lv]||null);
+  const estIn=(f,k)=>{const b=blk(f,isRegime(k)?"regime":(isPlat(k)?"platform":"channel"));
+      return b?b.estimates.find(e=>e.key===k):null;};
+  const rows=orderedNodes().map(n=>n.key)
+                .filter(k=>selPred.has(k) && F.some(f=>estIn(f,k)));
+  if(!rows.length){
+    const names=[...selPred].map(labelOf).join(", ");
+    plots.innerHTML=`<div class="empty">${names||"Nothing"} ${selPred.size===1?"is":"are"} not
+      fielded in the waves that carry <b>${O(selOut[0]).label}</b>, so there is nothing to plot.
+      Pick another source on the left — greyed rows are unavailable for this outcome.</div>`;
+    document.getElementById("regression").innerHTML="";
+    document.getElementById("footnote").textContent="";
+    return;}
+  let lo=1,hi=1;
+  F.forEach(f=>rows.forEach(k=>{const e=estIn(f,k); if(e){lo=Math.min(lo,e.lo);hi=Math.max(hi,e.hi);}}));
+  lo=Math.min(lo,1/1.15); hi=Math.max(hi,1.15);
+  const W=300, PADR=14, H=25*rows.length+68, X1=W-PADR;
+  const sx=v=>6+(Math.log(v)-Math.log(lo))/(Math.log(hi)-Math.log(lo))*(X1-6);
+
+  F.forEach((f,ci)=>{
+    const o=O(selOut[0]), OX=ci===0?152:0;
+    const fb=blk(f,"regime"), flabel=(DATA.meta.strata.find(s=>s.key===f)||{}).label||f;
+    const d=document.createElement("div"); d.className="plot";
+    let svg=`<svg width="${W+OX}" height="${H}" font-family="Helvetica Neue,Helvetica,Arial">`;
+    [0.5,0.7,1,1.5,2,3].filter(t=>t>=lo*.98&&t<=hi*1.02).forEach(t=>{
+      svg+=`<text x="${OX+sx(t)}" y="${H-24}" fill="${PAL.mid}" font-size="10" text-anchor="middle">${t}</text>
+            <line x1="${OX+sx(t)}" y1="${H-38}" x2="${OX+sx(t)}" y2="${H-35}" stroke="${PAL.faint}"/>`;});
+    svg+=`<line x1="${OX+sx(1)}" y1="30" x2="${OX+sx(1)}" y2="${H-38}" stroke="${PAL.faint}"/>`;
+    // Which side of 1 is the bad side depends on the outcome: for a trust question an odds
+    // ratio below 1 means less trust, for a belief question it means less belief. So the two
+    // words swap, and they are coloured to match the marks, which are keyed to the number
+    // rather than to the valence.
+    // Plain wording, matching the explorer: say what happens to the reader's side of the
+    // number rather than whether the project calls it adverse. The pair still swaps with the
+    // outcome, because below 1 means less trust on a trust question and less belief on a
+    // belief one.
+    {const tr=o.direction==="trust";
+     const L=tr?["trust it less",PAL.obs]:["believe it less",PAL.obs];
+     const R=tr?["trust it more",PAL.priv]:["believe it more",PAL.priv];
+     svg+=`<text x="${OX+6}" y="${H-6}" fill="${L[1]}" font-size="10.4" font-weight="600">← ${L[0]}</text>
+           <text x="${OX+X1}" y="${H-6}" fill="${R[1]}" font-size="10.4" font-weight="600" text-anchor="end">${R[0]} →</text>`;}
+
+    rows.forEach((rk,i)=>{
+      const e=estIn(f,rk), y=40+i*25, ind=isRegime(rk)?0:12;
+      if(ci===0) svg+=`<text x="${ind}" y="${y+4}" fill="${isRegime(rk)?PAL.ink:PAL.mid}" font-size="${isRegime(rk)?12:11.3}">${labelOf(rk)}</text>`;
+      if(!e){svg+=`<text x="${OX+sx(1)}" y="${y+4}" fill="${PAL.faint}" font-size="10" text-anchor="middle">not fielded</text>`;return;}
+      const sig=!(e.lo<1&&e.hi>1), col=!sig?PAL.mid:(e.odds_ratio<1?PAL.obs:PAL.priv);
+      svg+=`<line x1="${OX+sx(e.lo)}" y1="${y}" x2="${OX+sx(e.hi)}" y2="${y}" stroke="${col}" stroke-width="1.4"/>
+            <circle cx="${OX+sx(e.odds_ratio)}" cy="${y}" r="4.2" fill="${col}" stroke="${col}" stroke-width="1.4"/>`;
+      if(e.restricted||isPlat(rk)) svg+=`<text x="${OX+sx(e.hi)+5}" y="${y+3.5}" fill="${PAL.faint}" font-size="9">6 of 15 waves</text>`;
+    });
+    // name the active subgroup on the plot, or the sample is the only thing that says so
+    const pretty = flabel;
+    const sublab = f==="all" ? "" : `<span style="font-weight:400;color:${PAL.priv}"> · ${pretty}</span>`;
+    d.innerHTML=`<h3>${o.label}${sublab}</h3><p class="pmeta">${
+      f==="all"?"All respondents":pretty} · ${fb?fb.prevalence.toFixed(1):"–"}% ${
+      o.direction==="trust"?"trusting":"believing"}${fb?" · n="+fb.n.toLocaleString():""}${
+      o.consp_control===false?' · <span title="'+DAGGER+'">conspiracy items not held fixed †</span>':""
+      }</p>${svg}</svg>
+      <p class="note" style="margin-top:7px">Each row compares people who reported that source in
+      the last 24 hours with people who did not. <b>1.0 means no difference.</b> 1.5 means their
+      odds of ${o.direction==="trust"?"trusting":"believing"} it are about half again as high, 0.7
+      about a third lower — with party, education, age, income, gender, survey date and every other
+      source held equal. The bar is the range the data are consistent with; grey means it crosses
+      1.0.</p>`;
+    plots.appendChild(d);
+  });
+
+  // ---- multivariate regression, one block per selected outcome
+  F.forEach(f=>{
+    const o=O(selOut[0]);
+    const lvls=[["regime",rows.filter(isRegime)],
+                ["channel",rows.filter(k=>!isRegime(k)&&!isPlat(k))],
+                ["platform",rows.filter(isPlat)]].filter(([,ks])=>ks.length);
+    lvls.forEach(([lv,ks])=>{
+      const blk=(M[f]||{})[lv]; if(!blk)return;
+      // follow the selector's display order, not the order the model happened to fit in
+      const ord=orderedNodes().map(nd=>nd.key);
+      const all=blk.estimates.slice().sort((a,b)=>{
+                   const ia=ord.indexOf(a.key), ib=ord.indexOf(b.key);
+                   return (ia<0?999:ia)-(ib<0?999:ib);});
+      const div=document.createElement("div"); div.style.marginBottom="22px";
+      const outcomeWord=o.direction==="trust"?"trusts":"believes";
+      const fl=(DATA.meta.strata.find(s=>s.key===f)||{}).label||f;
+      div.innerHTML=`<h3 style="font-size:13px;margin:0 0 3px">${o.label}
+          <span style="font-weight:400;color:${PAL.mid}">· ${fl} · ${lv}-level model</span></h3>
+        <div class="eq">logit( P(${outcomeWord} | X) ) = α + Σ β·source + party7 + education + age + income + male + wave fixed effects
+        &nbsp;&nbsp;n = ${blk.n.toLocaleString()} · ${blk.waves.length} waves · ${blk.n_wave_dummies} wave dummies · ${blk.df_model} model df</div>`;
+      let t=`<table><thead><tr><th>Term</th><th>Odds ratio</th><th>95% CI</th><th>p</th><th>Occupancy</th></tr></thead><tbody>`;
+      all.forEach(e=>{
+        const shown=ks.includes(e.key), sig=!(e.lo<1&&e.hi>1);
+        t+=`<tr${shown?' style="font-weight:600"':' style="opacity:.5"'}>
+            <td>${labelOf(e.key)}${e.restricted||isPlat(e.key)?' <span class="meta" style="margin:0">6 of 15 waves, separate model</span>':""}${
+                shown?"":' <span class="meta" style="margin:0">not shown</span>'}</td>
+            <td style="color:${sig?(e.odds_ratio<1?PAL.obs:PAL.priv):PAL.mid}">${e.odds_ratio.toFixed(3)}</td>
+            <td>[${e.lo.toFixed(3)}, ${e.hi.toFixed(3)}]</td>
+            <td>${e.p<1e-4?"&lt;0.0001":e.p.toFixed(4)}</td>
+            <td>${e.pct_occupying.toFixed(1)}%</td></tr>`;});
+      t+=`<tr class="sep"><td colspan="5"></td></tr>`;
+      (blk.controls||[]).forEach(c=>{
+        t+=`<tr class="ctrl"><td>${c.label}</td><td>${c.odds_ratio.toFixed(3)}</td>
+            <td>[${c.lo.toFixed(3)}, ${c.hi.toFixed(3)}]</td>
+            <td>${c.p<1e-4?"&lt;0.0001":c.p.toFixed(4)}</td><td>—</td></tr>`;});
+      t+=`</tbody></table>`;
+      div.innerHTML+=t; reg.appendChild(div);
+    });
+  });
+
+  document.getElementById("footnote").innerHTML=
+   `Every news source at a given level was in the model whether or not it is drawn in the plot;
+    unchecked terms are greyed in the table rather than removed, because <strong>toggling a source
+    filters the display of a fitted model and does not re-estimate it</strong>. There are three separate fitted models —
+    regime and channel on all 15 waves, and platform (Facebook, Twitter/X, YouTube, Instagram,
+    TikTok, Reddit, Wikipedia, Messenger, WhatsApp, Snapchat) on the 6 of 15 waves that name
+    individual platforms rather than generic categories. A platform row is <strong>not a decomposition of the regime row above
+    it</strong>: they are different models on different samples. Blue is below 1, purple above 1, grey means the
+    interval spans 1. Two sets of estimates rest on 6 of the 15 waves and are marked as such in the
+    plot: the named platforms, because only 6 waves list platforms individually, and AI Chat,
+    because the item was added to the questionnaire partway through the series. Trust outcomes are “a lot” or “some”; conspiracy items
+    “agree” or “strongly agree”. These are cross-sectional associations confounded with selective
+    exposure, not transmission rates. Built ${DATA.meta.built}. ${DATA.meta.note}`;
+}
+
+// bootstrap LAST: the helpers above are `const`, so calling boot()
+// before this point throws a temporal-dead-zone ReferenceError.
+__unlock(function(){const el=document.getElementById("payload"),raw=el?el.textContent.trim():"";
+ if(raw&&raw[0]==="{"){boot(JSON.parse(raw));return;}
+ fetch("data.json").then(r=>{if(!r.ok)throw new Error("HTTP "+r.status);return r.json()}).then(boot)
+  .catch(e=>fail("It tried to read <code>data.json</code> and got: "+e.message+
+   ".<br>If you opened this file from Finder the browser blocks that. Use "+
+   "<code>index_standalone.html</code>, or run <code>python3 -m http.server</code> here."));});
+</script>
+</body>
+</html>

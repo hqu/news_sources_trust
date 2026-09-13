@@ -6,12 +6,12 @@ explore the estimates without touching the underlying survey.
 
 There are **three pages**:
 
-| page | data | question it answers |
-|---|---|---|
-| `index.html` | `data.json` | For a given outcome, how do the news-source regimes rank? Forest plot, live multivariate model, party and diploma-divide subgroups. |
-| `explorer.html` | `data.json` | How does that ranking **change with how widely the belief is held**? Guided walkthrough of the two headline results, then a prevalence-window explorer. |
-| `gaps.html` | `gap_data.json` | **Who the gap belongs to.** The same associations as a difference between two groups of people, in percentage points — Democrats vs Republicans, graduates vs non-graduates, or users vs non-users of a source. |
-| `quantities.html` | `quantities.json` | **What each source actually tracks.** A belief can be unusual in three different ways — rare everywhere, lopsided toward one party, or sitting on one side of politics — and the sources answer to different ones. Static explanatory page written for a general reader: a coefficient grid, four sets of small multiples (one panel per source against its own quantity, the party-split "scissors" test, the attachment ladder, and the mirror pairs), a worked Simpson's-paradox panel, and a four-step case study on trust in the Supreme Court. Hover for point identity; no other interaction. |
+| # | page | data | question it answers |
+|---|---|---|---|
+| **1** | `index.html` | `quantities.json` | **What each source actually tracks** — the landing page. A belief can be unusual in three ways that come apart here: rare everywhere, lopsided toward one party, or sitting on one side of politics. Static explanatory page for a general reader: a coefficient grid, the flow map, four sets of small multiples (one panel per source, the party-split "scissors" test, the attachment ladder, the mirror pairs), a Simpson's-paradox panel, a four-step case study on trust in the Supreme Court, and a bibliography. Hover gives point identity; no other interaction. |
+| **2** | `rankings.html` | `data.json` | For a given outcome, how do the news-source regimes rank? Forest plot, live multivariate model, party and diploma-divide subgroups. |
+| **3** | `explorer.html` | `data.json` | How that ranking **changes with how widely the belief is held**. Guided walkthrough of the two headline results, then a prevalence-window explorer. |
+| **4** | `gaps.html` | `gap_data.json` | **Who the gap belongs to.** The same associations as a difference between two groups of people, in percentage points — Democrats vs Republicans, graduates vs non-graduates, or users vs non-users of a source. |
 
 ## Access word
 
@@ -139,6 +139,11 @@ Semi-Public Messaging and Crowdsourced are in the taxonomy but are not fielded i
 Reads `~/CHIP50_restricted/`, writes `data.json`. Requires the analysis helpers in
 `../paper2/eda/` (`wave_rule.py`, `chip50_clean.py`).
 
+Renamed 2026-09-13: the page that was `quantities.html` is now `index.html` and is the default
+landing page; the forest plot that was `index.html` is now `rankings.html`. `embed_data.py` became
+`embed_rankings.py` and `embed_quantities.py` became `embed_index.py`. Payload filenames are
+unchanged, so `index.html` still fetches `quantities.json`.
+
     python3 build_quantities_data.py
 
 Different input: this one reads **no microdata at all**. It takes the fourteen already-aggregated
@@ -149,4 +154,5 @@ typed by hand.
 
     python3 embed_quantities.py
 
-Inlines the payload into `quantities_standalone.html`, matching `embed_data.py` and `embed_gaps.py`.
+Inlines the payload into `index_standalone.html`, and base64-inlines
+`figures/information_flow_map.png` so the standalone copy carries the figure too.
