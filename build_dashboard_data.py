@@ -38,7 +38,7 @@ REGIMES = ["JS","PB","SRCH","AICH","VLP","PVT","INT","DEC"]
 # SLOT NUMBERS, NOT QUESTIONNAIRE ORDER. The questionnaire text lists this block in
 # DISPLAY order, which changes between waves; the microdata use stable Qualtrics choice IDs,
 # which do not. Harmonising on the questionnaire label puts "None of the above" (slot 11)
-# into the Very Large Platform roll-up. Authoritative map, with three independent
+# into the Big social platforms roll-up (VLP in the taxonomy). Authoritative map, with three independent
 # confirmations: paper3/data/chip50/pol_news2_data_slot_map.csv, and OUTLINE §"open
 # problems" point 8. Slot 11 (None of the above) and slot 12 (Truth Social, unassigned in
 # regime_taxonomy_v2) are deliberately excluded.
@@ -51,7 +51,7 @@ PLAT = {"pol_news2_1":("Facebook","VLP"), "pol_news2_2":("Twitter / X","VLP"),
 # ("Mobile instant message app; Facebook Messenger; WhatsApp; Snapchat"), as do
 # paper3/data/README.md and MODEL_NOTES sec.18. It moved with the 2026-09-06 PVT split,
 # This file was the only place still calling it VLP.
-REGIME_LABEL = {"JS":"Journalistic Standard","PB":"Partisan Broadcast","VLP":"Very Large Platform",
+REGIME_LABEL = {"JS":"Journalistic Standard","PB":"Partisan Broadcast","VLP":"Big social platforms",
                 # The regime is operationally one channel, podcasts, and the taxonomy name
                 # carries a claim -- no platform gatekeeper -- that one item cannot test. The
                 # pages are read by people who did not write the taxonomy, so the payload says

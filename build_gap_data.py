@@ -41,7 +41,7 @@ CHAN = {"pol_news1_5":("Network TV","JS"),   "pol_news1_4":("Local TV","JS"),
         "pol_news1_15":("Messaging app","PVT"), "pol_news1_1":("Friends and family","INT"),
         "pol_news1_13":("Search engine","SRCH"), "pol_news1_17":("AI chatbot","AICH")}
 REGIMES = ["JS","PB","SRCH","AICH","VLP","PVT","INT","DEC"]
-REGIME_LABEL = {"JS":"Journalistic Standard","PB":"Partisan Broadcast","VLP":"Very Large Platform",
+REGIME_LABEL = {"JS":"Journalistic Standard","PB":"Partisan Broadcast","VLP":"Big social platforms",
                 "DEC":"Podcasts","PVT":"Private Messaging","INT":"Interpersonal Ties",
                 "SRCH":"Search Engine","AICH":"AI Chat"}
 EDU = {"Some High School or Less":1,"High School Graduate":2,"Some College":3,

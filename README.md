@@ -137,7 +137,7 @@ regimes — lowest odds for a trust outcome, highest for conspiracy and denial.
 |---|---|
 | Journalistic Standard | network and local TV, print, news sites, community papers |
 | Partisan Broadcast | cable news, talk radio, late-night comedy |
-| Very Large Platform | social media |
+| Big social platforms | social media |
 | Decentralized | podcasts |
 | Private Messaging | messaging apps |
 | Interpersonal Ties | friends and family |
