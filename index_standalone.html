@@ -418,7 +418,6 @@ function drawOccupancy(host, O){
     const sign=s.rel>=0?"+":"\u2212";   // the sign carries direction; an arrow beside it was noise
     let g=`<text x="${L}" y="20" font-size="17" font-weight="700" fill="var(--ink)">${
         sign}${Math.abs(s.rel)}%</text>
-      <text x="${W-R}" y="20" text-anchor="end" font-size="9.6" fill="var(--mid)">since 2022</text>
       <line x1="${L}" y1="${T-9}" x2="${W-R}" y2="${T-9}" stroke="#f0f2f4" stroke-width="1"/>
       <line x1="${L}" y1="${T+ih}" x2="${W-R}" y2="${T+ih}" stroke="#ccd1d6" stroke-width="1"/>`;
     ix.forEach((i,j)=>{
