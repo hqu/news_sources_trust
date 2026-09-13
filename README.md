@@ -11,6 +11,7 @@ There are **three pages**:
 | `index.html` | `data.json` | For a given outcome, how do the news-source regimes rank? Forest plot, live multivariate model, party and diploma-divide subgroups. |
 | `explorer.html` | `data.json` | How does that ranking **change with how widely the belief is held**? Guided walkthrough of the two headline results, then a prevalence-window explorer. |
 | `gaps.html` | `gap_data.json` | **Who the gap belongs to.** The same associations as a difference between two groups of people, in percentage points — Democrats vs Republicans, graduates vs non-graduates, or users vs non-users of a source. |
+| `quantities.html` | `quantities.json` | **What each source actually tracks.** A belief can be unusual in three different ways — rare everywhere, lopsided toward one party, or sitting on one side of politics — and the sources answer to different ones. Static explanatory page written for a general reader: a coefficient grid, four sets of small multiples (one panel per source against its own quantity, the party-split "scissors" test, the attachment ladder, and the mirror pairs), a worked Simpson's-paradox panel, and a four-step case study on trust in the Supreme Court. Hover for point identity; no other interaction. |
 
 ## Access word
 
@@ -137,3 +138,15 @@ Semi-Public Messaging and Crowdsourced are in the taxonomy but are not fielded i
 
 Reads `~/CHIP50_restricted/`, writes `data.json`. Requires the analysis helpers in
 `../paper2/eda/` (`wave_rule.py`, `chip50_clean.py`).
+
+    python3 build_quantities_data.py
+
+Different input: this one reads **no microdata at all**. It takes the fourteen already-aggregated
+cell files in `../paper3/data/chip50_derived/` (`*_expanded_cells.csv`, `*_ladder_cells.csv`,
+produced there by `regime_ladder.py`) and writes `quantities.json` — 59 KB, seven sources, 31
+outcomes, 434 fitted cells. Every number on `quantities.html` is generated from that file; none is
+typed by hand.
+
+    python3 embed_quantities.py
+
+Inlines the payload into `quantities_standalone.html`, matching `embed_data.py` and `embed_gaps.py`.
