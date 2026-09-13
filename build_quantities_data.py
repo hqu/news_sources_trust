@@ -234,11 +234,20 @@ def build():
                            first=first, last=last, pp=round(last - first, 1),
                            rel=round(100 * (last / first - 1))))
     series.sort(key=lambda d: -d["last"])   # descending by current occupancy
+    # One representative wave per year, chosen for near-identical calendar position so the
+    # gaps really are twelve months: Jun 2022, Jun 2023, Jun 2024, Jul 2025, May 2026. Five
+    # rather than four, because the series spans five calendar years and dropping one would
+    # cost either the 2022 baseline or the most recent reading.
+    ANNUAL = ["23.0", "28.0", "32.0", "35.1", "38.0"]
+    idx = [i for i, w in enumerate(waves) if str(w) in ANNUAL]
+    assert len(idx) == len(ANNUAL), f"annual waves not all found: {waves}"
+
     occupancy = dict(
         waves=[dict(w=str(w), start=str(occ[occ.wave == w].start_date.iloc[0])) for w in waves],
         series=series,
         span=[str(occ[occ.wave == waves[0]].start_date.iloc[0]),
-              str(occ[occ.wave == waves[-1]].end_date.iloc[0])])
+              str(occ[occ.wave == waves[-1]].end_date.iloc[0])],
+        annual=idx)
 
     # ---- mirror pairs: private messaging, same target, two parties ----------------------
     P = caseE["PVT"]; mirror = []

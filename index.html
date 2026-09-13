@@ -402,53 +402,45 @@ function ladderChart(rungs,w,h,hero){
   return `<svg width="100%" viewBox="0 0 ${W} ${H}" role="img">${g}</svg>`;
 }
 
-/* ============ occupancy over time: grouped columns, one group per wave ============
-   Grouped rather than stacked because the shares are not mutually exclusive — the same
-   person can report several regimes in one 24-hour window, so they do not sum to a whole
-   and stacking them would imply they do. Series are ordered by current occupancy,
-   descending, and carry a neutral dark-to-light ramp: the ramp encodes that order and
-   nothing else, so no regime is singled out. */
+/* ============ occupancy: one small multiple per regime, five annual readings ============
+   Shared y scale across all seven panels, deliberately. A per-panel scale would make every
+   regime's trend look equally large and would flatter private messaging at 9.6% into looking
+   like mainstream news at 62.4%. The cost is that the short panels are short; the first and
+   last values are printed in each so the trend is still readable there. */
 function drawOccupancy(host, O){
-  const W=980, H=300, L=34, R=12, T=14, B=52;
-  const n=O.waves.length, k=O.series.length, iw=W-L-R, ih=H-T-B;
-  const ymax=Math.ceil(Math.max(...O.series.flatMap(s=>s.pts.filter(v=>v!=null)))/10)*10;
-  const grp=iw/n, pad=grp*0.16, bw=(grp-pad)/k;
-  const X=(i,j)=>L+grp*i+pad/2+bw*j, Y=v=>T+ih-(v/ymax)*ih;
-  const RAMP=["#2b3138","#454d56","#5f6871","#7b848d","#98a1a9","#b6bec5","#d4dae0"];
-  let g="";
-  for(let v=0; v<=ymax; v+=10){
-    g+=`<line x1="${L}" y1="${Y(v).toFixed(1)}" x2="${W-R}" y2="${Y(v).toFixed(1)}"
-        stroke="${v?"#f0f2f4":"#ccd1d6"}" stroke-width="1"/>
-        <text x="${L-6}" y="${(Y(v)+3.4).toFixed(1)}" text-anchor="end" font-size="9"
-        fill="#ccd1d6">${v}</text>`;
-  }
-  O.waves.forEach((w,i)=>{
-    O.series.forEach((s,j)=>{
+  const ix=O.annual, yrs=ix.map(i=>O.waves[i].start.slice(0,4));
+  const ymax=Math.ceil(Math.max(...O.series.flatMap(s=>ix.map(i=>s.pts[i]||0)))/10)*10;
+  const W=250, H=132, L=8, R=8, T=10, B=26, iw=W-L-R, ih=H-T-B;
+  const bw=iw/ix.length*0.56, gap=iw/ix.length;
+  const X=j=>L+gap*j+(gap-bw)/2, Y=v=>T+ih-(v/ymax)*ih;
+  const panels=O.series.map(s=>{
+    let g=`<line x1="${L}" y1="${T+ih}" x2="${W-R}" y2="${T+ih}" stroke="#ccd1d6" stroke-width="1"/>`;
+    ix.forEach((i,j)=>{
       const v=s.pts[i]; if(v==null) return;
-      g+=`<rect x="${X(i,j).toFixed(1)}" y="${Y(v).toFixed(1)}" width="${(bw*0.86).toFixed(1)}"
-          height="${(ih-(Y(v)-T)).toFixed(1)}" fill="${RAMP[j%RAMP.length]}">
-          <title>${w.start} · ${s.label}: ${v}%</title></rect>`;
+      g+=`<rect x="${X(j).toFixed(1)}" y="${Y(v).toFixed(1)}" width="${bw.toFixed(1)}"
+          height="${(T+ih-Y(v)).toFixed(1)}" fill="#8d959d" rx="1.5">
+          <title>${yrs[j]} · ${s.label}: ${v}%</title></rect>
+          <text x="${(X(j)+bw/2).toFixed(1)}" y="${H-B+13}" text-anchor="middle" font-size="8.4"
+          fill="#c3c9cf">${yrs[j].slice(2)}</text>`;
+      if(j===0||j===ix.length-1)
+        g+=`<text x="${(X(j)+bw/2).toFixed(1)}" y="${(Y(v)-4).toFixed(1)}" text-anchor="middle"
+            font-size="9.2" fill="var(--mid)">${v}</text>`;
     });
-    if(i===0||i===n-1||i%3===0)
-      g+=`<text x="${(L+grp*i+grp/2).toFixed(1)}" y="${H-B+15}" text-anchor="middle" font-size="8.6"
-          fill="#a3a9b0">${w.start.slice(0,7)}</text>`;
-  });
-  g+=`<text x="${L}" y="${H-B+34}" font-size="9.4" fill="var(--mid)">% of adults who used each for
-      political news in the previous 24 hours — they do not sum to 100, because one person can
-      report several</text>`;
-  const key=O.series.map((s,j)=>{
     const d=s.pp>=0?"+":"−";
-    return `<span style="display:inline-flex;align-items:center;gap:5px;margin-right:14px;
-      font-size:11.4px;color:var(--ink)">
-      <span style="width:11px;height:11px;border-radius:2px;background:${RAMP[j%RAMP.length]}"></span>
-      ${s.label} <span style="color:var(--mid)">${s.last}% (${d}${Math.abs(s.pp).toFixed(1)})</span></span>`;
+    return `<div class="pn occ" style="padding:9px 10px 4px">
+      <div class="ph" style="font-size:12.4px">${s.label}</div>
+      <div style="font-size:10.6px;color:var(--mid);margin:1px 0 2px">
+        ${s.first}% → ${s.last}% &nbsp;<span style="color:var(--ink)">${d}${Math.abs(s.pp).toFixed(1)}</span></div>
+      <svg width="100%" viewBox="0 0 ${W} ${H}" role="img"
+        aria-label="${s.label}, ${yrs.map((y,j)=>y+" "+s.pts[ix[j]]+"%").join(", ")}">${g}</svg>
+    </div>`;
   }).join("");
-  host.innerHTML=`<svg width="100%" viewBox="0 0 ${W} ${H}" role="img"
-    aria-label="Grouped columns, one group per survey wave from June 2022 to May 2026, showing the
-    percentage of adults using each of seven news-source regimes. Bars within each wave run in
-    descending order of current occupancy: mainstream news, people you know, big social platforms,
-    partisan broadcast, search engines, podcasts, private messaging.">${g}</svg>
-    <div style="margin:8px 0 0;line-height:1.9">${key}</div>`;
+  host.innerHTML=`<div class="grid4" style="margin:10px 0 4px">${panels}</div>
+    <p style="font-size:11.2px;color:var(--mid);margin:2px 0 0;max-width:92ch">One wave a year,
+    picked at the same point in each — June 2022, June 2023, June 2024, July 2025, May 2026.
+    All seven panels share one vertical scale, so the heights are comparable across regimes as
+    well as within one. The shares do not sum to 100: a person can report several in the same
+    24 hours.</p>`;
 }
 
 function boot(D){
