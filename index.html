@@ -323,16 +323,24 @@ const QEG={
  lean:"Trusting Fauci sits on the Democratic side of politics — 69% to 24% — and that stays "+
      "true no matter who is being asked."};
 const ENDS={pop:["rarer","more common"],gap:["their side's","my side's"],
-            lean:["Republican-coded","Democratic-coded"]};
+            lean:["Democratic-coded","Republican-coded"]};
+/* The third column runs left to right as the political spectrum, Democratic end on the left,
+   because any other arrangement reads backwards. The underlying variable is Dem base minus Rep
+   base, so the bar AND the printed coefficient are both negated for that column — otherwise a
+   source that goes with Democratic-coded positions would point at the Republican label. One
+   consequence, recorded so nobody trips on it: the sign shown here for lean is the reverse of
+   MODEL_NOTES section 21, which signs it toward the Democratic end. */
+const FLIP=q=>q==="lean"?-1:1;
 
 /* one cell of the grid: a coefficient drawn as a bar off a centre line */
 function cellSvg(c,qid,dom){
   const W=168,H=30,MID=W/2,DOM=0.008,sig=Math.abs(c.t)>=2;
-  const x=Math.max(-1,Math.min(1,c.b/DOM))*(MID-10);
+  const b=c.b*FLIP(qid);
+  const x=Math.max(-1,Math.min(1,b/DOM))*(MID-10);
   const col=QCOL[qid], op=sig?(Math.abs(c.t)>=4?1:.72):.28;
   /* dom: 1 = this column alone is the answer, 2 = this column is half of a pair
      (own-party prevalence is population and gap together, outlined across both) */
-  return `<svg width="${W}" height="${H}" role="img" aria-label="coefficient ${c.b.toFixed(5)}, t ${c.t.toFixed(2)}">
+  return `<svg width="${W}" height="${H}" role="img" aria-label="coefficient ${b.toFixed(5)}, t ${(c.t*FLIP(qid)).toFixed(2)}">
     ${dom?`<rect x="1" y="1" width="${W-2}" height="${H-2}" rx="6" fill="none"
         stroke="${dom===3?"var(--faint)":"var(--ink)"}" stroke-width="1.4"
         ${dom===2?'stroke-dasharray="5 3"':""}/>`:""}
@@ -631,14 +639,16 @@ function boot(D){
     for(const q of Q){
       const c=r.coef[q.id], sig=Math.abs(c.t)>=2;
       h+=`<td>${cellSvg(c,q.id,domOf(q.id))}
-        <div class="tnum${sig?" sig":""}">${FMT(c.b)} &nbsp; t ${T(c.t)}</div></td>`;
+        <div class="tnum${sig?" sig":""}">${FMT(c.b*FLIP(q.id))} &nbsp; t ${T(c.t*FLIP(q.id))}</div></td>`;
     }
     h+=`<td class="r2">${r.r2.toFixed(2)}</td></tr>`;
   }
   h+=`</tbody></table>
    <p style="font-size:11.8px;color:var(--mid);max-width:80ch">Each number is the change in the
    log odds of holding the belief per one percentage point of that quantity, with the other two held
-   fixed. <b>t</b> is how many standard errors the estimate sits from zero; past about 2 it is
+   fixed. The third column runs left to right as the political spectrum, so a bar to the left means
+   the source goes with Democratic-coded positions and a bar to the right with Republican-coded ones.
+   <b>t</b> is how many standard errors the estimate sits from zero; past about 2 it is
    unlikely to be noise. <b>fit</b> is the share of the variation across all 448 estimates that the
    three quantities together account for.</p>`;
 
@@ -761,7 +771,7 @@ without exception on the channels that can be counted, reach neither.</p>`;
    ["The three quantities this page is about",[
     ["How common it is overall","The plain headcount, both parties together."],
     ["Your own side's position","How much more common a position is among people who share your politics than among people who don't — measured from where the person answering stands, so the same position is 'my side's' for one party and 'theirs' for the other."],
-    ["Which side it belongs to","How much more common a position is among Democrats than Republicans, regardless of who is being asked. A fact about the position, not the person."]]],
+    ["Which side it belongs to","How much more common a position is among one party than the other, regardless of who is being asked. A fact about the position, not the person. In the grid this column is drawn as the political spectrum \u2014 Democratic-coded to the left, Republican-coded to the right."]]],
    ["Chart words",[
     ["Small multiples","The same chart repeated with one thing changed, laid side by side so the shapes can be compared without having to remember the last one."],
     ["Scissors","Two fitted lines crossing. Here it means a source does opposite things to Democrats and Republicans, which is how a source that pulls in one political direction looks when you measure from each party's own side."],
