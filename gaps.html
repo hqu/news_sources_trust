@@ -414,7 +414,13 @@ function buildSrcTree(){
 function buildOutTree(){
   const h=document.getElementById("outTree"); h.innerHTML="";
   for(const g of ["Trust","Conspiracy","Outlier","Government","Health"]){
-    const list=OUT.filter(o=>o.group===g); if(!list.length) continue;
+    let list=OUT.filter(o=>o.group===g); if(!list.length) continue;
+    // The conspiracy items run rarest first, so the column reads as a prevalence ladder
+    // instead of the payload's order. Sorted on a copy: OUT itself is the selection order
+    // everywhere else, and OUT[0] is the fallback outcome. An item with no prevalence sorts
+    // last rather than to the front, which is where a null would land in a bare subtraction.
+    if(g==="Conspiracy") list=[...list].sort((a,b)=>
+      ((a.prev==null)-(b.prev==null)) || (a.prev-b.prev));
     const d=document.createElement("div"); d.className="grp";
     const title={Trust:"The profession and the industry",Conspiracy:"Conspiracy belief",
                  Outlier:"The two outliers",Government:"Government, agencies and courts",
