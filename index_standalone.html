@@ -572,6 +572,13 @@ function boot(D){
    rule, applied to whichever side you happen to be on.</p>`;
 
   /* =============== E. the ladder =============== */
+  // Hidden 2026-09-15 at the author's request. The whole section is behind this flag rather
+  // than deleted: `quantities.json` still carries D.ladder, so flipping this to true brings it
+  // back with no rebuild. Two passages outside the block referred to it and were adjusted --
+  // the sample caveat below, which named it as the exception, and the closing paragraph, which
+  // still cites the 45% figure this section used to show.
+  const SHOW_LADDER=false;
+  if(SHOW_LADDER){
   const LD={}; D.ladder.forEach(l=>LD[l.id]=l);
   h+=`<h2>What happens to people with no party at all</h2>
    <p>If a pattern exists because it costs something to disagree with your own side, it should fade
@@ -593,6 +600,7 @@ function boot(D){
    45% of it needs a side to deviate from and the rest does not. Podcasts do the opposite and are at
    their strongest among people with no party. Partisan broadcast simply disappears, which is the
    second time on this page that the method has recovered something obvious it was never told.</p>`;
+  }
 
   /* ---- the caveat, which matters more than any row ---- */
   h+=`<div class="caveat">
@@ -604,12 +612,10 @@ function boot(D){
    <p>So read every row as <i>"the people who use this are the people who…"</i> and never as
    <i>"using this makes you…"</i>. That distinction is not a technicality here; it is the whole
    difference between a description and a cause.</p>
-   <p>Two more limits worth knowing. <b>The samples differ between sections.</b> The grid, the
-   panels and the worked example compare Democrats against Republicans, with people who lean toward a
-   party counted on the side they lean to. The section on people with no party is the exception —
-   it is the one place everybody is included, because the whole point of it is the people the other
-   sections leave out.</p>
-   <p>And the questions are not all asked equally often. A few of the 31, such as trust in Kamala
+   <p>Two more limits worth knowing. <b>Everything here compares Democrats against Republicans</b>,
+   with people who lean toward a party counted on the side they lean to. People who report no party
+   at all are not in any of these estimates.</p>
+   <p>And the questions are not all asked equally often. A few of the 32, such as trust in Kamala
    Harris and in Elon Musk, appear in only a handful of survey waves and are measured less precisely
    than the rest.</p></div>`;
 
