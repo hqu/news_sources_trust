@@ -386,7 +386,7 @@ const ALSO=[["Election denial",["denial"]],
 const COLDEFS=[
  ["Term","the variable whose coefficient that row reports. The upper block holds the news sources — a regime, or an individual channel, coded 1 if the respondent reported getting political news from it in the previous 24 hours and 0 otherwise. Below the rule sit the control variables, which are in every model and are not shown in the plot. A source greyed and marked <i>not shown</i> was in the fitted model but is currently unchecked in the left column, so it is adjusted for without being drawn."],
  ["Odds ratio","the exponentiated coefficient: how the odds of the outcome change for someone who uses that source, holding every other term in the model fixed. One means no difference. Above one means higher odds of the outcome — more trusting on a trust measure, more believing on a conspiracy or denial measure. Below one means lower odds. An odds ratio of 1.50 is a 50% increase in the odds, not in the probability, and the two diverge as the outcome becomes common."],
- ["95% CI","the confidence interval around the odds ratio. Read it as the range of values the data are consistent with. An interval that excludes one is conventionally called significant and is drawn in colour in the plot; an interval spanning one is drawn in grey and open. Intervals here are model-based on survey-weighted estimates, so they quantify uncertainty conditional on the panel and its weighting, not selection into the panel."],
+ ["95% CI","the confidence interval around the odds ratio. Read it as the range of values the data are consistent with. An interval that excludes one is conventionally called significant; in the plot that is the bar clearing the 1.0 line, which is the only thing marking it — the plot is monochrome and no mark changes colour for significance or for direction. Intervals here are model-based on survey-weighted estimates, so they quantify uncertainty conditional on the panel and its weighting, not selection into the panel."],
  ["p","the two-sided p-value for the null that the odds ratio is one. With samples in the hundreds of thousands almost everything clears conventional thresholds, so the interval and the size of the estimate carry more information than the p-value does, and the ordering of sources matters more than any single test."],
  ["Occupancy","the weighted share of respondents in that model who reported using the source in the previous 24 hours. It is a property of the predictor, not of the outcome, so it does not change when the outcome changes. It matters for reading the rest of the row: a large odds ratio on a source occupied by 2% of adults describes far fewer people than a modest one on a source occupied by 60%, and controls have no occupancy, marked with a dash."]];
 
@@ -775,15 +775,16 @@ function draw(){
     svg+=`<line x1="${OX+sx(1)}" y1="30" x2="${OX+sx(1)}" y2="${H-38}" stroke="${PAL.faint}"/>`;
     // Which side of 1 is the bad side depends on the outcome: for a trust question an odds
     // ratio below 1 means less trust, for a belief question it means less belief. So the two
-    // words swap, and they are coloured to match the marks, which are keyed to the number
-    // rather than to the valence.
+    // words swap. They used to be coloured to match the marks; the marks are monochrome now,
+    // so the colour had nothing left to match and these are neutral too. Position and the
+    // arrow carry the direction.
     // Plain wording, matching the explorer: say what happens to the reader's side of the
     // number rather than whether the project calls it adverse. The pair still swaps with the
     // outcome, because below 1 means less trust on a trust question and less belief on a
     // belief one.
     {const tr=o.direction==="trust";
-     const L=[WORD(o,"less",tr?"trust it less":"believe it less"),PAL.obs];
-     const R=[WORD(o,"more",tr?"trust it more":"believe it more"),PAL.priv];
+     const L=[WORD(o,"less",tr?"trust it less":"believe it less"),PAL.mid];
+     const R=[WORD(o,"more",tr?"trust it more":"believe it more"),PAL.mid];
      svg+=`<text x="${OX+6}" y="${H-6}" fill="${L[1]}" font-size="10.4" font-weight="600">← ${L[0]}</text>
            <text x="${OX+X1}" y="${H-6}" fill="${R[1]}" font-size="10.4" font-weight="600" text-anchor="end">${R[0]} →</text>`;}
 
@@ -791,7 +792,12 @@ function draw(){
       const e=estIn(f,rk), y=40+i*25, ind=isRegime(rk)?0:12;
       if(ci===0) svg+=`<text x="${ind}" y="${y+4}" fill="${isRegime(rk)?PAL.ink:PAL.mid}" font-size="${isRegime(rk)?12:11.3}">${labelOf(rk)}</text>`;
       if(!e){svg+=`<text x="${OX+sx(1)}" y="${y+4}" fill="${PAL.faint}" font-size="10" text-anchor="middle">not fielded</text>`;return;}
-      const sig=!(e.lo<1&&e.hi>1), col=!sig?PAL.mid:(e.odds_ratio<1?PAL.obs:PAL.priv);
+      // One colour for every mark. Direction is already the dot's position against the 1.0
+      // rule and significance is already whether the bar crosses it, so colouring the mark for
+      // either says a third time what the geometry says twice. The specific thing that was
+      // wrong: the dot took its colour from whether the *interval* spans 1, which puts a
+      // property of the interval onto the point estimate.
+      const col=PAL.ink;
       svg+=`<line x1="${OX+sx(e.lo)}" y1="${y}" x2="${OX+sx(e.hi)}" y2="${y}" stroke="${col}" stroke-width="1.4"/>
             <circle cx="${OX+sx(e.odds_ratio)}" cy="${y}" r="4.2" fill="${col}" stroke="${col}" stroke-width="1.4"/>`;
       if(e.restricted||isPlat(rk)) svg+=`<text x="${OX+sx(e.hi)+5}" y="${y+3.5}" fill="${PAL.faint}" font-size="9">6 of 15 waves</text>`;
@@ -809,8 +815,8 @@ function draw(){
       <b>1.0 means no difference.</b> 1.5 means their
       odds of ${WORD(o,"it",(o.direction==="trust"?"trusting":"believing")+" it")} are about half again as high, 0.7
       about a third lower — with party, education, age, income, gender, survey date and every other
-      source held equal. The bar is the range the data are consistent with; grey means it crosses
-      1.0.</p>`;
+      source held equal. The bar is the range the data are consistent with: where it crosses the
+      1.0 line, no difference is one of the things the data are consistent with.</p>`;
     plots.appendChild(d);
   });
 
@@ -836,11 +842,11 @@ function draw(){
         &nbsp;&nbsp;n = ${blk.n.toLocaleString()} · ${blk.waves.length} waves · ${blk.n_wave_dummies} wave dummies · ${blk.df_model} model df</div>`;
       let t=`<table><thead><tr><th>Term</th><th>Odds ratio</th><th>95% CI</th><th>p</th><th>Occupancy</th></tr></thead><tbody>`;
       all.forEach(e=>{
-        const shown=ks.includes(e.key), sig=!(e.lo<1&&e.hi>1);
+        const shown=ks.includes(e.key);
         t+=`<tr${shown?' style="font-weight:600"':' style="opacity:.5"'}>
             <td>${labelOf(e.key)}${e.restricted||isPlat(e.key)?' <span class="meta" style="margin:0">6 of 15 waves, separate model</span>':""}${
                 shown?"":' <span class="meta" style="margin:0">not shown</span>'}</td>
-            <td style="color:${sig?(e.odds_ratio<1?PAL.obs:PAL.priv):PAL.mid}">${e.odds_ratio.toFixed(3)}</td>
+            <td>${e.odds_ratio.toFixed(3)}</td>
             <td>[${e.lo.toFixed(3)}, ${e.hi.toFixed(3)}]</td>
             <td>${e.p<1e-4?"&lt;0.0001":e.p.toFixed(4)}</td>
             <td>${e.pct_occupying.toFixed(1)}%</td></tr>`;});
@@ -861,8 +867,9 @@ function draw(){
     regime and channel on all 15 waves, and platform (Facebook, Twitter/X, YouTube, Instagram,
     TikTok, Reddit, Wikipedia, Messenger, WhatsApp, Snapchat) on the 6 of 15 waves that name
     individual platforms rather than generic categories. A platform row is <strong>not a decomposition of the regime row above
-    it</strong>: they are different models on different samples. Blue is below 1, purple above 1, grey means the
-    interval spans 1. Two sets of estimates rest on 6 of the 15 waves and are marked as such in the
+    it</strong>: they are different models on different samples. Nothing in the plot is colour-coded:
+    read direction from which side of the 1.0 line the dot sits on, and read significance from
+    whether the bar crosses that line. Two sets of estimates rest on 6 of the 15 waves and are marked as such in the
     plot: the named platforms, because only 6 waves list platforms individually, and AI Chat,
     because the item was added to the questionnaire partway through the series. Trust outcomes are “a lot” or “some”; conspiracy items
     “agree” or “strongly agree”. These are cross-sectional associations confounded with selective
