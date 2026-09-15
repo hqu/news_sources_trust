@@ -832,7 +832,6 @@ function draw(){
       const col=PAL.ink;
       svg+=`<line x1="${OX+sx(e.lo)}" y1="${y}" x2="${OX+sx(e.hi)}" y2="${y}" stroke="${col}" stroke-width="1.4"/>
             <circle cx="${OX+sx(e.odds_ratio)}" cy="${y}" r="4.2" fill="${col}" stroke="${col}" stroke-width="1.4"/>`;
-      if(e.restricted||isPlat(rk)) svg+=`<text x="${OX+sx(e.hi)+5}" y="${y+3.5}" fill="${PAL.faint}" font-size="9">6 of 15 waves</text>`;
     });
     // name the active subgroup on the plot, or the sample is the only thing that says so
     const pretty = flabel;
@@ -901,8 +900,9 @@ function draw(){
     individual platforms rather than generic categories. A platform row is <strong>not a decomposition of the regime row above
     it</strong>: they are different models on different samples. Nothing in the plot is colour-coded:
     read direction from which side of the 1.0 line the dot sits on, and read significance from
-    whether the bar crosses that line. One set of estimates rests on 6 of the 15 waves and is marked as such in the
-    plot: the named platforms, because only 6 waves list platforms individually. Trust outcomes are “a lot” or “some”; conspiracy items
+    whether the bar crosses that line. One set of estimates rests on 6 of the 15 waves rather than all
+    15 — the named platforms, because only 6 waves list platforms individually. The plot no longer
+    annotates those rows; the table below marks each of them instead. Trust outcomes are “a lot” or “some”; conspiracy items
     “agree” or “strongly agree”. These are cross-sectional associations confounded with selective
     exposure, not transmission rates. Built ${DATA.meta.built}. ${DATA.meta.note}`;
 }
