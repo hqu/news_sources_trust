@@ -309,6 +309,14 @@ const DIMS=[["source","News source use","uses this news source for political new
    bring them back -- nothing else has to change.
    --------------------------------------------------------------------------- */
 const HIDDEN_OUTCOMES=["rfk","musk"];
+/* ---------------------------------------------------------------------------
+   TEMPORARILY HIDDEN NEWS SOURCES, by regime key. Filtered out of meta.sources
+   and meta.regimes at load, which is where the source column, the ranking panel
+   and the not-fielded fallbacks all read from, so the regime and the channels
+   underneath it disappear together and nothing downstream needs a special case.
+   The payload keeps its cells. Empty the array to bring them back.
+   --------------------------------------------------------------------------- */
+const HIDDEN_SOURCES=["AICH"];
 /* Regrouped in the page rather than in the payload so the change did not need a refit; the
    build emits the same grouping from its next run. Idempotent either way. */
 const REGROUP={cdc:"Government",fda:"Government",fauci:"Government"};
@@ -390,8 +398,8 @@ function buildSrcTree(){
     // only", "Search Engine / Search engine only".
     const same = solo && kids[0].label.toLowerCase()===r.label.toLowerCase();
     const sub = (solo && !same) ? `<span class="chsub">${kids[0].label}</span>` : "";
-    // A source is only offered where it was actually fitted for the chosen question. AI Chat
-    // runs in six waves, so on a question asked outside them there is no model to show and the
+    // A source is only offered where it was actually fitted for the chosen question: a source
+    // whose item ran in only some waves has no model on a question asked outside them, and the
     // row is greyed rather than left clickable and then apologised for.
     const na = !DATA.cells[S.outcome+"|"+r.key];
     d.innerHTML=`<label class="row${na?" na":""}"${na?' title="'+NA_NOTE+'"':""}>
@@ -538,7 +546,7 @@ function draw(){
 function drawRanking(){
   const host=document.getElementById("srcRank"), note=document.getElementById("rankNote");
   host.innerHTML="";
-  // Six of the eight regimes have exactly one channel, so the channel row would repeat the
+  // Five of the seven regimes have exactly one channel, so the channel row would repeat the
   // regime row under a second name -- "Podcasts" twice, "Private Messaging" beside "Messaging
   // app". Only Journalistic Standard and Partisan Broadcast are real aggregates, so only
   // their channels are listed alongside the regimes.
@@ -700,7 +708,10 @@ __unlock(function(){
     document.querySelectorAll(".dupd").forEach(e=>e.textContent=DATA.meta.built);
     raw.outcomes.forEach(o=>{ if(REGROUP[o.key]) o.group=REGROUP[o.key]; });
     OUT=raw.outcomes.filter(o=>!HIDDEN_OUTCOMES.includes(o.key));
-    SRC=raw.meta.sources; REG=raw.meta.regimes;
+    const hidden=new Set(HIDDEN_SOURCES);
+    raw.meta.sources.forEach(x=>{if(x.parent&&hidden.has(x.parent)) hidden.add(x.key);});
+    SRC=raw.meta.sources.filter(x=>!hidden.has(x.key));
+    REG=raw.meta.regimes.filter(r=>!hidden.has(r.key));
     if(HIDDEN_OUTCOMES.includes(S.outcome)) S.outcome=OUT[0].key;
     if(!DATA.cells[S.outcome+"|"+S.source]) S.source=REG[0].key;
     wire(); render();

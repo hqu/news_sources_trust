@@ -405,6 +405,8 @@ const DEFS=[
   "Political information received in conversation from people the respondent knows. Fully attributable to a named person and leaving no durable record, which is the mirror image of a pseudonymous post. No intervention reaches it."],
  ["SRCH","Search Engine","search engines",
   "Queries that route a user to sources rather than publishing content. Highly enumerable and highly controllable, and the only regime with a protective association on most outcomes here."],
+ // Kept in the glossary array but filtered out where #defs is written, because AICH is in
+ // HIDDEN_SOURCES. Restoring the regime restores this entry with it.
  ["AICH","AI Chat","AI chatbots",
   "Generative systems that compose an answer rather than pointing to one. The output is not enumerable — it is produced once, for one person, and not retained in any public record — while the input is the most controllable of any regime, because a single operator sets the model's behaviour. The AI chatbot item was added to the questionnaire partway through the series, so it is asked in 6 of the 15 waves and its estimates come from a separate model on those waves."],
  ["SPM","Semi-Public Messaging","not measured",
@@ -451,10 +453,11 @@ function renderQuestions(){
       html+=`<p class="qstem">${ent["__stem_"+st].text}`
            +(STEM_NOTE[st]?`<br><span class="qs">${STEM_NOTE[st]}</span>`:"")+`</p>`;
       kids.sort((a,b)=>{const n=x=>parseInt((x.match(/_(\d+)$/)||[0,0])[1]);return n(a)-n(b)||a.localeCompare(b);});
-      kids.filter(k=>!HIDDEN_VARS.includes(k))
+      kids.filter(k=>!HIDDEN_VARS.includes(k)&&!HIDDEN_KEYS.has(k))
           .forEach(k=>{used.add(k); html+=item(k,ent[k]);});
     });
-    Object.keys(ent).filter(k=>!k.startsWith("__stem_")&&!used.has(k)&&!HIDDEN_VARS.includes(k))
+    Object.keys(ent).filter(k=>!k.startsWith("__stem_")&&!used.has(k)
+                                &&!HIDDEN_VARS.includes(k)&&!HIDDEN_KEYS.has(k))
       .forEach(k=>{html+=item(k,ent[k]);});
     host.innerHTML=html||'<p class="q" style="color:#ccd1d6">not available</p>';};
   put("qsource","source"); put("qoutcome","outcome"); put("qcontrol","control");}
@@ -470,8 +473,35 @@ function stamp(){
    --------------------------------------------------------------------------- */
 const HIDDEN_OUTCOMES=["rfk","musk"];
 const HIDDEN_VARS=["pol_trust_rfk","pol_trust_musk"];
+/* ---------------------------------------------------------------------------
+   TEMPORARILY HIDDEN NEWS SOURCES. Same idea as HIDDEN_OUTCOMES: the models and
+   the payload are untouched and the regime is stripped out of the loaded data
+   before anything reads it, so there is one filter rather than a special case in
+   the tree, the plot, the table, the defaults and the question list. Naming a
+   regime here also hides the channels and named platforms that belong to it.
+   Empty the array to bring them back -- the prose counts below are the only
+   thing that would then need a second look.
+   --------------------------------------------------------------------------- */
+const HIDDEN_SOURCES=["AICH"];
+const HIDDEN_KEYS=new Set();          // filled by pruneSources: regimes + their children
+function pruneSources(d){
+  const regs=d.meta.regimes||[];
+  regs.filter(r=>HIDDEN_SOURCES.includes(r.key)).forEach(r=>{
+    HIDDEN_KEYS.add(r.key); (r.channels||[]).forEach(c=>HIDDEN_KEYS.add(c.key));});
+  (d.meta.platforms||[]).filter(p=>HIDDEN_KEYS.has(p.parent))
+    .forEach(p=>HIDDEN_KEYS.add(p.key));
+  d.meta.regimes=regs.filter(r=>!HIDDEN_KEYS.has(r.key));
+  d.meta.platforms=(d.meta.platforms||[]).filter(p=>!HIDDEN_KEYS.has(p.key));
+  const strip=b=>{if(b&&b.estimates) b.estimates=b.estimates.filter(e=>!HIDDEN_KEYS.has(e.key));};
+  (d.outcomes||[]).forEach(o=>{
+    ["regime","channel","platform"].forEach(lv=>strip(o[lv]));
+    Object.keys(o.models||{}).forEach(f=>
+      ["regime","channel","platform"].forEach(lv=>strip(o.models[f][lv])));
+    if(Array.isArray(o.default_on)) o.default_on=o.default_on.filter(k=>!HIDDEN_KEYS.has(k));
+  });
+  return d;}
 function boot(d){try{
-  DATA=d; DATA.outcomes=DATA.outcomes.filter(o=>!HIDDEN_OUTCOMES.includes(o.key));
+  DATA=pruneSources(d); DATA.outcomes=DATA.outcomes.filter(o=>!HIDDEN_OUTCOMES.includes(o.key));
   init();loadQuestions();stamp();
 }catch(e){fail("Error building the view: "+e.message);throw e;}}
 
@@ -510,9 +540,9 @@ const GROUPONLY={CRW:"Crowdsourced"};
 // here because it has no 24-hour item of its own -- Reddit and Wikipedia are the only way it
 // appears at all, so leaving them unchecked hides the regime completely.
 const OPEN_BY_DEFAULT=["VLP","PVT","CRW"];
-// On load and on every outcome change, switch on all eight regimes — but only those the
-// chosen outcome can actually estimate, since a regime absent from its waves (AI Chat on
-// the pre-2024 items) would otherwise sit checked with nothing to draw.
+// On load and on every outcome change, switch on every regime — but only those the chosen
+// outcome can actually estimate, since a regime absent from the waves that carry the outcome
+// would otherwise sit checked with nothing to draw.
 function defaultsFor(keys){
   const s=new Set();
   keys.forEach(k=>{const o=O(k); if(!o)return;
@@ -622,7 +652,9 @@ function init(){
   // definitions
   document.getElementById("coldefs").innerHTML=COLDEFS.map(([n,txt])=>
     `<p><b>${n}</b> — ${txt}</p>`).join("");
-  document.getElementById("defs").innerHTML=DEFS.map(([s,n,ch,txt])=>
+  document.getElementById("defs").innerHTML=DEFS
+    .filter(([s])=>!HIDDEN_SOURCES.includes(s))     // a hidden regime gets no glossary entry
+    .map(([s,n,ch,txt])=>
     `<p><b>${n}</b> <span class="ch">(${s}) — ${ch}.</span> ${txt}</p>`).join("");
 
   const first=DATA.outcomes.find(o=>o.is_default)||DATA.outcomes[0];
@@ -869,9 +901,8 @@ function draw(){
     individual platforms rather than generic categories. A platform row is <strong>not a decomposition of the regime row above
     it</strong>: they are different models on different samples. Nothing in the plot is colour-coded:
     read direction from which side of the 1.0 line the dot sits on, and read significance from
-    whether the bar crosses that line. Two sets of estimates rest on 6 of the 15 waves and are marked as such in the
-    plot: the named platforms, because only 6 waves list platforms individually, and AI Chat,
-    because the item was added to the questionnaire partway through the series. Trust outcomes are “a lot” or “some”; conspiracy items
+    whether the bar crosses that line. One set of estimates rests on 6 of the 15 waves and is marked as such in the
+    plot: the named platforms, because only 6 waves list platforms individually. Trust outcomes are “a lot” or “some”; conspiracy items
     “agree” or “strongly agree”. These are cross-sectional associations confounded with selective
     exposure, not transmission rates. Built ${DATA.meta.built}. ${DATA.meta.note}`;
 }

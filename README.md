@@ -86,7 +86,8 @@ weighted occupancy share.
   individually; the other 9 offer just the generic category "a social media website or app".
   And AI Chat, because that item was added to the questionnaire partway through the series.
   Putting either in the main model would drag every outcome down to those 6 waves, so each is
-  fitted separately.
+  fitted separately. Of the two, only the named platforms are currently drawn: see *Hidden
+  sources* below.
 - Trust outcomes are coded "a lot" or "some"; conspiracy items "agree" or "strongly agree";
   election denial is agreement that Trump would have won a fairly counted 2020 election.
 - Two **health positions** were added 2026-09-13, coded exactly as `paper2/eda/diploma_divide.py`
@@ -142,10 +143,27 @@ regimes — lowest odds for a trust outcome, highest for conspiracy and denial.
 | Private Messaging | messaging apps |
 | Interpersonal Ties | friends and family |
 | Search Engine | search |
-| AI Chat | AI chatbots (asked in 6 of the 15 waves) |
+| AI Chat | AI chatbots (asked in 6 of the 15 waves) — **hidden, see below** |
 
 Semi-Public Messaging and Crowdsourced are in the taxonomy but are not fielded in the
 24-hour battery, so they cannot appear here.
+
+### Hidden sources
+
+AI Chat is estimated and kept in every payload, and hidden from all four pages at the
+rendering layer. Each page declares a `HIDDEN_SOURCES` array of regime keys next to its
+existing `HIDDEN_OUTCOMES` array and filters the loaded data through it once, before any
+surface reads it — `rankings.html` also strips the regime's channel out of the question
+list, `explorer.html` drops it from `REG`, `gaps.html` from `meta.sources` and
+`meta.regimes`. `index.html` never carried it: `quantities.json` has seven regimes. Figure 1
+forks the same way, through the `dashboard` variant of `paper3/figures/make_flow_map.py`,
+which names the lane Search Engine alone where the proposal names it Search Engine · AI
+Chat.
+
+Emptying the arrays brings the regime back everywhere. The prose counts are the one thing
+that does not follow automatically: "all seven news-source regimes" in `rankings.html`,
+"7 kinds of news source" in `explorer.html`, and the one-versus-two short-wave sentence in
+the `rankings.html` footnote all go back to their eight-regime wording.
 
 ## Rebuilding
 

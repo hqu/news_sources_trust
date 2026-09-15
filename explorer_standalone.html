@@ -8,7 +8,9 @@
 :root{--ink:#16181d;--mid:#71777f;--faint:#ccd1d6;--hair:#e6e9ec;--bg:#fff;--wash:#f4f7f9;
       /* Eight categories on white, so the palette is Okabe-Ito derived: distinguishable under
          deuteranopia and protanopia, and separated in value as well as hue. Podcasts keep
-         the most salient colour because it is the result the page is about. */
+         the most salient colour because it is the result the page is about. Seven are drawn
+         at present: --aich belongs to the hidden AI Chat regime and is kept so the other
+         seven do not shift hue if it comes back. */
       --dec:#b3003c;   /* deep crimson */
       --pvt:#f28e2b;   /* orange       */
       --vlp:#0047ab;   /* deep blue    */
@@ -217,7 +219,7 @@ addEventListener("DOMContentLoaded",function(){
 <p class="sub">Some false claims are believed by about one American in seven. Others are believed by two in
 three. It turns out that <b>the news sources linked to the rare claims are not the ones linked to the common
 claims</b> — and podcasts sit apart from everything else. <span style="color:var(--ink)">Below: 17 survey
-questions and 8 kinds of news source from the CHIP50 panel, from weighted models that hold party, education,
+questions and 7 kinds of news source from the CHIP50 panel, from weighted models that hold party, education,
 age, income, gender and survey date constant. Everything is shown so that <b>to the right of 1 is the worse
 direction</b> — believing the claim, or <em>distrusting</em> the institution. These are associations, not
 causes: people choose their news as well as being shaped by it.</span></p>
@@ -251,12 +253,9 @@ nothing is re-estimated when you change the selection.
     <div class="panel">
       <div class="track" style="margin-bottom:4px">Regimes drawn</div>
       <div class="ctlrow" id="regimeChips" style="margin-top:8px"></div>
-      <label class="row" style="margin-top:6px">
-        <input type="checkbox" id="aiFits">
-        <span>Include AI&nbsp;Chat in the fitted slopes
-          <span style="color:var(--mid)">— it rests on 2–3 waves per outcome, so it is drawn hollow and
-          excluded from the lines by default</span></span>
-      </label>
+      <!-- An "Include AI Chat in the fitted slopes" checkbox sat here. AI Chat is the only
+           regime fitted on a short run of waves, so with it hidden (HIDDEN_SOURCES, below)
+           the opt-in governed nothing and the control went with it. -->
     </div>
 
     <div class="panel">
@@ -346,6 +345,8 @@ const ADVERSE = {vaccine:"are not vaccinated", mmr:"do not approve"};
    so 75 is the top of the data plus a little headroom; carrying the axis to 100 left a
    quarter of every chart permanently empty. Nothing is excluded by this. */
 const PMAX = 75;
+/* Lookups keyed by regime, AICH included: they are read by key, never enumerated, so the
+   hidden regime's entries are inert. See HIDDEN_SOURCES below. */
 const RC = {JS:"var(--js)",PB:"var(--pb)",SRCH:"var(--srch)",AICH:"var(--aich)",
             VLP:"var(--vlp)",PVT:"var(--pvt)",INT:"var(--int)",DEC:"var(--dec)"};
 const FAMS = [["belief","Belief in a claim","conspiracy and misinformation items"],
@@ -377,10 +378,20 @@ function orient(o,e){
    bring them back -- nothing else has to change.
    --------------------------------------------------------------------------- */
 const HIDDEN_OUTCOMES=["rfk","musk"];
+/* ---------------------------------------------------------------------------
+   TEMPORARILY HIDDEN NEWS SOURCES. Same idea, one regime key per entry. REG is
+   the single list every surface on this page reads -- the chips, the scatter,
+   the ranking panel, the fitted slopes and the table all filter through it or
+   through the regime set seeded from it -- so dropping a key here removes the
+   regime everywhere. Empty the array to bring it back; the count in the lede
+   above is then the only prose to revisit.
+   --------------------------------------------------------------------------- */
+const HIDDEN_SOURCES=["AICH"];
 function prepare(raw){
   DATA=raw;
   document.querySelectorAll(".dupd").forEach(e=>e.textContent=DATA.meta.built);
   raw.outcomes=raw.outcomes.filter(o=>!HIDDEN_OUTCOMES.includes(o.key));
+  raw.meta.regimes=raw.meta.regimes.filter(r=>!HIDDEN_SOURCES.includes(r.key));
   REG = raw.meta.regimes.map(r=>r.key);
   raw.meta.regimes.forEach(r=>RLAB[r.key]=r.label);
   /* The payload now carries "Podcasts" for this regime, so no override is needed here.
@@ -425,6 +436,8 @@ function summarise(state){
   const rows=[];
   for(const rg of REG){
     const list=by[rg]; if(!list||!list.length) continue;
+    // Short-wave fits are held out of the slopes. AI Chat was the only regime carrying the
+    // flag and it is hidden, so this currently removes nothing -- kept as the general rule.
     const usable = state.aiFits ? list : list.filter(c=>!c.restricted);
     const xs=usable.map(c=>c.o.adverse), ys=usable.map(c=>Math.log(c.or));
     const k=usable.length;
@@ -695,12 +708,15 @@ function drawTable(state){
      the claim, or <em>distrusting</em> the institution (trust models are inverted, 1/OR, with the interval
      endpoints swapped). <b>Adverse %</b> is the weighted share of the population in that state.
      <b>Occupancy</b> is the weighted share using that regime for political news.
-     Rows marked * are separate short-wave fits and are excluded from the fitted slopes unless you opt in.
      Putting belief and distrust on one axis is an interpretive choice, not something the models assert.
      These are cross-sectional associations confounded with selective exposure: they fix ordering, not
      transmission rates. Built ${DATA.meta.built} from ${DATA.meta.source}.`;
 }
 /* ============================ state + wiring ============================ */
+/* aiFits is pinned false: it used to be a checkbox, and the only regime it ever admitted --
+   AI Chat -- is hidden. Kept so the short-wave machinery below still reads as general rather
+   than as something that was ripped out, and so restoring HIDDEN_SOURCES needs one control
+   back rather than a rewrite. */
 const S={outcomes:new Set(), lo:0, hi:PMAX, regimes:new Set(), aiFits:false, stratum:"all"};
 /* Podcasts stay picked out of the scatter whatever else changes -- a different outcome
    selection, a different window, a different stratum. Drawing seven fitted lines at once is
@@ -854,8 +870,6 @@ function wire(){
     S.lo=a; S.hi=b; render();
   };
   lo.addEventListener("input",onSlide); hi.addEventListener("input",onSlide);
-  document.getElementById("aiFits").addEventListener("change",e=>{
-    S.aiFits=e.target.checked; render();});
   document.getElementById("stratum").addEventListener("change",e=>{
     S.stratum=e.target.value; render();});
   let timer=null;
