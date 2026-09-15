@@ -576,7 +576,8 @@ function boot(D){
   // than deleted: `quantities.json` still carries D.ladder, so flipping this to true brings it
   // back with no rebuild. Two passages outside the block referred to it and were adjusted --
   // the sample caveat below, which named it as the exception, and the closing paragraph, which
-  // still cites the 45% figure this section used to show.
+  // cited the 45% figure this section used to show and no longer does. Restoring the section
+  // does not restore either: both would want rewriting by hand.
   const SHOW_LADDER=false;
   if(SHOW_LADDER){
   const LD={}; D.ladder.forEach(l=>LD[l.id]=l);
@@ -745,8 +746,7 @@ distinct kinds: podcasts track sheer rarity, partisan broadcast and the big feed
 between the parties, mainstream news and word of mouth pull in opposite ideological directions, and
 private messaging alone tracks how out of step a position is with the user's <i>own</i> side,
 carrying no ideological direction at all. That last pattern holds on trust in the police and the
-military as firmly as on conspiracy claims, survives with about 45% of its strength among people who
-report no party whatsoever, and is therefore not a story about misinformation travelling —
+military as firmly as on conspiracy claims and is therefore not a story about misinformation travelling —
 it is a story about who occupies the channels nobody can audit. <b>The theoretical cost is specific:</b>
 a diffusion account, which predicts that what matters is how far a claim has spread, is the wrong
 model for private channels and the right one for podcasts, and the governance instruments, built
