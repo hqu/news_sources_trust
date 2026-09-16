@@ -7,3 +7,4 @@ CSP_W*
 *.bak_*
 dashboard_*.html
 !gap_data.json
+__pycache__/
