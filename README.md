@@ -19,11 +19,26 @@ in the two-step-flow tradition. Hover gives point identity; no other interaction
 **Navigation.** Every page opens with the same five-card `.dnav` strip, numbered 1 to 5, with the
 current page marked and unlinked. The links are written at load rather than in the markup, because
 each page ships served and self-contained and a link has to point at the sibling of the same kind:
-the script reads whether this page's own `#payload` is inlined and appends `_standalone`
-accordingly. Adding a sixth page means one `<a data-p="...">` in each of the others, the grid
-column count, and the block itself on the new page — `gradient.html` keeps only the `.dnav` and
-`a.chip50` rules from that block and drops its `footer.pgfoot` ones, which it declares itself at a
-different size.
+`window.__linkPages()` reads whether this page's own `#payload` is inlined and appends
+`_standalone` accordingly. Adding a sixth page means one `<a data-p="...">` in each of the others,
+the grid column count, and the block itself on the new page — `gradient.html` keeps only the
+`.dnav`, `a.xpage` and `a.chip50` rules from that block and drops its `footer.pgfoot` ones, which
+it declares itself at a different size.
+
+**Prose links between dashboards** carry `data-p` and class `xpage` rather than a literal `href`,
+so the same resolver handles them and a reader who opened a standalone copy from Finder is not
+sent to a page that cannot fetch its payload. Four point at dashboard 5, each from the passage it
+actually follows from: `rankings.html` because it is the same forest plot with the outcome held
+fixed instead of the source; `explorer.html` because it asks the same prevalence question with a
+window instead of a fixed source; `index.html` from the mirror-pairs section, whose rule dashboard
+5 generalises to all seventeen outcomes; and `gaps.html` because a percentage-point gap is bounded
+by prevalence and an odds ratio is not.
+
+`__linkPages` is **exposed and idempotent rather than a one-shot listener**, which `index.html`
+requires: it writes its whole body from a template after `quantities.json` arrives, so a prose link
+inside that template does not exist when `DOMContentLoaded` fires. It was shipping with no `href`
+at all until the page called the resolver again after the injection. Any page that injects markup
+containing a `[data-p]` has to do the same.
 
 **Attribution and dating.** Every page carries a footer with the author and the date its payload
 was built, read live from `meta.built` (or `built`) rather than hard-coded, so a rebuilt payload

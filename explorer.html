@@ -197,6 +197,12 @@ footer.pgfoot a{color:inherit}
 .dnav a.on b{color:#16181d}
 .dnav i{font-style:normal;font-size:13px;font-weight:600}
 .dnav span{display:block;font-size:10.8px;color:#71777f;line-height:1.4;margin-top:2px}
+/* Links to a sibling dashboard written into the prose rather than the strip. Same
+   resolution as the strip -- they carry data-p, not a literal href -- and the house
+   underline treatment, so they read as a pointer and not as a live control. */
+a.xpage{color:inherit;font-weight:600;text-decoration:underline;
+  text-decoration-color:#ccd1d6;text-underline-offset:2px}
+a.xpage:hover{text-decoration-color:currentColor}
 @media(max-width:1180px){.dnav{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:980px){.dnav{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:620px){.dnav{grid-template-columns:1fr}.dnav span{display:none}}
@@ -206,15 +212,25 @@ footer.pgfoot a{color:inherit}
    (index_standalone.html with the payload inlined). A link has to point at the sibling of the
    same kind, or a reader who opened the standalone copy from Finder lands on a page that
    cannot fetch its data. Decided at load from whether this page's own payload is inlined. */
-addEventListener("DOMContentLoaded",function(){
-  var nav=document.querySelector(".dnav"), here=nav.dataset.here;
+/* Exposed and idempotent, not a one-shot on DOMContentLoaded: index.html writes its whole body
+   from a template after its payload arrives, so a prose link inside that template does not exist
+   yet when the listener fires and would be left with no href at all. Any page that injects
+   markup containing a [data-p] calls this again afterwards. */
+window.__linkPages=function(){
+  var nav=document.querySelector(".dnav"); if(!nav) return;
+  var here=nav.dataset.here;
   var el=document.getElementById("payload");
   var solo=!!(el && el.textContent.trim()[0]==="{");
-  nav.querySelectorAll("a").forEach(function(a){
-    if(a.dataset.p===here){ a.className="on"; return; }
+  /* Every [data-p] on the page, not just the ones in the strip, so a link written into the
+     prose resolves to the same kind of sibling the nav does. Without this an inline
+     href="gradient.html" would send a reader who opened the standalone copy from Finder to a
+     page that cannot fetch its payload. */
+  document.querySelectorAll("a[data-p]").forEach(function(a){
+    if(a.dataset.p===here && a.closest(".dnav")){ a.className="on"; return; }
     a.href=a.dataset.p+(solo?"_standalone":"")+".html";
   });
-});
+};
+addEventListener("DOMContentLoaded",window.__linkPages);
 </script>
 <!-- -------------------------- end cross-page nav -------------------------- -->
 <h1>Rare beliefs and common beliefs go with different news sources</h1>
@@ -234,6 +250,10 @@ causes: people choose their news as well as being shaped by it.</span></p>
 claims, trust in an institution, or both at once. Then use the slider under the chart to keep only
 the beliefs few people hold, or only the ones most do. Everything redraws from the same models;
 nothing is re-estimated when you change the selection.
+<br><br>This page moves a window across every source at once. To hold one source still and see its
+whole list of outcomes stacked from rarest to most common, with the prevalence gradient measured
+and tested against the six others, go to <a class="xpage" data-p="gradient">One source, every
+outcome</a>.
 </p>
 
 <div class="cols">
