@@ -441,7 +441,10 @@ function drawForest(){
   const yb=TOP+P.length*RH+38;
   const side = S.ori==="adv"
     ? ["← less likely to hold it","more likely to hold it →"]
-    : ["← less likely to say yes","more likely to say yes →"];
+    : ["← less likely to give this answer","more likely to give this answer →"];
+  if(P.some(p=>p.waves<maxW/2))
+    s+=`<text x="0" y="${yb}" fill="${PAL.mid}" font-size="9.6"><tspan fill="${PAL.warm}"
+         font-weight="700">†</tspan> fielded in fewer waves — hover the row</text>`;
   s+=`<text x="${PX0}" y="${yb}" fill="${PAL.mid}" font-size="10.4" font-weight="600">${side[0]}</text>`;
   s+=`<text x="${PX0+PXW}" y="${yb}" fill="${PAL.mid}" font-size="10.4" font-weight="600" text-anchor="end">${side[1]}</text>`;
   s+=`</svg>`;
@@ -456,8 +459,14 @@ function drawForest(){
      and people who did not — about ${occ.toFixed(1)}% of respondents did, averaged over these
      outcomes. 1.5 means their odds are half again as high, 0.7 about a third lower. Where a bar
      crosses the 1.0 line, no difference is one of the things the data are consistent with.
+     <b>The answer</b> is the one the row names, which is not the same scale in every family:
+     agree or strongly agree on a belief item, "a lot" or "some" on a trust item, at least one
+     dose for the COVID vaccine, approve or strongly approve for the MMR mandate. Election denial
+     is agreement that Trump would have won a fairly counted 2020 election — the neutral midpoint
+     is not counted as denial.
      <span class="dag">†</span> marks an outcome fielded in fewer than half the waves the
-     best-covered outcome has; hover any row for its wave count and its exact <i>n</i>.`;
+     best-covered outcome has, so it rests on a shorter stretch of the panel and a smaller sample;
+     hover any row for its wave count and its exact <i>n</i>.`;
 }
 
 /* ---------- companion scatter, where a slope is legitimate ---------- */

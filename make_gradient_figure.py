@@ -144,8 +144,13 @@ for i, p in enumerate(P):
     s.append(f'<line x1="{sx(p["lo"]):.1f}" y1="{y}" x2="{sx(p["hi"]):.1f}" y2="{y}" stroke="{INK}" stroke-width="1.4"/>')
     s.append(f'<circle cx="{sx(p["orr"]):.1f}" cy="{y}" r="4.2" fill="{INK}"/>')
 yb = TOP + len(P) * RH + 38
-s.append(f'<text x="{PX0}" y="{yb}" fill="{MID}" font-size="10.4" font-weight="600">← less likely to hold it</text>')
-s.append(f'<text x="{PX0 + PXW}" y="{yb}" fill="{MID}" font-size="10.4" font-weight="600" text-anchor="end">more likely to hold it →</text>')
+SIDE = ("less likely to hold it", "more likely to hold it") if ADVERSE else \
+       ("less likely to give this answer", "more likely to give this answer")
+if any(p["waves"] < maxW / 2 for p in P):
+    s.append(f'<text x="0" y="{yb}" fill="{MID}" font-size="9.6">'
+             f'<tspan fill="{WARM}" font-weight="700">†</tspan> fielded in fewer waves</text>')
+s.append(f'<text x="{PX0}" y="{yb}" fill="{MID}" font-size="10.4" font-weight="600">← {SIDE[0]}</text>')
+s.append(f'<text x="{PX0 + PXW}" y="{yb}" fill="{MID}" font-size="10.4" font-weight="600" text-anchor="end">{SIDE[1]} →</text>')
 for j, line in enumerate(CAP):
     s.append(f'<text x="0" y="{yb + 20 + j * 12}" fill="{MID}" font-size="9.4">{e(line)}</text>')
 s.append("</g></svg>")
