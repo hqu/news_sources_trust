@@ -23,6 +23,11 @@ HIDDEN_OUTCOMES = {"rfk", "musk"}
 HIDDEN_SOURCES = {"AICH"}
 INK, MID, FAINT, HAIR, WASH, WARM = "#16181d", "#71777f", "#ccd1d6", "#e6e9ec", "#f4f7f9", "#9a3b30"
 
+# The column header names the people the odds ratio is about, not the channel. A blanket
+# " users" suffix is ungrammatical for two of the seven, so those are written out. Same map
+# as gradient.html, and the two have to stay in step.
+USERS_LABEL = {"DEC": "Podcast listeners", "VLP": "Big social platform users"}
+
 d = json.load(open(os.path.join(H, "data.json"), encoding="utf-8"))
 RLAB = {r["key"]: r["label"] for r in d["meta"]["regimes"]}
 REGS = [r["key"] for r in d["meta"]["regimes"] if r["key"] not in HIDDEN_SOURCES]
@@ -74,6 +79,7 @@ def corr(xs, ys):
 
 P = points(REGIME)
 assert P, f"no estimates for {REGIME}"
+HEADER = html.escape(USERS_LABEL.get(REGIME, RLAB.get(REGIME, REGIME) + " users").upper())
 r = corr([p["prev"] for p in P], [math.log(p["orr"]) for p in P])
 maxW = max(p["waves"] for p in P)
 maxp = max(p["prev"] for p in P)
@@ -123,7 +129,7 @@ s.append(f'<text x="0" y="{TITLE + 16}" fill="{MID}" font-size="9.6" font-weight
 s.append(f'<text x="{PBAR + BARW}" y="{TITLE + 16}" fill="{MID}" font-size="9.6" font-weight="700" '
          f'letter-spacing="1.4" text-anchor="end">% WHO HOLD IT</text>')
 s.append(f'<text x="{PX0 + PXW / 2}" y="{TITLE + 16}" fill="{MID}" font-size="9.6" font-weight="700" '
-         f'letter-spacing="1.4" text-anchor="middle">ODDS RATIO</text>')
+         f'letter-spacing="1.4" text-anchor="middle">ODDS RATIO, {HEADER}</text>')
 s.append(f'<line x1="0" y1="{TITLE + 24}" x2="{W}" y2="{TITLE + 24}" stroke="{HAIR}"/>')
 s.append(f'<text x="{PBAR + BARW}" y="{TOP - 12}" fill="{FAINT}" font-size="9" text-anchor="end">rarest ↓ most common</text>')
 for i in range(len(P)):

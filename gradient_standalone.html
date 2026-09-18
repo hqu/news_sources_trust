@@ -200168,6 +200168,13 @@ const ADVERSE_LABEL={
   vaccine:"Has not had a COVID-19 vaccine",
   mmr:"Does not approve the childhood MMR mandate"
 };
+/* The column header names the people the odds ratio is about, not the channel. A blanket
+   " users" suffix is ungrammatical for two of the seven -- "Podcasts users", "Big social
+   platforms users" -- so those two are written out and the rest take the default. All seven
+   fit the 352px plot span when centred; the widest is Journalistic Standard at 281px. */
+const USERS_LABEL={DEC:"Podcast listeners", VLP:"Big social platform users"};
+const usersOf=k=>USERS_LABEL[k]||((RLAB[k]||k)+" users");
+
 function labelFor(o,ori){
   if(ori!=="adv" || o.direction!=="trust") return o.label;
   if(ADVERSE_LABEL[o.key]) return ADVERSE_LABEL[o.key];
@@ -200230,7 +200237,7 @@ function drawForest(){
   s+=`<text x="0" y="16" fill="${PAL.mid}" font-size="9.6" font-weight="700" letter-spacing="1.4">OUTCOME</text>`;
   const phead = "% WHO HOLD IT";
   s+=`<text x="${PBAR+BARW}" y="16" fill="${PAL.mid}" font-size="9.6" font-weight="700" letter-spacing="1.4" text-anchor="end">${phead}</text>`;
-  s+=`<text x="${PX0+PXW/2}" y="16" fill="${PAL.mid}" font-size="9.6" font-weight="700" letter-spacing="1.4" text-anchor="middle">ODDS RATIO, ${esc(RLAB[S.reg]||S.reg).toUpperCase()}</text>`;
+  s+=`<text x="${PX0+PXW/2}" y="16" fill="${PAL.mid}" font-size="9.6" font-weight="700" letter-spacing="1.4" text-anchor="middle">ODDS RATIO, ${esc(usersOf(S.reg)).toUpperCase()}</text>`;
   s+=`<line x1="0" y1="24" x2="${W}" y2="24" stroke="${PAL.hair}"/>`;
   // the sort arrow, so the ordering reads as deliberate
   s+=`<text x="${PBAR+BARW}" y="${TOP-12}" fill="${PAL.faint}" font-size="9" text-anchor="end">rarest ↓ most common</text>`;
