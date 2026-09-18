@@ -9,12 +9,21 @@ There are **five pages**:
 | # | page | data | question it answers |
 |---|---|---|---|
 | **1** | `index.html` | `quantities.json` | **What each source actually tracks** — the landing page. A belief can be unusual in three ways that come apart here: rare everywhere, lopsided toward one party, or sitting on one side of politics. Static explanatory page for a general reader: per-regime occupancy small multiples, a coefficient grid, the flow map, four sets of small multiples (one panel per source, the party-split "scissors" test, the attachment ladder, the mirror pairs), a Simpson's-paradox panel, a 26-term plain-language glossary covering
-all four pages, and a 31-entry bibliography. Opens with the flow map and a note placing it
+all five pages, and a 31-entry bibliography. Opens with the flow map and a note placing it
 in the two-step-flow tradition. Hover gives point identity; no other interaction. |
 | **2** | `rankings.html` | `data.json` | For a given outcome, how do the news-source regimes rank? Forest plot, live multivariate model, party and diploma-divide subgroups. |
 | **3** | `explorer.html` | `data.json` | How that ranking **changes with how widely the belief is held**. A prevalence-window explorer: pick outcomes, slide the window, watch the ranking change. |
 | **4** | `gaps.html` | `gap_data.json` | **Who the gap belongs to.** The same associations as a difference between two groups of people, in percentage points — Democrats vs Republicans, graduates vs non-graduates, or users vs non-users of a source. |
 | **5** | `gradient.html` | `data.json` | **One source at a time, against how common the position is.** A forest plot of all seventeen outcomes for a single news source, stacked rarest-first, every question shown as it was asked. Built around private messaging, whose odds ratios fall from 1.77 on the rarest position to 0.90 on the most widely held. Carries its own generality test and its own test of the mechanical alternative. |
+
+**Navigation.** Every page opens with the same five-card `.dnav` strip, numbered 1 to 5, with the
+current page marked and unlinked. The links are written at load rather than in the markup, because
+each page ships served and self-contained and a link has to point at the sibling of the same kind:
+the script reads whether this page's own `#payload` is inlined and appends `_standalone`
+accordingly. Adding a sixth page means one `<a data-p="...">` in each of the others, the grid
+column count, and the block itself on the new page — `gradient.html` keeps only the `.dnav` and
+`a.chip50` rules from that block and drops its `footer.pgfoot` ones, which it declares itself at a
+different size.
 
 **Attribution and dating.** Every page carries a footer with the author and the date its payload
 was built, read live from `meta.built` (or `built`) rather than hard-coded, so a rebuilt payload
@@ -23,7 +32,7 @@ Project links to <https://www.chip50.org/>.
 
 ## Access word
 
-All three pages sit behind a shared word. **This is a deterrent, not security.** The pages are
+All five pages sit behind a shared word. **This is a deterrent, not security.** The pages are
 served from a public URL, the check runs in the reader's browser, and `data.json` and
 `gap_data.json` can be requested directly without going through the dialog. It keeps unfinished
 work from being stumbled on or indexed; it protects nothing. Real access control needs a server
@@ -208,7 +217,7 @@ Semi-Public Messaging and Crowdsourced are in the taxonomy but are not fielded i
 
 ### Hidden sources
 
-AI Chat is estimated and kept in every payload, and hidden from all four pages at the
+AI Chat is estimated and kept in every payload, and hidden from all five pages at the
 rendering layer. Each page declares a `HIDDEN_SOURCES` array of regime keys next to its
 existing `HIDDEN_OUTCOMES` array and filters the loaded data through it once, before any
 surface reads it — `rankings.html` also strips the regime's channel out of the question

@@ -221,6 +221,7 @@ window.__unlock=function(run){
   <a data-p="rankings"><b>2</b><i>Which source goes with which belief</i><span>one outcome at a time, all seven sources ranked against each other</span></a>
   <a data-p="explorer"><b>3</b><i>Rare vs common</i><span>how that ranking changes with how common a belief is</span></a>
   <a data-p="gaps"><b>4</b><i>Gaps between people</i><span>the same result as a difference in percentage points</span></a>
+  <a data-p="gradient"><b>5</b><i>One source, every outcome</i><span>the whole list for a single source, stacked by how many people hold the position</span></a>
 </nav>
 <style>
 a.chip50{color:inherit;text-decoration:underline;text-decoration-color:#ccd1d6;
@@ -231,7 +232,7 @@ footer.pgfoot{margin:40px 0 0;padding-top:16px;border-top:1px solid #e6e9ec;
   font-size:12px;color:#71777f;line-height:1.6}
 footer.pgfoot .who{font-weight:600;color:#16181d;font-size:12.6px}
 footer.pgfoot a{color:inherit}
-.dnav{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:0 0 22px}
+.dnav{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:0 0 22px}
 .dnav a{display:block;border:1px solid #e6e9ec;border-radius:10px;padding:9px 12px;
   text-decoration:none;color:#16181d;background:#fff}
 .dnav a[href]:hover{background:#f4f7f9;border-color:#ccd1d6}
@@ -241,11 +242,12 @@ footer.pgfoot a{color:inherit}
 .dnav a.on b{color:#16181d}
 .dnav i{font-style:normal;font-size:13px;font-weight:600}
 .dnav span{display:block;font-size:10.8px;color:#71777f;line-height:1.4;margin-top:2px}
+@media(max-width:1180px){.dnav{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:980px){.dnav{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:620px){.dnav{grid-template-columns:1fr}.dnav span{display:none}}
 </style>
 <script>
-/* The three pages ship in two forms: served (index.html + data.json) and self-contained
+/* The five pages ship in two forms: served (index.html + data.json) and self-contained
    (index_standalone.html with the payload inlined). A link has to point at the sibling of the
    same kind, or a reader who opened the standalone copy from Finder lands on a page that
    cannot fetch its data. Decided at load from whether this page's own payload is inlined. */
