@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Rare positions, strong signal — CHIP50</title>
+<style>
+:root{--ink:#16181d;--mid:#71777f;--faint:#ccd1d6;--hair:#e6e9ec;
+      --obs:#2f6f8f;--priv:#6b4c9a;--bg:#fff;--wash:#f4f7f9;--warm:#9a3b30}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;font-size:14px;line-height:1.5}
+.wrap{max-width:1300px;margin:0 auto;padding:34px 30px 60px}
+h1{font-size:25px;font-weight:700;margin:0 0 5px}
+h2{font-size:16px;font-weight:700;margin:0 0 6px}
+.sub{color:var(--mid);font-size:14px;margin:0}
+.track{letter-spacing:.19em;text-transform:uppercase;font-size:10.5px;font-weight:700;color:var(--mid)}
+.rule{height:1px;background:var(--hair);margin:18px 0 22px}
+.lede{max-width:860px;font-size:14.4px;line-height:1.68;margin:0 0 6px}
+.lede b{font-weight:600}
+.panel{border:1px solid var(--hair);border-radius:11px;padding:15px 16px}
+.panel+.panel{margin-top:16px}
+.plotbox{border:2.5px solid #16181d;border-radius:13px;padding:16px 18px 12px}
+.plotbox>.track{margin-bottom:10px}
+.note{color:var(--mid);font-size:11.8px;line-height:1.65;margin-top:9px}
+.note b{color:var(--ink);font-weight:600}
+
+/* ---- controls ---- */
+.bar{display:flex;flex-wrap:wrap;gap:20px;align-items:flex-start;margin-bottom:18px}
+.ctl{display:flex;flex-direction:column;gap:5px}
+.ctl .track{font-size:9.6px;letter-spacing:.16em}
+.chips{display:flex;flex-wrap:wrap;gap:5px}
+.chip{border:1px solid var(--hair);background:var(--bg);border-radius:20px;padding:4px 11px;
+  font:inherit;font-size:11.8px;color:var(--mid);cursor:pointer;white-space:nowrap}
+.chip:hover{background:var(--wash);color:var(--ink)}
+.chip.on{background:var(--ink);border-color:var(--ink);color:#fff}
+select{font:inherit;font-size:12.4px;padding:5px 8px;border:1px solid var(--hair);
+  border-radius:7px;background:var(--bg);color:var(--ink)}
+
+/* ---- two-column body ---- */
+.cols{display:grid;grid-template-columns:790px minmax(0,1fr);gap:22px;align-items:start}
+@media(max-width:1180px){.cols{grid-template-columns:1fr}}
+
+table.diag{border-collapse:collapse;width:100%;font-size:12.2px;margin-top:4px}
+table.diag th,table.diag td{text-align:right;padding:5px 7px;border-bottom:1px solid var(--hair);white-space:nowrap}
+table.diag th:first-child,table.diag td:first-child{text-align:left;white-space:normal}
+table.diag th{color:var(--mid);font-weight:600;font-size:10px;letter-spacing:.05em;
+  text-transform:uppercase;line-height:1.3;vertical-align:bottom}
+table.diag tr.me td{background:var(--wash);font-weight:600}
+table.diag tr:hover td{background:var(--wash)}
+.big{font-size:27px;font-weight:700;letter-spacing:-.01em;line-height:1.1}
+.bigl{font-size:11px;color:var(--mid);line-height:1.4;margin-top:2px}
+.stats{display:flex;gap:26px;margin:2px 0 10px}
+.dag{color:var(--warm);font-weight:700;cursor:help}
+footer.pgfoot{margin:40px 0 0;padding-top:16px;border-top:1px solid #e6e9ec;
+  display:flex;flex-wrap:wrap;gap:6px 22px;font-size:11.6px;color:#71777f}
+footer.pgfoot .who{font-weight:600;color:#16181d;font-size:12.6px}
+footer.pgfoot a{color:inherit}
+</style>
+</head>
+<body>
+
+<!-- ============================ access gate ============================
+     Same soft gate as the other four pages. It is a deterrent, not security: the check runs
+     in the reader's browser and data.json can be fetched directly without going through this
+     dialog. Nothing served here is respondent-level, which is why a soft gate is adequate. -->
+<div id="gate">
+  <form id="gateform" autocomplete="off">
+    <div class="gt"><a class="chip50" href="https://www.chip50.org/" target="_blank" rel="noopener noreferrer">CHIP50 · Civic Health and Institutions Project</a></div>
+    <h2>This dashboard is not public yet.</h2>
+    <p>Enter the shared access word to continue.</p>
+    <input type="password" id="gatepw" aria-label="Access word" autocomplete="current-password">
+    <button type="submit">Open</button>
+    <p id="gateerr"></p>
+    <p class="gatenote">A deterrent, not a protection: the page is served from a public URL
+      and its aggregated data file can be requested directly. Nothing here is respondent-level.</p>
+  </form>
+</div>
+<style>
+#gate{position:fixed;inset:0;background:#fff;z-index:9999;display:none;
+  align-items:center;justify-content:center;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif}
+#gate form{max-width:400px;padding:30px 32px;border:1px solid #e6e9ec;border-radius:14px}
+#gate .gt{letter-spacing:.19em;text-transform:uppercase;font-size:10px;font-weight:700;color:#71777f}
+#gate h2{font-size:19px;margin:9px 0 6px;color:#16181d}
+#gate p{font-size:13px;color:#71777f;margin:0 0 14px;line-height:1.55}
+#gate input{width:100%;font:inherit;font-size:14px;padding:8px 10px;border:1px solid #ccd1d6;
+  border-radius:8px;margin-bottom:9px}
+#gate input:focus{outline:none;border-color:#16181d}
+#gate button{font:inherit;font-size:13px;padding:7px 16px;border-radius:8px;border:1px solid #16181d;
+  background:#16181d;color:#fff;cursor:pointer}
+#gate #gateerr{color:#9a3b30;font-size:12.5px;margin:10px 0 0;min-height:16px}
+#gate .gatenote{font-size:11.2px;margin-top:14px;color:#a3a9b0}
+</style>
+<script>
+/* FNV-1a of the shared word. Hashing keeps the literal out of the source; it does not make
+   the gate secure, because the check runs on the reader's machine either way. */
+window.__unlock=function(run){
+  var KEY="chip50_open", WANT=3176098963;
+  function h(s){var x=0x811c9dc5;for(var i=0;i<s.length;i++){x^=s.charCodeAt(i);x=Math.imul(x,0x01000193)>>>0;}return x>>>0;}
+  var g=document.getElementById("gate");
+  if(sessionStorage.getItem(KEY)==="1"){ g.remove(); run(); return; }
+  g.style.display="flex";
+  document.getElementById("gateform").addEventListener("submit",function(e){
+    e.preventDefault();
+    if(h(document.getElementById("gatepw").value.trim())===WANT){
+      sessionStorage.setItem(KEY,"1"); g.remove(); run();
+    } else {
+      document.getElementById("gateerr").textContent="That is not the word.";
+      document.getElementById("gatepw").select();
+    }
+  });
+  document.getElementById("gatepw").focus();
+};
+</script>
+<!-- ========================== end access gate ========================== -->
+
+<div class="wrap">
+  <div class="track">CHIP50 · <a class="chip50" href="https://www.chip50.org/" target="_blank" rel="noopener noreferrer" style="color:inherit">Civic Health and Institutions Project</a> · dashboard 5</div>
+  <h1>Rare positions, strong signal</h1>
+  <p class="sub" id="subline">Every outcome private messaging predicts, ordered by how many people hold it</p>
+  <div class="rule"></div>
+
+  <p class="lede"><span id="ledeN">—</span> outcomes are stacked by <b>how common the position
+  is</b>, rarest at the top. Each row is one odds ratio for people who got political news that way
+  in the last twenty-four hours against people who did not, with party, education, age, income,
+  gender, survey date and every other news source held equal. The vertical ordering comes from
+  outside the estimates, so nothing about the plot forces the dots into a line.</p>
+
+  <p class="lede" style="margin-top:10px"><b>For private messaging they form one anyway.</b> The
+  association is positive and largest where almost nobody holds the position, and reverses where
+  most people do — from <span id="ledeTop">—</span> on the rarest to <span id="ledeBot">—</span> on
+  the most common.</p>
+
+  <p class="lede" style="margin-top:10px">That is only worth saying if it belongs to this source
+  rather than to the odds scale. <b>Switch the source</b> and the ordering stays put while the dots
+  rearrange: <span id="ledeUp">—</span> of the <span id="ledeK">—</span> slope the other way. The
+  two panels on the right run that comparison across every source at once, and run the obvious
+  mechanical alternative against it.</p>
+
+  <div class="rule"></div>
+
+  <div class="bar">
+    <div class="ctl"><div class="track">News source</div><div class="chips" id="regchips"></div></div>
+    <div class="ctl"><div class="track">Among</div>
+      <select id="strat"></select></div>
+    <div class="ctl"><div class="track">Facing</div>
+      <div class="chips" id="orichips">
+        <button class="chip on" data-ori="adv">The adverse side</button>
+        <button class="chip" data-ori="raw">As the question was asked</button>
+      </div></div>
+  </div>
+
+  <div class="cols">
+    <div>
+      <div class="plotbox">
+        <div class="track" id="plottrack">Forest plot</div>
+        <div id="forest"></div>
+        <p class="note" id="forestnote"></p>
+      </div>
+    </div>
+
+    <div>
+      <div class="panel">
+        <h2>The same points on a real axis</h2>
+        <p class="note" style="margin-top:0">A forest plot's rows are evenly spaced, so the
+        staircase on the left is ordinal — it cannot carry a fitted line. Here prevalence is the
+        horizontal position, which is the axis a slope is entitled to.</p>
+        <div id="scatter"></div>
+        <div class="stats" id="scatstats"></div>
+      </div>
+
+      <div class="panel">
+        <h2>Does every source do this?</h2>
+        <p class="note" style="margin-top:0">If the gradient were an artifact of the odds scale it
+        would appear for all seven. <b>Slope</b> is the correlation between prevalence and the log
+        odds ratio: negative means the source predicts rare positions. <b>Rare ÷ common</b> divides
+        the average odds ratio below 25% by the average at 40% and above.</p>
+        <table class="diag" id="gentab"></table>
+      </div>
+
+      <div class="panel">
+        <h2>Is it just the arithmetic?</h2>
+        <p class="note" style="margin-top:0">An odds ratio has more room to move when a split is
+        lopsided, so a source could look like this without predicting anything in particular. That
+        alternative predicts <i>large</i> odds ratios at both ends, not <i>positive</i> ones at the
+        rare end. The test separates them: correlate the <i>size</i> of the association, ignoring
+        its sign, with distance from an even split.</p>
+        <table class="diag" id="extab"></table>
+        <p class="note" id="exnote"></p>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" style="margin-top:20px">
+    <h2>Reading it correctly</h2>
+    <p class="note" style="margin-top:0">
+    <b>Orientation is an interpretive choice, and it is the page's, not the model's.</b> Eleven of
+    these outcomes are trust questions and six are belief questions, and they only share an axis
+    once trust is turned around to face the same way as belief — so "the adverse side" means
+    believing the claim, or <i>dis</i>trusting the institution. Turning an outcome around inverts
+    its odds ratio and replaces its prevalence with 100 minus itself; nothing else changes. The
+    <i>As the question was asked</i> button undoes it, and the gradient is worth checking there.<br><br>
+    <b>These are cross-sectional associations, confounded with selective exposure by
+    construction.</b> They fix the ordering of predictors, not transmission rates. A person who
+    already holds a rare position is freer to choose a messaging app than the app is to give them
+    the position, and this design cannot tell those apart.<br><br>
+    <b>Toggling a source changes which fitted model is displayed, not what was fitted.</b> All
+    seven sources were in every model together. Subgroups are separately fitted models, and the
+    variable defining a subgroup leaves the control set inside it.<br><br>
+    <b>Thin rows are marked †.</b> Outcomes differ in how many waves carry them — some run in all
+    eleven, some in four, and the childhood MMR item in one, which is why that row alone carries no
+    wave fixed effect. The dagger marks any outcome fielded in fewer than half the waves of the
+    best-covered one, so it tracks wave coverage rather than sample size: inside a party subgroup
+    every row is smaller, but the coverage gaps between outcomes are the same ones. Hovering a row
+    gives both numbers.</p>
+  </div>
+
+  <footer class="pgfoot">
+    <span class="who">Hong Qu</span>
+    <span>Data last updated <span class="dupd">—</span></span>
+    <span>Survey data from the <a class="chip50" href="https://www.chip50.org/" target="_blank" rel="noopener noreferrer">Civic Health and Institutions Project (CHIP50)</a></span>
+  </footer>
+</div>
+
+<script id="payload" type="application/json">__PAYLOAD__</script>
+<script>
+document.addEventListener("DOMContentLoaded",function(){ window.__unlock(boot); });
+
+/* Hidden the same way as the other pages, and for the same reasons: RFK and Musk are trust
+   targets whose wording the project is still unhappy with, and AI Chat runs in 6 of the 15
+   waves so it is fitted separately and must not be read beside the others. Emptying either
+   array brings them back here without any other edit. */
+const HIDDEN_OUTCOMES=["rfk","musk"];
+const HIDDEN_SOURCES=["AICH"];
+
+const PAL={ink:"#16181d",mid:"#71777f",faint:"#ccd1d6",hair:"#e6e9ec",wash:"#f4f7f9",
+           priv:"#6b4c9a",warm:"#9a3b30"};
+let DATA=null, REG=[], RLAB={}, S={reg:"PVT", strat:"all", ori:"adv"};
+
+/* ---------- small numeric helpers, all on 17 points ---------- */
+const mean=v=>v.reduce((a,b)=>a+b,0)/v.length;
+function corr(xs,ys){
+  const mx=mean(xs), my=mean(ys);
+  let sxy=0,sx=0,sy=0;
+  for(let i=0;i<xs.length;i++){const a=xs[i]-mx,b=ys[i]-my;sxy+=a*b;sx+=a*a;sy+=b*b;}
+  return (sx&&sy)?sxy/Math.sqrt(sx*sy):NaN;
+}
+function ols(xs,ys){
+  const mx=mean(xs), my=mean(ys);
+  let sxy=0,sx=0;
+  for(let i=0;i<xs.length;i++){sxy+=(xs[i]-mx)*(ys[i]-my);sx+=(xs[i]-mx)**2;}
+  const b=sx?sxy/sx:0; return {b:b,a:my-b*mx};
+}
+const esc=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+
+/* ---------- pull the points for one source in one subgroup ----------
+   Every number on this page comes out of here. `adv` flips a trust outcome to face the same
+   way as a belief outcome: the prevalence becomes its complement and the odds ratio its
+   reciprocal, which also swaps the two interval bounds. */
+function points(regKey, stratKey, ori){
+  const out=[];
+  DATA.outcomes.forEach(o=>{
+    if(HIDDEN_OUTCOMES.includes(o.key)) return;
+    const m=(o.models||{})[stratKey]; if(!m||!m.regime) return;
+    const b=m.regime;
+    const e=(b.estimates||[]).find(x=>x.key===regKey); if(!e) return;
+    const flip = (ori==="adv" && o.direction==="trust");
+    out.push({
+      key:o.key, label:o.label, group:o.group, direction:o.direction,
+      n:b.n, waves:(b.waves||[]).length, wdum:b.n_wave_dummies,
+      occ:e.pct_occupying, p:e.p,
+      prev: flip ? 100-b.prevalence : b.prevalence,
+      or:   flip ? 1/e.odds_ratio : e.odds_ratio,
+      lo:   flip ? 1/e.hi : e.lo,
+      hi:   flip ? 1/e.lo : e.hi
+    });
+  });
+  out.sort((a,b)=>a.prev-b.prev);
+  return out;
+}
+
+/* ---------- the forest plot ---------- */
+const GUT=246, PNUM=292, PBAR=300, BARW=66, PX0=392, PXW=352, RH=26;
+function drawForest(){
+  const P=points(S.reg,S.strat,S.ori);
+  const host=document.getElementById("forest");
+  if(!P.length){host.innerHTML='<p class="note">No estimates for this combination.</p>';return;}
+
+  let lo=1,hi=1;
+  P.forEach(p=>{lo=Math.min(lo,p.lo);hi=Math.max(hi,p.hi);});
+  lo=Math.min(lo,1/1.2); hi=Math.max(hi,1.2);
+  const pad=(Math.log(hi)-Math.log(lo))*0.04; lo=Math.exp(Math.log(lo)-pad); hi=Math.exp(Math.log(hi)+pad);
+  const sx=v=>PX0+(Math.log(v)-Math.log(lo))/(Math.log(hi)-Math.log(lo))*PXW;
+  const maxp=Math.max.apply(null,P.map(p=>p.prev));
+  const maxW=Math.max.apply(null,P.map(p=>p.waves));
+  const W=PX0+PXW+16, TOP=54, H=TOP+P.length*RH+52;
+
+  let s=`<svg width="${W}" height="${H}" font-family="Helvetica Neue,Helvetica,Arial">`;
+  // column headers
+  s+=`<text x="0" y="16" fill="${PAL.mid}" font-size="9.6" font-weight="700" letter-spacing="1.4">OUTCOME</text>`;
+  const phead = S.ori==="adv" ? "% WHO HOLD IT" : "% ANSWERING YES";
+  s+=`<text x="${PBAR+BARW}" y="16" fill="${PAL.mid}" font-size="9.6" font-weight="700" letter-spacing="1.4" text-anchor="end">${phead}</text>`;
+  s+=`<text x="${PX0+PXW/2}" y="16" fill="${PAL.mid}" font-size="9.6" font-weight="700" letter-spacing="1.4" text-anchor="middle">ODDS RATIO, ${esc(RLAB[S.reg]||S.reg).toUpperCase()}</text>`;
+  s+=`<line x1="0" y1="24" x2="${W}" y2="24" stroke="${PAL.hair}"/>`;
+  // the sort arrow, so the ordering reads as deliberate
+  s+=`<text x="${PBAR+BARW}" y="${TOP-12}" fill="${PAL.faint}" font-size="9" text-anchor="end">rarest ↓ most common</text>`;
+
+  // Zebra bands first. They are opaque, so anything drawn before them is erased on every
+  // other row -- which is what was happening to the gridlines, and to the 1.0 rule in
+  // particular.
+  P.forEach((p,i)=>{ if(i%2===1)
+    s+=`<rect x="-6" y="${TOP+i*RH}" width="${W}" height="${RH}" fill="${PAL.wash}"/>`;});
+  // gridlines
+  const ticks=[0.5,0.6,0.7,0.8,0.9,1,1.25,1.5,2,2.5,3].filter(t=>t>lo&&t<hi);
+  ticks.forEach(t=>{
+    const on1=(t===1);
+    s+=`<line x1="${sx(t)}" y1="${TOP-6}" x2="${sx(t)}" y2="${TOP+P.length*RH+4}"
+         stroke="${on1?PAL.mid:PAL.hair}" stroke-width="${on1?1:1}"/>`;
+    s+=`<text x="${sx(t)}" y="${TOP+P.length*RH+19}" fill="${on1?PAL.ink:PAL.mid}"
+         font-size="10" font-weight="${on1?600:400}" text-anchor="middle">${t}</text>`;
+  });
+
+  P.forEach((p,i)=>{
+    const y=TOP+i*RH+RH/2;
+    const thin = p.waves < maxW/2;
+    s+=`<text x="0" y="${y+4}" fill="${PAL.ink}" font-size="11.6">${esc(p.label)}${
+        thin?` <tspan fill="${PAL.warm}" font-weight="700">†</tspan>`:""}</text>`;
+    s+=`<text x="${PNUM}" y="${y+4}" fill="${PAL.mid}" font-size="11" text-anchor="end">${p.prev.toFixed(1)}%</text>`;
+    s+=`<rect x="${PBAR}" y="${y-4}" width="${Math.max(1,BARW*p.prev/maxp)}" height="8" fill="${PAL.faint}"/>`;
+    // One colour for every mark. Position against the 1.0 rule already says direction and the
+    // bar already says whether no difference is consistent with the data; colouring the dot for
+    // either would say a third time what the geometry says twice.
+    s+=`<line x1="${sx(p.lo)}" y1="${y}" x2="${sx(p.hi)}" y2="${y}" stroke="${PAL.ink}" stroke-width="1.4"/>`;
+    s+=`<circle cx="${sx(p.or)}" cy="${y}" r="4.2" fill="${PAL.ink}"/>`;
+    s+=`<title>${esc(p.label)} — ${p.prev.toFixed(1)}% hold it · OR ${p.or.toFixed(2)} [${p.lo.toFixed(2)}, ${p.hi.toFixed(2)}] · n=${p.n.toLocaleString()} over ${p.waves} wave${p.waves===1?"":"s"}</title>`;
+  });
+
+  const yb=TOP+P.length*RH+38;
+  const side = S.ori==="adv"
+    ? ["← less likely to hold it","more likely to hold it →"]
+    : ["← less likely to say yes","more likely to say yes →"];
+  s+=`<text x="${PX0}" y="${yb}" fill="${PAL.mid}" font-size="10.4" font-weight="600">${side[0]}</text>`;
+  s+=`<text x="${PX0+PXW}" y="${yb}" fill="${PAL.mid}" font-size="10.4" font-weight="600" text-anchor="end">${side[1]}</text>`;
+  s+=`</svg>`;
+  host.innerHTML=s;
+
+  const occ=mean(P.map(p=>p.occ));
+  document.getElementById("plottrack").textContent =
+    `${RLAB[S.reg]||S.reg} · ${P.length} outcomes · ${stratLabel()}`;
+  document.getElementById("forestnote").innerHTML =
+    `Each row is one survey-weighted logistic regression. <b>1.0 means no difference</b> between
+     people who reported ${esc((RLAB[S.reg]||S.reg).toLowerCase())} in the last twenty-four hours
+     and people who did not — about ${occ.toFixed(1)}% of respondents did, averaged over these
+     outcomes. 1.5 means their odds are half again as high, 0.7 about a third lower. Where a bar
+     crosses the 1.0 line, no difference is one of the things the data are consistent with.
+     <span class="dag">†</span> marks an outcome fielded in fewer than half the waves the
+     best-covered outcome has; hover any row for its wave count and its exact <i>n</i>.`;
+}
+
+/* ---------- companion scatter, where a slope is legitimate ---------- */
+function drawScatter(){
+  const P=points(S.reg,S.strat,S.ori);
+  const W=352,H=268,L=42,R=12,T=14,B=38;
+  const xs=P.map(p=>p.prev), ys=P.map(p=>Math.log(p.or));
+  const xmax=Math.max(70,Math.ceil(Math.max.apply(null,xs)/10)*10);
+  const ymax=Math.max(0.42,Math.max.apply(null,ys.map(Math.abs))*1.15);
+  const X=v=>L+v/xmax*(W-L-R), Y=v=>T+(ymax-v)/(2*ymax)*(H-T-B);
+  const f=ols(xs,ys), r=corr(xs,ys);
+
+  let s=`<svg width="${W}" height="${H}" font-family="Helvetica Neue,Helvetica,Arial">`;
+  [0.5,0.7,1,1.4,2].forEach(o=>{const v=Math.log(o); if(Math.abs(v)>ymax)return;
+    s+=`<line x1="${L}" y1="${Y(v)}" x2="${W-R}" y2="${Y(v)}" stroke="${o===1?PAL.mid:PAL.hair}"/>`;
+    s+=`<text x="${L-6}" y="${Y(v)+3.5}" fill="${o===1?PAL.ink:PAL.mid}" font-size="9.6" text-anchor="end">${o}</text>`;});
+  for(let t=0;t<=xmax;t+=20){
+    s+=`<line x1="${X(t)}" y1="${H-B}" x2="${X(t)}" y2="${H-B+3}" stroke="${PAL.faint}"/>`;
+    s+=`<text x="${X(t)}" y="${H-B+15}" fill="${PAL.mid}" font-size="9.6" text-anchor="middle">${t}%</text>`;}
+  s+=`<text x="${(L+W-R)/2}" y="${H-6}" fill="${PAL.mid}" font-size="10" text-anchor="middle">% of adults who hold the position</text>`;
+  s+=`<text x="11" y="${(T+H-B)/2}" fill="${PAL.mid}" font-size="10" text-anchor="middle" transform="rotate(-90 11 ${(T+H-B)/2})">odds ratio</text>`;
+  // fitted line, clipped to the drawn range
+  const x1=0,x2=xmax, y1=Math.max(-ymax,Math.min(ymax,f.a+f.b*x1)), y2=Math.max(-ymax,Math.min(ymax,f.a+f.b*x2));
+  s+=`<line x1="${X(x1)}" y1="${Y(y1)}" x2="${X(x2)}" y2="${Y(y2)}" stroke="${PAL.priv}" stroke-width="1.6" stroke-dasharray="4 3"/>`;
+  P.forEach(p=>{
+    const v=Math.max(-ymax,Math.min(ymax,Math.log(p.or)));
+    s+=`<circle cx="${X(p.prev)}" cy="${Y(v)}" r="3.6" fill="none" stroke="${PAL.ink}" stroke-width="1.4"/>`;
+    s+=`<title>${esc(p.label)} — ${p.prev.toFixed(1)}%, OR ${p.or.toFixed(2)}</title>`;});
+  s+=`</svg>`;
+  document.getElementById("scatter").innerHTML=s;
+
+  const per10=Math.exp(f.b*10);
+  document.getElementById("scatstats").innerHTML=
+    `<div><div class="big">${r>=0?"+":"−"}${Math.abs(r).toFixed(2)}</div>
+       <div class="bigl">correlation across<br>the ${P.length} outcomes</div></div>
+     <div><div class="big">×${per10.toFixed(3)}</div>
+       <div class="bigl">odds ratio per extra<br>10 points of prevalence</div></div>`;
+}
+
+/* ---------- the generality table: all seven sources, same test ---------- */
+function drawTables(){
+  const rows=REG.map(k=>{
+    const P=points(k,S.strat,S.ori);
+    const xs=P.map(p=>p.prev), ys=P.map(p=>Math.log(p.or));
+    const rare=ys.filter((_,i)=>xs[i]<25), comm=ys.filter((_,i)=>xs[i]>=40);
+    return {k:k, r:corr(xs,ys),
+            ratio:(rare.length&&comm.length)?Math.exp(mean(rare)-mean(comm)):NaN,
+            rare:rare.length?Math.exp(mean(rare)):NaN,
+            comm:comm.length?Math.exp(mean(comm)):NaN,
+            mag:corr(xs.map(v=>Math.abs(v-50)), ys.map(Math.abs))};
+  });
+
+  const g=[...rows].sort((a,b)=>a.r-b.r);
+  let t=`<thead><tr><th>Source</th><th>Slope</th><th>OR when<br>rare</th><th>OR when<br>common</th><th>Rare ÷<br>common</th></tr></thead><tbody>`;
+  g.forEach(x=>{t+=`<tr class="${x.k===S.reg?"me":""}"><td>${esc(RLAB[x.k]||x.k)}</td>
+     <td>${x.r>=0?"+":"−"}${Math.abs(x.r).toFixed(2)}</td>
+     <td>${x.rare.toFixed(2)}</td><td>${x.comm.toFixed(2)}</td>
+     <td>${x.ratio.toFixed(2)}</td></tr>`;});
+  t+=`</tbody>`;
+  document.getElementById("gentab").innerHTML=t;
+
+  const e=[...rows].sort((a,b)=>b.mag-a.mag);
+  let u=`<thead><tr><th>Source</th><th>Size of the association vs<br>distance from an even split</th></tr></thead><tbody>`;
+  e.forEach(x=>{u+=`<tr class="${x.k===S.reg?"me":""}"><td>${esc(RLAB[x.k]||x.k)}</td>
+     <td>${x.mag>=0?"+":"−"}${Math.abs(x.mag).toFixed(2)}</td></tr>`;});
+  u+=`</tbody>`;
+  document.getElementById("extab").innerHTML=u;
+
+  const me=rows.find(x=>x.k===S.reg);
+  const others=rows.filter(x=>x.k!==S.reg).map(x=>x.mag).sort((a,b)=>a-b);
+  const med=others.length%2?others[(others.length-1)/2]:(others[others.length/2-1]+others[others.length/2])/2;
+  document.getElementById("exnote").innerHTML=
+    `For <b>${esc(RLAB[S.reg]||S.reg)}</b> that correlation is
+     <b>${me.mag>=0?"+":"−"}${Math.abs(me.mag).toFixed(2)}</b>, against a median of
+     ${med>=0?"+":"−"}${Math.abs(med).toFixed(2)} for the other ${word(others.length)}. ` +
+    // Three cases, not two. The artifact story predicts a POSITIVE correlation -- big odds
+    // ratios at both ends -- so a negative one argues against it rather than for it, and the
+    // two-branch version said the opposite of the right thing for every negative value.
+    (me.mag>0.25
+      ? `Positive and large enough to matter, which is the shape the artifact predicts: part of
+         what the left-hand plot shows for this source may be the odds scale having more room on a
+         lopsided split rather than a claim about which positions the source goes with.`
+      : me.mag<-0.25
+      ? `Negative, which is the opposite of what the artifact predicts. This source's associations
+         are <i>smaller</i> where the split is lopsided, so the gradient on the left cannot be the
+         scale having more room to move.`
+      : `Near zero, so lopsidedness on its own does not account for this source: its odds ratios
+         are not uniformly large at both ends, they are <i>positive</i> at the rare end and
+         <i>negative</i> at the common end. The direction is the finding.`);
+}
+
+/* ---------- chrome ---------- */
+function stratLabel(){
+  const s=(DATA.meta.strata||[]).find(x=>x.key===S.strat);
+  return s?s.label:S.strat;
+}
+const WORDS=["no","one","two","three","four","five","six","seven","eight","nine","ten",
+             "eleven","twelve","thirteen","fourteen","fifteen","sixteen","seventeen","eighteen",
+             "nineteen","twenty"];
+const word=n=>WORDS[n]!==undefined?WORDS[n]:String(n);
+const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
+function fillLede(){
+  // Every count in the opening is read off the payload. The counts move when an outcome or a
+  // source is hidden, or when a subgroup drops an outcome, and the prose has to move with them.
+  const P=points(S.reg,S.strat,S.ori);
+  document.getElementById("ledeN").textContent=cap(word(P.length));
+  document.getElementById("ledeK").textContent=word(REG.length);
+  // The private-messaging endpoints in the second paragraph are that source's, named in the
+  // sentence, and do not follow the chips -- the chips change the plot, not the finding the page
+  // is about. They do follow the subgroup and the orientation, because those change the finding.
+  const Q=points("PVT",S.strat,S.ori);
+  document.getElementById("ledeTop").textContent=Q.length?Q[0].or.toFixed(2):"—";
+  document.getElementById("ledeBot").textContent=Q.length?Q[Q.length-1].or.toFixed(2):"—";
+  const up=REG.filter(k=>{const R=points(k,S.strat,S.ori);
+    return corr(R.map(p=>p.prev),R.map(p=>Math.log(p.or)))>0;}).length;
+  document.getElementById("ledeUp").textContent=word(up);
+}
+function render(){
+  drawForest(); drawScatter(); drawTables(); fillLede();
+  document.getElementById("subline").textContent =
+    `Every outcome ${(RLAB[S.reg]||S.reg).toLowerCase()} predicts, ordered by how many people hold it`;
+  document.querySelectorAll("#regchips .chip").forEach(b=>b.classList.toggle("on",b.dataset.k===S.reg));
+  document.querySelectorAll("#orichips .chip").forEach(b=>b.classList.toggle("on",b.dataset.ori===S.ori));
+}
+function build(){
+  const rc=document.getElementById("regchips");
+  rc.innerHTML=REG.map(k=>`<button class="chip" data-k="${k}">${esc(RLAB[k]||k)}</button>`).join("");
+  rc.addEventListener("click",ev=>{const b=ev.target.closest(".chip"); if(!b)return;
+    S.reg=b.dataset.k; render();});
+  document.getElementById("orichips").addEventListener("click",ev=>{
+    const b=ev.target.closest(".chip"); if(!b)return; S.ori=b.dataset.ori; render();});
+  const sel=document.getElementById("strat");
+  // Cells thin out toward the bottom right of the party-by-education grid, and a few outcomes
+  // drop out of the smallest ones entirely. Say so in the option rather than hiding the cell:
+  // a 13-point gradient is still worth looking at as long as the reader knows it is 13.
+  const nOut=DATA.outcomes.filter(o=>!HIDDEN_OUTCOMES.includes(o.key)).length;
+  sel.innerHTML=(DATA.meta.strata||[]).map(s=>{
+    const k=points("PVT",s.key,"adv").length;
+    return `<option value="${s.key}">${esc(s.label)}${k<nOut?` — ${k} of ${nOut} outcomes`:""}</option>`;
+  }).join("");
+  sel.value=S.strat;
+  sel.addEventListener("change",()=>{S.strat=sel.value; render();});
+  document.querySelectorAll(".dupd").forEach(e=>e.textContent=DATA.meta.built||"—");
+}
+function boot(){
+  const go=raw=>{
+    DATA=raw;
+    REG=(DATA.meta.regimes||[]).map(r=>r.key).filter(k=>!HIDDEN_SOURCES.includes(k));
+    (DATA.meta.regimes||[]).forEach(r=>{RLAB[r.key]=r.label;});
+    if(!REG.includes(S.reg)) S.reg=REG[0];
+    build(); render();
+  };
+  const inline=document.getElementById("payload").textContent.trim();
+  if(inline && inline!=="__PAY"+"LOAD__"){ go(JSON.parse(inline)); return; }
+  fetch("data.json").then(r=>{ if(!r.ok) throw new Error("HTTP "+r.status); return r.json(); })
+   .then(go).catch(err=>{
+     document.querySelector(".wrap").insertAdjacentHTML("afterbegin",
+      `<div class="panel" style="border-color:#b3003c;color:#9a3b30"><b>Could not load
+       data.json.</b> Opening this file with <code>file://</code> blocks the fetch — use
+       <code>gradient_standalone.html</code>, or serve the folder with
+       <code>python3 -m http.server</code>.<br><small>${esc(err.message)}</small></div>`);
+   });
+}
+</script>
+</body>
+</html>

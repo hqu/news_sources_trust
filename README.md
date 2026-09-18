@@ -4,7 +4,7 @@ An interactive view of how political news source use predicts trust in science a
 institutions, conspiracy belief, and election denial. Built for collaborators who want to
 explore the estimates without touching the underlying survey.
 
-There are **three pages**:
+There are **five pages**:
 
 | # | page | data | question it answers |
 |---|---|---|---|
@@ -14,6 +14,7 @@ in the two-step-flow tradition. Hover gives point identity; no other interaction
 | **2** | `rankings.html` | `data.json` | For a given outcome, how do the news-source regimes rank? Forest plot, live multivariate model, party and diploma-divide subgroups. |
 | **3** | `explorer.html` | `data.json` | How that ranking **changes with how widely the belief is held**. A prevalence-window explorer: pick outcomes, slide the window, watch the ranking change. |
 | **4** | `gaps.html` | `gap_data.json` | **Who the gap belongs to.** The same associations as a difference between two groups of people, in percentage points — Democrats vs Republicans, graduates vs non-graduates, or users vs non-users of a source. |
+| **5** | `gradient.html` | `data.json` | **One source at a time, against how common the position is.** A forest plot of all seventeen outcomes for a single news source, stacked rarest-first. Built around private messaging, whose odds ratios fall monotonically from 1.77 on the rarest position to 0.71 on the most common one. Carries its own generality test and its own test of the mechanical alternative. |
 
 **Attribution and dating.** Every page carries a footer with the author and the date its payload
 was built, read live from `meta.built` (or `built`) rather than hard-coded, so a rebuilt payload
@@ -40,6 +41,31 @@ individually or by family, drag a two-handled prevalence window, watch the ranki
 **The slope readout switches off below five outcomes in the window.** With ten belief outcomes, a
 user who narrows to three points would otherwise get a correlation near ±1 that means nothing.
 
+`gradient.html` takes the same prevalence idea and holds the source fixed instead of the window.
+One forest plot, seventeen rows, ordered by the share of adults in the position rather than by
+effect size — so the ordering is imposed from outside the estimates and the staircase is something
+the data either produce or do not. It also carries the two checks the claim needs, both computed
+live from the same payload and both changing with the source and subgroup chosen:
+
+- **The generality test.** The same prevalence-against-log-odds correlation for all seven sources.
+  Private messaging is the steepest at −0.83 against a median of −0.40, and Search Engine (+0.68)
+  and Big social platforms (+0.55) run the other way — which is what rules out the odds scale,
+  since an artifact of the scale would bend all seven the same way.
+- **The mechanical alternative.** An odds ratio has more room on a lopsided split, so a source
+  could show a gradient without meaning anything. That story predicts *large* odds ratios at both
+  ends, not *positive* ones at the rare end and *negative* ones at the common end. Correlating
+  |log OR| with distance from an even split gives +0.06 for private messaging against +0.55 for
+  podcasts and +0.53 for interpersonal ties, so the alternative accounts for those two and not for
+  this one.
+
+The gradient survives every subgroup: −0.84 among Democrats, −0.69 among Republicans, −0.85 among
+respondents with a high school education or less. The page defaults to the **adverse orientation**
+that `explorer.html` uses — believing the claim, or *dis*trusting the institution — because trust
+and belief items cannot share an axis otherwise, and *As the question was asked* undoes it. That
+button is not decoration: the correlation falls from −0.83 to −0.71 when the trust items face their
+original way, so the orientation does part of the work and the page should let a reader see how
+much.
+
 ## Running it
 
 **Just open `index_standalone.html`** (or `explorer_standalone.html`, or `gaps_standalone.html`). It has the data built in, needs no server, and works
@@ -56,6 +82,7 @@ After rebuilding a payload, regenerate the shareable copies:
     python3 embed_data.py       # index_standalone.html
     python3 embed_explorer.py   # explorer_standalone.html
     python3 embed_gaps.py       # gaps_standalone.html
+    python3 embed_gradient.py   # gradient_standalone.html
 
 `gap_data.json` comes from its own build, which fits one model per outcome-by-source rather than
 one per outcome, and takes about ten minutes:
@@ -162,8 +189,11 @@ Chat.
 
 Emptying the arrays brings the regime back everywhere. The prose counts are the one thing
 that does not follow automatically: "all seven news-source regimes" in `rankings.html`,
-"7 kinds of news source" in `explorer.html`, and the one-versus-two short-wave sentence in
-the `rankings.html` footnote all go back to their eight-regime wording.
+"7 kinds of news source" in `explorer.html`, "two of the seven" and "the other six" in
+`gradient.html`, and the one-versus-two short-wave sentence in the `rankings.html` footnote all
+go back to their eight-regime wording. `gradient.html` reads `HIDDEN_SOURCES` in one place, where
+it builds `REG` from `meta.regimes`, and every chip, table row and median on the page follows from
+that array.
 
 ## Rebuilding
 
@@ -194,6 +224,15 @@ typed by hand.
 
 Inlines the payload into `index_standalone.html`, and base64-inlines
 `figures/information_flow_map_dashboard.png` so the standalone copy carries the figure too.
+
+    python3 make_gradient_figure.py [REGIME]
+
+Reads `data.json` and writes `figures/gradient_<regime>.svg` — a static, self-contained copy of
+dashboard 5's forest plot for slides and for the proposal, defaulting to `PVT`. It redraws the
+page's geometry from the same payload rather than screenshotting it, so the figure and the page
+cannot drift apart, and every label, prevalence, odds ratio and correlation in it is read from the
+file. Three are checked in: `gradient_pvt.svg` (r = −0.83), `gradient_dec.svg` (−0.76, the nearest
+rival) and `gradient_srch.svg` (+0.68, the clearest counter-example).
 
 That file is the **dashboard variant** of figure 1. One source,
 `../paper3/figures/make_flow_map.py`, emits two PNGs: run it bare for the proposal's
