@@ -121,21 +121,24 @@ window.__unlock=function(run){
   <div class="rule"></div>
 
   <p class="lede"><span id="ledeN">—</span> outcomes are stacked by <b>how common the position
-  is</b>, rarest at the top. Each row is one odds ratio for people who got political news that way
-  in the last twenty-four hours against people who did not, with party, education, age, income,
-  gender, survey date and every other news source held equal. The vertical ordering comes from
-  outside the estimates, so nothing about the plot forces the dots into a line.</p>
+  is</b>, rarest at the top. Every question is shown the way it was asked: the percentage beside a
+  row is the share who gave that answer, and the odds ratio is for giving it. Each row compares
+  people who got political news that way in the last twenty-four hours with people who did not,
+  with party, education, age, income, gender, survey date and every other news source held equal.
+  The vertical ordering comes from outside the estimates, so nothing about the plot forces the dots
+  into a line.</p>
 
-  <p class="lede" style="margin-top:10px"><b>For private messaging they form one anyway.</b> The
-  association is positive and largest where almost nobody holds the position, and reverses where
-  most people do — from <span id="ledeTop">—</span> on the rarest to <span id="ledeBot">—</span> on
-  the most common.</p>
+  <p class="lede" style="margin-top:10px"><b>For private messaging they trend anyway.</b> The
+  association falls as the position becomes common — <span id="ledeTop">—</span> on the rarest
+  against <span id="ledeBot">—</span> on the most widely held, a correlation of
+  <span id="ledeR">—</span>.</p>
 
   <p class="lede" style="margin-top:10px">That is only worth saying if it belongs to this source
   rather than to the odds scale. <b>Switch the source</b> and the ordering stays put while the dots
-  rearrange: <span id="ledeUp">—</span> of the <span id="ledeK">—</span> slope the other way. The
-  two panels on the right run that comparison across every source at once, and run the obvious
-  mechanical alternative against it.</p>
+  rearrange: <span id="ledeUp">—</span> of the <span id="ledeK">—</span> slope the other way, and
+  the steepest of all is <span id="ledeSteep">—</span>. The two panels on the right run that
+  comparison across every source at once, and run the obvious mechanical alternative against it —
+  which is what separates a source whose gradient means something from one whose does not.</p>
 
   <div class="rule"></div>
 
@@ -145,8 +148,8 @@ window.__unlock=function(run){
       <select id="strat"></select></div>
     <div class="ctl"><div class="track">Facing</div>
       <div class="chips" id="orichips">
-        <button class="chip on" data-ori="adv">The adverse side</button>
-        <button class="chip" data-ori="raw">As the question was asked</button>
+        <button class="chip on" data-ori="raw">As the question was asked</button>
+        <button class="chip" data-ori="adv">Turned to the adverse side</button>
       </div></div>
   </div>
 
@@ -194,16 +197,19 @@ window.__unlock=function(run){
   <div class="panel" style="margin-top:20px">
     <h2>Reading it correctly</h2>
     <p class="note" style="margin-top:0">
-    <b>Orientation is an interpretive choice, and it is the page's, not the model's.</b> Eleven of
-    these outcomes are trust questions and six are belief questions, and they only share an axis
-    once trust is turned around to face the same way as belief — so "the adverse side" means
-    believing the claim, or <i>dis</i>trusting the institution. Turning an outcome around inverts
-    its odds ratio, replaces its prevalence with 100 minus itself, and <b>renames the row</b> —
-    which is why a trust question appears here as <i>Distrust of the CDC</i>. Without the rename,
-    61.0% beside a row called "Trust in Donald Trump" would say the opposite of what it plots,
-    since 39.0% trust him. Hovering a reversed row gives the question as it was asked and the
-    share on that side. The <i>As the question was asked</i> button puts every outcome back the
-    way it was fielded, and the gradient is worth checking there.<br><br>
+    <b>By default nothing is reoriented.</b> Eleven of these outcomes are trust questions and six
+    are belief questions, and each is shown as it was fielded: the row says <i>Trust in Donald
+    Trump</i>, the percentage is the 39.0% who do, and the odds ratio is for trusting him. The
+    cost is that the horizontal axis means "more likely to give this answer" rather than one
+    substantive thing, since the affirmative answer is agreement on a belief item and trust on a
+    trust item.<br><br>
+    <b>Turned to the adverse side</b> buys a single-meaning axis at the price of an interpretive
+    choice that is the page's and not the model's. It inverts the odds ratio, replaces the
+    prevalence with 100 minus itself, and renames the row, so <i>Trust in Donald Trump</i> at 39.0%
+    becomes <i>Distrust of Donald Trump</i> at 61.0% and every outcome faces the adverse way —
+    believing the claim, or <i>dis</i>trusting the institution. That is the convention
+    <code>explorer.html</code> uses. It is worth pressing: the gradient is steeper there, and how
+    much steeper is a fact about the choice rather than about private messaging.<br><br>
     <b>These are cross-sectional associations, confounded with selective exposure by
     construction.</b> They fix the ordering of predictors, not transmission rates. A person who
     already holds a rare position is freer to choose a messaging app than the app is to give them
@@ -239,7 +245,7 @@ const HIDDEN_SOURCES=["AICH"];
 
 const PAL={ink:"#16181d",mid:"#71777f",faint:"#ccd1d6",hair:"#e6e9ec",wash:"#f4f7f9",
            priv:"#6b4c9a",warm:"#9a3b30"};
-let DATA=null, REG=[], RLAB={}, S={reg:"PVT", strat:"all", ori:"adv"};
+let DATA=null, REG=[], RLAB={}, S={reg:"PVT", strat:"all", ori:"raw"};
 
 /* ---------- small numeric helpers, all on 17 points ---------- */
 const mean=v=>v.reduce((a,b)=>a+b,0)/v.length;
@@ -327,7 +333,7 @@ function drawForest(){
   let s=`<svg width="${W}" height="${H}" font-family="Helvetica Neue,Helvetica,Arial">`;
   // column headers
   s+=`<text x="0" y="16" fill="${PAL.mid}" font-size="9.6" font-weight="700" letter-spacing="1.4">OUTCOME</text>`;
-  const phead = S.ori==="adv" ? "% WHO HOLD IT" : "% ANSWERING YES";
+  const phead = "% WHO HOLD IT";
   s+=`<text x="${PBAR+BARW}" y="16" fill="${PAL.mid}" font-size="9.6" font-weight="700" letter-spacing="1.4" text-anchor="end">${phead}</text>`;
   s+=`<text x="${PX0+PXW/2}" y="16" fill="${PAL.mid}" font-size="9.6" font-weight="700" letter-spacing="1.4" text-anchor="middle">ODDS RATIO, ${esc(RLAB[S.reg]||S.reg).toUpperCase()}</text>`;
   s+=`<line x1="0" y1="24" x2="${W}" y2="24" stroke="${PAL.hair}"/>`;
@@ -498,9 +504,16 @@ function fillLede(){
   const Q=points("PVT",S.strat,S.ori);
   document.getElementById("ledeTop").textContent=Q.length?Q[0].or.toFixed(2):"—";
   document.getElementById("ledeBot").textContent=Q.length?Q[Q.length-1].or.toFixed(2):"—";
-  const up=REG.filter(k=>{const R=points(k,S.strat,S.ori);
-    return corr(R.map(p=>p.prev),R.map(p=>Math.log(p.or)))>0;}).length;
-  document.getElementById("ledeUp").textContent=word(up);
+  document.getElementById("ledeR").textContent=(()=>{const x=corr(Q.map(p=>p.prev),
+    Q.map(p=>Math.log(p.or))); return (x>=0?"+":"−")+Math.abs(x).toFixed(2);})();
+  const slopes=REG.map(k=>{const R=points(k,S.strat,S.ori);
+    return {k:k,r:corr(R.map(p=>p.prev),R.map(p=>Math.log(p.or)))};});
+  document.getElementById("ledeUp").textContent=word(slopes.filter(x=>x.r>0).length);
+  // Naming the steepest rather than asserting it is private messaging: in the as-asked
+  // orientation it is not, and a sentence that only holds in one of the two views would be
+  // wrong every time the button is pressed.
+  document.getElementById("ledeSteep").textContent=
+    RLAB[slopes.slice().sort((a,b)=>a.r-b.r)[0].k];
 }
 function render(){
   drawForest(); drawScatter(); drawTables(); fillLede();

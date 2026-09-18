@@ -14,7 +14,7 @@ in the two-step-flow tradition. Hover gives point identity; no other interaction
 | **2** | `rankings.html` | `data.json` | For a given outcome, how do the news-source regimes rank? Forest plot, live multivariate model, party and diploma-divide subgroups. |
 | **3** | `explorer.html` | `data.json` | How that ranking **changes with how widely the belief is held**. A prevalence-window explorer: pick outcomes, slide the window, watch the ranking change. |
 | **4** | `gaps.html` | `gap_data.json` | **Who the gap belongs to.** The same associations as a difference between two groups of people, in percentage points — Democrats vs Republicans, graduates vs non-graduates, or users vs non-users of a source. |
-| **5** | `gradient.html` | `data.json` | **One source at a time, against how common the position is.** A forest plot of all seventeen outcomes for a single news source, stacked rarest-first. Built around private messaging, whose odds ratios fall monotonically from 1.77 on the rarest position to 0.71 on the most common one. Carries its own generality test and its own test of the mechanical alternative. |
+| **5** | `gradient.html` | `data.json` | **One source at a time, against how common the position is.** A forest plot of all seventeen outcomes for a single news source, stacked rarest-first, every question shown as it was asked. Built around private messaging, whose odds ratios fall from 1.77 on the rarest position to 0.90 on the most widely held. Carries its own generality test and its own test of the mechanical alternative. |
 
 **Attribution and dating.** Every page carries a footer with the author and the date its payload
 was built, read live from `meta.built` (or `built`) rather than hard-coded, so a rebuilt payload
@@ -48,32 +48,51 @@ the data either produce or do not. It also carries the two checks the claim need
 live from the same payload and both changing with the source and subgroup chosen:
 
 - **The generality test.** The same prevalence-against-log-odds correlation for all seven sources.
-  Private messaging is the steepest at −0.83 against a median of −0.40, and Search Engine (+0.68)
-  and Big social platforms (+0.55) run the other way — which is what rules out the odds scale,
-  since an artifact of the scale would bend all seven the same way.
+  Private messaging is −0.71 against a median of −0.28, with Journalistic Standard (+0.77), Search
+  Engine (+0.53) and Big social platforms (+0.26) running the other way — which is what rules out
+  the odds scale, since an artifact of the scale would bend all seven the same way. Private
+  messaging is **not** the steepest here: podcasts are, at −0.89.
 - **The mechanical alternative.** An odds ratio has more room on a lopsided split, so a source
   could show a gradient without meaning anything. That story predicts *large* odds ratios at both
-  ends, not *positive* ones at the rare end and *negative* ones at the common end. Correlating
-  |log OR| with distance from an even split gives +0.06 for private messaging against +0.55 for
-  podcasts and +0.53 for interpersonal ties, so the alternative accounts for those two and not for
-  this one.
+  ends, not a consistent decline in signed terms. Correlating |log OR| with distance from an even
+  split gives **+0.06 for private messaging** against **+0.55 for podcasts** and +0.53 for
+  interpersonal ties. This is the test that separates the two steepest slopes: podcasts are
+  steeper and largely explained by lopsidedness, private messaging shallower and not explained by
+  it at all. The quantity is invariant to reorientation — flipping `p → 100−p` leaves `|p−50|`
+  alone and `OR → 1/OR` leaves `|log OR|` alone — so it is the one number on the page that does
+  not move when the orientation button does.
 
-The gradient survives every subgroup: −0.84 among Democrats, −0.69 among Republicans, −0.85 among
-respondents with a high school education or less. The page defaults to the **adverse orientation**
-that `explorer.html` uses — believing the claim, or *dis*trusting the institution — because trust
-and belief items cannot share an axis otherwise, and *As the question was asked* undoes it.
+The gradient holds in most subgroups but not all: −0.80 among Democrats, −0.70 among Republicans,
+−0.88 among respondents with a high school education or less, and **+0.02 among graduate-degree
+holders**, where it disappears. That last cell is the honest limit of the claim and the page shows
+it without comment.
+
+### Orientation
+
+**The page shows every question as it was asked.** The percentage beside a row is the share who
+gave that answer and the odds ratio is for giving it, so `Trust in Donald Trump` carries the 39.0%
+who do. The cost is that the horizontal axis means "more likely to answer this way" rather than one
+substantive thing, since the affirmative answer is agreement on a belief item and trust on a trust
+item.
+
+*Turned to the adverse side* is the alternative, and it is the convention `explorer.html` uses:
+trust items face the same way as belief items, which buys a single-meaning axis at the price of an
+interpretive choice the models do not make. Pressing it takes private messaging from −0.71 to
+−0.83 and moves it from second-steepest to steepest, so **how much of the headline the orientation
+is carrying is itself visible on the page**.
 
 **Reversing an outcome renames its row**, which is where this page differs from `explorer.html`.
 The explorer can keep the native name because its axis is labelled "% of the population in the
-adverse state"; a forest plot puts the name and the number on one line, so "Trust in Donald Trump
-— 61.0%" reads as 61% trusting him when 39% do. `labelFor()` turns `Trust in X` into `Distrust of
-X`, carries written-out labels for the two outcomes that are not trust-in-a-target (`vaccine`,
-`mmr`), and prefixes anything that matches neither with `[NOT REVERSED]` so a new trust outcome
-fails loudly rather than silently. `mmr` cannot be shortened to "Opposes the childhood MMR
-mandate": `vac_mmr >= 4` is approve or strongly approve, so its complement contains the neutral
-midpoint, and calling that opposition is the same error as scoring "neither agree nor disagree" as
-election denial. The left gutter is sized for that label, and `make_gradient_figure.py` carries the
-same map and the same fallback. That
+adverse state" and the number is never beside the label; a forest plot puts them on one line, so
+"Trust in Donald Trump — 61.0%" reads as 61% trusting him when 39% do. `labelFor()` turns `Trust in
+X` into `Distrust of X`, carries written-out labels for the two outcomes that are not
+trust-in-a-target (`vaccine`, `mmr`), and prefixes anything that matches neither with
+`[NOT REVERSED]` so a new trust outcome fails loudly rather than silently. `mmr` cannot be
+shortened to "Opposes the childhood MMR mandate": `vac_mmr >= 4` is approve or strongly approve, so
+its complement contains the neutral midpoint, and calling that opposition is the same error as
+scoring "neither agree nor disagree" as election denial. The left gutter is sized for that label in
+both orientations so the plot does not reflow when the button is pressed, and
+`make_gradient_figure.py` carries the same map and the same fallback. That
 button is not decoration: the correlation falls from −0.83 to −0.71 when the trust items face their
 original way, so the orientation does part of the work and the page should let a reader see how
 much.
@@ -237,14 +256,16 @@ typed by hand.
 Inlines the payload into `index_standalone.html`, and base64-inlines
 `figures/information_flow_map_dashboard.png` so the standalone copy carries the figure too.
 
-    python3 make_gradient_figure.py [REGIME]
+    python3 make_gradient_figure.py [REGIME] [--adverse]
 
-Reads `data.json` and writes `figures/gradient_<regime>.svg` — a static, self-contained copy of
-dashboard 5's forest plot for slides and for the proposal, defaulting to `PVT`. It redraws the
-page's geometry from the same payload rather than screenshotting it, so the figure and the page
-cannot drift apart, and every label, prevalence, odds ratio and correlation in it is read from the
-file. Three are checked in: `gradient_pvt.svg` (r = −0.83), `gradient_dec.svg` (−0.76, the nearest
-rival) and `gradient_srch.svg` (+0.68, the clearest counter-example).
+Reads `data.json` and writes `figures/gradient_<regime>[_adverse].svg` — a static, self-contained
+copy of dashboard 5's forest plot for slides and for the proposal, defaulting to `PVT` as asked. It
+redraws the page's geometry from the same payload rather than screenshotting it, so the figure and
+the page cannot drift apart, and every label, prevalence, odds ratio and correlation in it is read
+from the file. Four are checked in: `gradient_pvt.svg` (as asked, r = −0.71), `gradient_dec.svg`
+(−0.89, steeper but explained by lopsidedness), `gradient_srch.svg` (+0.53, the clearest
+counter-example) and `gradient_pvt_adverse.svg` (−0.83, the same source under the other
+orientation).
 
 That file is the **dashboard variant** of figure 1. One source,
 `../paper3/figures/make_flow_map.py`, emits two PNGs: run it bare for the proposal's

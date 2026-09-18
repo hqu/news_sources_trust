@@ -4,17 +4,21 @@ Reads dashboard/data.json -- aggregates only, the same payload the page reads --
 same geometry the page draws, so the figure and the page cannot disagree. Nothing is typed by
 hand: the labels, the prevalences, the odds ratios and the correlation all come out of the file.
 
-    python3 make_gradient_figure.py [REGIME]      default PVT
+    python3 make_gradient_figure.py [REGIME] [--adverse]      default PVT, as asked
 
-Everything is oriented to the ADVERSE side, as `explorer.html` and `gradient.html` are: a trust
-outcome is turned around to face the same way as a belief outcome, which replaces its prevalence
-with the complement and its odds ratio with the reciprocal. That is an interpretive choice and the
-caption says so.
+By default every question is drawn AS ASKED: the percentage beside a row is the share who gave
+that answer and the odds ratio is for giving it, so "Trust in Donald Trump" carries the 39.0% who
+do. `--adverse` turns the trust items around to face the same way as the belief items, the way
+`explorer.html` does, which replaces a prevalence with its complement, an odds ratio with its
+reciprocal, and the row name with its negation. That buys a single-meaning axis at the price of an
+interpretive choice, and the caption says which one is in force.
 """
 import json, math, os, sys, html
 
 H = os.path.dirname(os.path.abspath(__file__))
-REGIME = (sys.argv[1] if len(sys.argv) > 1 else "PVT").upper()
+ARGS = [a for a in sys.argv[1:] if not a.startswith("--")]
+ADVERSE = "--adverse" in sys.argv[1:]
+REGIME = (ARGS[0] if ARGS else "PVT").upper()
 HIDDEN_OUTCOMES = {"rfk", "musk"}
 HIDDEN_SOURCES = {"AICH"}
 INK, MID, FAINT, HAIR, WASH, WARM = "#16181d", "#71777f", "#ccd1d6", "#e6e9ec", "#f4f7f9", "#9a3b30"
@@ -33,7 +37,7 @@ ADVERSE_LABEL = {"vaccine": "Has not had a COVID-19 vaccine",
 
 
 def adverse_label(o):
-    if o["direction"] != "trust":
+    if not ADVERSE or o["direction"] != "trust":
         return o["label"]
     if o["key"] in ADVERSE_LABEL:
         return ADVERSE_LABEL[o["key"]]
@@ -51,7 +55,7 @@ def points(reg):
         e = next((x for x in b["estimates"] if x["key"] == reg), None)
         if not e:
             continue
-        flip = o["direction"] == "trust"
+        flip = ADVERSE and o["direction"] == "trust"
         out.append(dict(
             label=adverse_label(o), n=b["n"], waves=len(b.get("waves") or []),
             prev=100 - b["prevalence"] if flip else b["prevalence"],
@@ -82,12 +86,27 @@ pad = (math.log(hi) - math.log(lo)) * 0.04
 lo, hi = math.exp(math.log(lo) - pad), math.exp(math.log(hi) + pad)
 sx = lambda v: PX0 + (math.log(v) - math.log(lo)) / (math.log(hi) - math.log(lo)) * PXW
 
+CAP = ["Survey-weighted logistic regression, one per outcome, adjusted for party, education, age, income,",
+       "gender, wave and every other news source."]
+CAP += ([
+    "Trust items are turned around to face the same way as belief items and renamed with them, so a",
+    "trust question is counted here as distrust: 61.0% do not trust Donald Trump, and 39.0% do.",
+] if ADVERSE else [
+    "Every question is drawn as asked, so the percentage is the share who gave that answer and the odds",
+    "ratio is for giving it. The axis therefore means \u201cmore likely to answer this way\u201d, not one",
+    "substantive direction: the affirmative answer is agreement on a belief item, trust on a trust item.",
+])
+CAP += [
+    "\u2020 fewer than half the waves of the best-covered outcome. Cross-sectional associations, confounded",
+    "with selective exposure by construction: they fix the ordering of predictors, not transmission rates.",
+]
+
 TITLE, TOP = 64, 64 + 54
 # PAD is a real margin, not decoration: the label column starts at x=0 and the caption ends one
 # line above the bottom edge, so an unpadded figure has type touching the crop on three sides the
 # moment it is dropped into a slide or a LaTeX float.
 PAD = 22
-W, HH = PX0 + PXW + 16, TITLE + 54 + len(P) * RH + 52 + 58
+W, HH = PX0 + PXW + 16, TITLE + 54 + len(P) * RH + 38 + 26 + 12 * len(CAP)
 SW, SH = W + 2 * PAD, HH + 2 * PAD
 e = html.escape
 s = [f'<svg xmlns="http://www.w3.org/2000/svg" width="{SW}" height="{SH}" viewBox="0 0 {SW} {SH}" '
@@ -98,6 +117,7 @@ s.append(f'<text x="0" y="18" fill="{MID}" font-size="9.6" font-weight="700" let
 s.append(f'<text x="0" y="42" fill="{INK}" font-size="17" font-weight="700">'
          f'{e(RLAB.get(REGIME, REGIME))}, by how common the position is</text>')
 s.append(f'<text x="0" y="58" fill="{MID}" font-size="11.4">{len(P)} outcomes · all respondents · '
+         f'{"turned to the adverse side" if ADVERSE else "as asked"} · '
          f'correlation between prevalence and the log odds ratio {"+" if r >= 0 else "−"}{abs(r):.2f}</text>')
 s.append(f'<text x="0" y="{TITLE + 16}" fill="{MID}" font-size="9.6" font-weight="700" letter-spacing="1.4">OUTCOME</text>')
 s.append(f'<text x="{PBAR + BARW}" y="{TITLE + 16}" fill="{MID}" font-size="9.6" font-weight="700" '
@@ -126,18 +146,11 @@ for i, p in enumerate(P):
 yb = TOP + len(P) * RH + 38
 s.append(f'<text x="{PX0}" y="{yb}" fill="{MID}" font-size="10.4" font-weight="600">← less likely to hold it</text>')
 s.append(f'<text x="{PX0 + PXW}" y="{yb}" fill="{MID}" font-size="10.4" font-weight="600" text-anchor="end">more likely to hold it →</text>')
-cap = [
-    "Survey-weighted logistic regression, one per outcome, adjusted for party, education, age, income,",
-    "gender, wave and every other news source. Trust items are turned around to face the same way as",
-    "belief items, and renamed with them: a trust question is named and counted here as distrust,",
-    "so 61.0% do not trust Donald Trump and 39.0% do. † fewer than",
-    "half the waves of the best-covered outcome. Cross-sectional associations, confounded with selective",
-    "exposure by construction: they fix the ordering of predictors, not transmission rates.",
-]
-for j, line in enumerate(cap):
+for j, line in enumerate(CAP):
     s.append(f'<text x="0" y="{yb + 20 + j * 12}" fill="{MID}" font-size="9.4">{e(line)}</text>')
 s.append("</g></svg>")
 
-out = os.path.join(H, "figures", f"gradient_{REGIME.lower()}.svg")
+out = os.path.join(H, "figures",
+                   f"gradient_{REGIME.lower()}{'_adverse' if ADVERSE else ''}.svg")
 open(out, "w", encoding="utf-8").write("\n".join(s))
 print(f"wrote {os.path.relpath(out, H)}  ({len(P)} outcomes, r={r:+.3f})")
