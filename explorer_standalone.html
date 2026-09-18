@@ -200205,9 +200205,12 @@ const FAMS = [["belief","Belief in a claim","conspiracy and misinformation items
               ["challenger","Trust in the challengers","RFK Jr. and Musk — these run the other way"],
               ["government","Trust in government, agencies and courts",
                "CDC, FDA, Fauci, White House, Supreme Court, Trump"],
+              // The MMR mandate item left this family on 2026-09-18 with the rest of `mmr`:
+              // W35 is its only wave, so no wave fixed effect is fitted for it. The family is
+              // COVID vaccination alone now, and the description has to say so or it names an
+              // item the reader cannot find.
               ["health","Vaccination positions",
-               "COVID vaccination and the childhood MMR mandate — shown as the adverse side, so "
-               +"higher = unvaccinated or opposed"]];
+               "COVID vaccination — shown as the adverse side, so higher = unvaccinated"]];
 let DATA=null, REG=[], RLAB={}, OUT=[], BYKEY={};
 /* short codes for the quadrant, where a full label will not fit beside a 5px dot */
 const RSHORT={JS:"JS",PB:"PB",SRCH:"SRCH",AICH:"AI",VLP:"VLP",PVT:"PVT",INT:"INT",DEC:"POD"};
@@ -200227,7 +200230,7 @@ function orient(o,e){
    are all untouched; these keys are filtered out at load. Empty the array to
    bring them back -- nothing else has to change.
    --------------------------------------------------------------------------- */
-const HIDDEN_OUTCOMES=["rfk","musk"];
+const HIDDEN_OUTCOMES=["rfk","musk","mmr"];
 /* ---------------------------------------------------------------------------
    TEMPORARILY HIDDEN NEWS SOURCES. Same idea, one regime key per entry. REG is
    the single list every surface on this page reads -- the chips, the scatter,

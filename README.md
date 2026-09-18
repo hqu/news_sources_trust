@@ -14,7 +14,7 @@ in the two-step-flow tradition. Hover gives point identity; no other interaction
 | **2** | `rankings.html` | `data.json` | For a given outcome, how do the news-source regimes rank? Forest plot, live multivariate model, party and diploma-divide subgroups. |
 | **3** | `explorer.html` | `data.json` | How that ranking **changes with how widely the belief is held**. A prevalence-window explorer: pick outcomes, slide the window, watch the ranking change. |
 | **4** | `gaps.html` | `gap_data.json` | **Who the gap belongs to.** The same associations as a difference between two groups of people, in percentage points — Democrats vs Republicans, graduates vs non-graduates, or users vs non-users of a source. |
-| **5** | `gradient.html` | `data.json` | **One source at a time, against how common the position is.** A forest plot of all seventeen outcomes for a single news source, stacked rarest-first, every question shown as it was asked. Built around private messaging, whose odds ratios fall from 1.77 on the rarest position to 0.90 on the most widely held. Carries its own generality test and its own test of the mechanical alternative. |
+| **5** | `gradient.html` | `data.json` | **One source at a time, against how common the position is.** A forest plot of all sixteen outcomes for a single news source, stacked rarest-first, every question shown as it was asked. Private messaging falls from 1.77 on the rarest position to 0.90 on the most widely held; podcasts are the steeper case at −0.89, crossing 1.0 at the even split. Carries its own generality test and its own test of the mechanical alternative. |
 
 **Navigation.** Every page opens with the same five-card `.dnav` strip, numbered 1 to 5, with the
 current page marked and unlinked. The links are written at load rather than in the markup, because
@@ -31,7 +31,7 @@ sent to a page that cannot fetch its payload. Four point at dashboard 5, each fr
 actually follows from: `rankings.html` because it is the same forest plot with the outcome held
 fixed instead of the source; `explorer.html` because it asks the same prevalence question with a
 window instead of a fixed source; `index.html` from the mirror-pairs section, whose rule dashboard
-5 generalises to all seventeen outcomes; and `gaps.html` because a percentage-point gap is bounded
+5 generalises to all sixteen outcomes; and `gaps.html` because a percentage-point gap is bounded
 by prevalence and an odds ratio is not.
 
 `__linkPages` is **exposed and idempotent rather than a one-shot listener**, which `index.html`
@@ -66,14 +66,14 @@ individually or by family, drag a two-handled prevalence window, watch the ranki
 user who narrows to three points would otherwise get a correlation near ±1 that means nothing.
 
 `gradient.html` takes the same prevalence idea and holds the source fixed instead of the window.
-One forest plot, seventeen rows, ordered by the share of adults in the position rather than by
+One forest plot, sixteen rows, ordered by the share of adults in the position rather than by
 effect size — so the ordering is imposed from outside the estimates and the staircase is something
 the data either produce or do not. It also carries the two checks the claim needs, both computed
 live from the same payload and both changing with the source and subgroup chosen:
 
 - **The generality test.** The same prevalence-against-log-odds correlation for all seven sources.
-  Private messaging is −0.71 against a median of −0.28, with Journalistic Standard (+0.77), Search
-  Engine (+0.53) and Big social platforms (+0.26) running the other way — which is what rules out
+  Private messaging is −0.71 against a median of −0.26, with Journalistic Standard (+0.76), Search
+  Engine (+0.51) and Big social platforms (+0.26) running the other way — which is what rules out
   the odds scale, since an artifact of the scale would bend all seven the same way. Private
   messaging is **not** the steepest here: podcasts are, at −0.89.
 - **The mechanical alternative.** Be exact about which alternative this is. An odds ratio is
@@ -85,34 +85,34 @@ live from the same payload and both changing with the source and subgroup chosen
   the fitted **crossing point** plus a count of outcomes whose interval clears 1.0 on each side.
 
   Sorting the seven by crossing point is itself informative: Journalistic Standard 18%, Big social
-  platforms 45%, podcasts 52%, Search Engine 67%, private messaging 86%, interpersonal ties 95%,
-  and Partisan Broadcast never (16 of 17 above 1.0). That is an ordering of how minoritarian a
-  position has to be before a source stops siding with it.
+  platforms 45%, podcasts 53%, Search Engine 70%, private messaging 92%, and interpersonal ties
+  and Partisan Broadcast never. That is an ordering of how minoritarian a position has to be
+  before a source stops siding with it.
 
   **A correction to an earlier version of this page.** It carried a column correlating |log OR|
   with |p − 50| and read a high value as evidence the gradient was an artifact — concluding that
   podcasts (+0.55) were "largely explained by lopsidedness" and private messaging (+0.06) was not.
   That inference does not hold. The quantity is confounded with where the line crosses 1.0: on
-  these seventeen prevalences a **noiseless, perfectly genuine** straight line crossing at 50%
-  scores +1.00 by construction, one crossing at 85% scores about +0.3, and one crossing at 20%
-  scores −0.04. Podcasts cross at 52% and private messaging at 86%, which accounts for the gap
+  these sixteen prevalences a **noiseless, perfectly genuine** straight line crossing at 50%
+  scores +1.00 by construction, one crossing at 85% scores about +0.26, and one crossing at 20%
+  scores −0.02. Podcasts cross at 53% and private messaging at 92%, which accounts for the gap
   between them on their own. The column is still shown, because a constant percentage-point effect
   does drive it up, but it is labelled as the weaker of the two and the crossing sits beside it.
-  Podcasts change sign — 9 outcomes clear 1.0 above and 8 below — so no constant-effect story
+  Podcasts change sign — 9 outcomes clear 1.0 above and 7 below — so no constant-effect story
   survives for them either.
 
-The gradient holds in most subgroups but not all: −0.80 among Democrats, −0.70 among Republicans,
-−0.88 among respondents with a high school education or less, and **+0.02 among graduate-degree
+The gradient holds in most subgroups but not all: −0.82 among Democrats, −0.69 among Republicans,
+−0.91 among respondents with a high school education or less, and **+0.05 among graduate-degree
 holders**, where it disappears. That last cell is the honest limit of the claim and the page shows
 it without comment.
 
 **Podcasts are the stronger case of the same shape**, and every part of the page follows the
 selected source so they get the same treatment rather than a chip that redraws the dots under
 prose about something else. Podcasts run −0.89 against private messaging's −0.71, from 1.45 on
-wind turbines to 0.79 on trust in doctors, crossing 1.0 at 52% with 9 outcomes clearly above and 8
+wind turbines to 0.79 on trust in doctors, crossing 1.0 at 53% with 9 outcomes clearly above and 7
 clearly below — the cleanest sign change of the seven. They also survive every subgroup, including
 graduate degree at −0.96, where private messaging's gradient vanishes. Occupancy is 12.7% against
-7.7%. Private messaging remains the more surprising finding — it crosses at 86%, so it sides with
+7.7%. Private messaging remains the more surprising finding — it crosses at 92%, so it sides with
 the affirmative on nearly everything and only turns on near-consensus items — but podcasts are the
 cleaner demonstration that the gradient exists.
 
@@ -127,7 +127,7 @@ item.
 *Turned to the adverse side* is the alternative, and it is the convention `explorer.html` uses:
 trust items face the same way as belief items, which buys a single-meaning axis at the price of an
 interpretive choice the models do not make. Pressing it takes private messaging from −0.71 to
-−0.83 and moves it from second-steepest to steepest, so **how much of the headline the orientation
+−0.84 and moves it from second-steepest to steepest, so **how much of the headline the orientation
 is carrying is itself visible on the page**.
 
 **Reversing an outcome renames its row**, which is where this page differs from `explorer.html`.
@@ -142,7 +142,7 @@ its complement contains the neutral midpoint, and calling that opposition is the
 scoring "neither agree nor disagree" as election denial. The left gutter is sized for that label in
 both orientations so the plot does not reflow when the button is pressed, and
 `make_gradient_figure.py` carries the same map and the same fallback. That
-button is not decoration: the correlation falls from −0.83 to −0.71 when the trust items face their
+button is not decoration: the correlation falls from −0.84 to −0.71 when the trust items face their
 original way, so the orientation does part of the work and the page should let a reader see how
 much.
 
@@ -257,6 +257,15 @@ Semi-Public Messaging and Crowdsourced are in the taxonomy but are not fielded i
 
 ### Hidden sources
 
+`mmr` joined `rfk` and `musk` in `HIDDEN_OUTCOMES` on 2026-09-18. It ran in **W35 alone**, so no
+wave fixed effect could be fitted for it while every other row on these pages carries one, and a
+single-wave estimate does not belong beside ten- and eleven-wave ones. It is still in `data.json`
+and `gap_data.json`; removing it from the array brings it back. Dropping it took dashboard 5 from
+17 outcomes to 16 and moved the numbers — private messaging's slope from −0.711 to −0.710 and its
+crossing point from 86% to 92%, podcasts from −0.887 to −0.886 and 52% to 53%. The slopes barely
+notice; the crossing points move, which is the instability the page and `MODEL_NOTES.md` §20a
+already warn about.
+
 AI Chat is estimated and kept in every payload, and hidden from all five pages at the
 rendering layer. Each page declares a `HIDDEN_SOURCES` array of regime keys next to its
 existing `HIDDEN_OUTCOMES` array and filters the loaded data through it once, before any
@@ -312,9 +321,8 @@ copy of dashboard 5's forest plot for slides and for the proposal, defaulting to
 redraws the page's geometry from the same payload rather than screenshotting it, so the figure and
 the page cannot drift apart, and every label, prevalence, odds ratio and correlation in it is read
 from the file. Four are checked in: `gradient_pvt.svg` (as asked, r = −0.71), `gradient_dec.svg`
-(−0.89, steeper but explained by lopsidedness), `gradient_srch.svg` (+0.53, the clearest
-counter-example) and `gradient_pvt_adverse.svg` (−0.83, the same source under the other
-orientation).
+(−0.89, the steepest of the seven), `gradient_srch.svg` (+0.51, the clearest counter-example) and
+`gradient_pvt_adverse.svg` (−0.84, the same source under the other orientation).
 
 That file is the **dashboard variant** of figure 1. One source,
 `../paper3/figures/make_flow_map.py`, emits two PNGs: run it bare for the proposal's

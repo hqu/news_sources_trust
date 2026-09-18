@@ -19,7 +19,7 @@ H = os.path.dirname(os.path.abspath(__file__))
 ARGS = [a for a in sys.argv[1:] if not a.startswith("--")]
 ADVERSE = "--adverse" in sys.argv[1:]
 REGIME = (ARGS[0] if ARGS else "PVT").upper()
-HIDDEN_OUTCOMES = {"rfk", "musk"}
+HIDDEN_OUTCOMES = {"rfk", "musk", "mmr"}   # mmr is W35 only: no wave fixed effect is fitted
 HIDDEN_SOURCES = {"AICH"}
 INK, MID, FAINT, HAIR, WASH, WARM = "#16181d", "#71777f", "#ccd1d6", "#e6e9ec", "#f4f7f9", "#9a3b30"
 

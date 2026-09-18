@@ -285,11 +285,13 @@ addEventListener("DOMContentLoaded",window.__linkPages);
     seven sources were in every model together. Subgroups are separately fitted models, and the
     variable defining a subgroup leaves the control set inside it.<br><br>
     <b>Thin rows are marked †.</b> Outcomes differ in how many waves carry them — some run in all
-    eleven, some in four, and the childhood MMR item in one, which is why that row alone carries no
-    wave fixed effect. The dagger marks any outcome fielded in fewer than half the waves of the
-    best-covered one, so it tracks wave coverage rather than sample size: inside a party subgroup
-    every row is smaller, but the coverage gaps between outcomes are the same ones. Hovering a row
-    gives both numbers.</p>
+    eleven and some in four. The dagger marks any outcome fielded in fewer than half the waves of
+    the best-covered one, so it tracks wave coverage rather than sample size: inside a party
+    subgroup every row is smaller, but the coverage gaps between outcomes are the same ones.
+    Hovering a row gives both numbers. One outcome in the payload is <b>not drawn at all</b> —
+    approval of the childhood MMR mandate ran in a single wave, so no wave fixed effect could be
+    fitted for it and it is not comparable with the rest. It is hidden here and on the other three
+    data pages rather than deleted from the payload.</p>
   </div>
 
   <footer class="pgfoot">
@@ -200135,7 +200137,7 @@ document.addEventListener("DOMContentLoaded",function(){ window.__unlock(boot); 
    targets whose wording the project is still unhappy with, and AI Chat runs in 6 of the 15
    waves so it is fitted separately and must not be read beside the others. Emptying either
    array brings them back here without any other edit. */
-const HIDDEN_OUTCOMES=["rfk","musk"];
+const HIDDEN_OUTCOMES=["rfk","musk","mmr"];
 const HIDDEN_SOURCES=["AICH"];
 
 const PAL={ink:"#16181d",mid:"#71777f",faint:"#ccd1d6",hair:"#e6e9ec",wash:"#f4f7f9",
@@ -200166,6 +200168,8 @@ const esc=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"
    is obviously broken rather than one that is quietly wrong. */
 const ADVERSE_LABEL={
   vaccine:"Has not had a COVID-19 vaccine",
+  // Kept although mmr is in HIDDEN_OUTCOMES: emptying that array has to bring the row back
+  // correctly labelled, not correctly hidden and wrongly named.
   mmr:"Does not approve the childhood MMR mandate"
 };
 /* The column header names the people the odds ratio is about, not the channel. A blanket
@@ -200211,12 +200215,13 @@ function points(regKey, stratKey, ori){
 }
 
 /* ---------- the forest plot ---------- */
-// The gutter is sized for the widest label in the ADVERSE orientation, not the native one:
-// "Does not approve the childhood MMR mandate" is 256px where the next widest is 198px. It
-// cannot be shortened to "Opposes the childhood MMR mandate" -- vac_mmr>=4 is approve or
-// strongly approve, so the complement includes the neutral midpoint, and naming that opposition
-// is the same error as scoring "neither agree nor disagree" as denial. The gutter is fixed
-// rather than measured so the plot does not reflow when the orientation button is pressed.
+// The gutter was sized for the widest label in the ADVERSE orientation: "Does not approve the
+// childhood MMR mandate" at 256px against 198px for the next widest. That row is hidden now, so
+// the gutter is wider than the drawn labels need -- left alone deliberately, because un-hiding
+// mmr must not reflow the plot, and neither should pressing the orientation button. (The label
+// cannot be shortened to "Opposes the childhood MMR mandate": vac_mmr>=4 is approve or strongly
+// approve, so its complement includes the neutral midpoint, and naming that opposition is the
+// same error as scoring "neither agree nor disagree" as denial.)
 const GUT=246, PNUM=312, PBAR=320, BARW=66, PX0=412, PXW=352, RH=26;
 function drawForest(){
   const P=points(S.reg,S.strat,S.ori);
@@ -200296,7 +200301,7 @@ function drawForest(){
      crosses the 1.0 line, no difference is one of the things the data are consistent with.
      <b>The answer</b> is the one the row names, which is not the same scale in every family:
      agree or strongly agree on a belief item, "a lot" or "some" on a trust item, at least one
-     dose for the COVID vaccine, approve or strongly approve for the MMR mandate. Election denial
+     dose for the COVID vaccine. Election denial
      is agreement that Trump would have won a fairly counted 2020 election — the neutral midpoint
      is not counted as denial.
      <span class="dag">†</span> marks an outcome fielded in fewer than half the waves the

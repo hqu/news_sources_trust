@@ -492,8 +492,11 @@ function stamp(){
    are all untouched; these keys are filtered out at load. Empty the array to
    bring them back -- nothing else has to change.
    --------------------------------------------------------------------------- */
-const HIDDEN_OUTCOMES=["rfk","musk"];
-const HIDDEN_VARS=["pol_trust_rfk","pol_trust_musk"];
+const HIDDEN_OUTCOMES=["rfk","musk","mmr"];
+// HIDDEN_OUTCOMES hides an outcome from the selector and the plot; this hides its question
+// text, which is keyed by variable rather than by outcome key. The two arrays have to be
+// kept in step by hand -- mmr was left showing here after being hidden everywhere else.
+const HIDDEN_VARS=["pol_trust_rfk","pol_trust_musk","vac_mmr"];
 /* ---------------------------------------------------------------------------
    TEMPORARILY HIDDEN NEWS SOURCES. Same idea as HIDDEN_OUTCOMES: the models and
    the payload are untouched and the regime is stripped out of the loaded data
