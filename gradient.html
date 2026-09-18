@@ -191,10 +191,7 @@ addEventListener("DOMContentLoaded",window.__linkPages);
   The vertical ordering comes from outside the estimates, so nothing about the plot forces the dots
   into a line.</p>
 
-  <p class="lede" style="margin-top:10px"><b>For private messaging they trend anyway.</b> The
-  association falls as the position becomes common — <span id="ledeTop">—</span> on the rarest
-  against <span id="ledeBot">—</span> on the most widely held, a correlation of
-  <span id="ledeR">—</span>.</p>
+  <p class="lede" style="margin-top:10px" id="ledeFind">—</p>
 
   <p class="lede" style="margin-top:10px">That is only worth saying if it belongs to this source
   rather than to the odds scale. <b>Switch the source</b> and the ordering stays put while the dots
@@ -246,11 +243,18 @@ addEventListener("DOMContentLoaded",window.__linkPages);
 
       <div class="panel">
         <h2>Is it just the arithmetic?</h2>
-        <p class="note" style="margin-top:0">An odds ratio has more room to move when a split is
-        lopsided, so a source could look like this without predicting anything in particular. That
-        alternative predicts <i>large</i> odds ratios at both ends, not <i>positive</i> ones at the
-        rare end. The test separates them: correlate the <i>size</i> of the association, ignoring
-        its sign, with distance from an even split.</p>
+        <p class="note" style="margin-top:0">The worry is that a source could show a gradient
+        without predicting anything in particular. It is worth being exact about which alternative
+        that is. An odds ratio is <i>already</i> the scale that stays put when prevalence changes
+        and the underlying effect does not, so the logistic scale is not the culprit. The real
+        alternative is an effect that is constant in <b>percentage points</b>: add six points to
+        everyone and the odds ratio is enormous at 4% and near 1.0 at 50%, with no gradient in the
+        underlying effect at all.</p>
+        <p class="note"><b>That story cannot change sign.</b> A constant percentage-point effect
+        leaves every odds ratio on the same side of 1.0. <b>Crossing</b> below is where the fitted
+        line passes 1.0, and the last two columns count outcomes whose interval clears 1.0 on each
+        side. A source with a solid count in both columns has changed sign, and no
+        constant-effect-on-any-scale story survives that.</p>
         <table class="diag" id="extab"></table>
         <p class="note" id="exnote"></p>
       </div>
@@ -486,11 +490,15 @@ function drawScatter(){
   document.getElementById("scatter").innerHTML=s;
 
   const per10=Math.exp(f.b*10);
+  const cross=f.b?-f.a/f.b:NaN;
+  const crossOK=isFinite(cross)&&cross>=0&&cross<=100;
   document.getElementById("scatstats").innerHTML=
     `<div><div class="big">${r>=0?"+":"−"}${Math.abs(r).toFixed(2)}</div>
        <div class="bigl">correlation across<br>the ${P.length} outcomes</div></div>
      <div><div class="big">×${per10.toFixed(3)}</div>
-       <div class="bigl">odds ratio per extra<br>10 points of prevalence</div></div>`;
+       <div class="bigl">odds ratio per extra<br>10 points of prevalence</div></div>
+     <div><div class="big">${crossOK?cross.toFixed(0)+"%":"—"}</div>
+       <div class="bigl">${crossOK?"where the line<br>crosses 1.0":"never crosses 1.0<br>in range"}</div></div>`;
 }
 
 /* ---------- the generality table: all seven sources, same test ---------- */
@@ -499,10 +507,16 @@ function drawTables(){
     const P=points(k,S.strat,S.ori);
     const xs=P.map(p=>p.prev), ys=P.map(p=>Math.log(p.or));
     const rare=ys.filter((_,i)=>xs[i]<25), comm=ys.filter((_,i)=>xs[i]>=40);
+    const f=ols(xs,ys);
     return {k:k, r:corr(xs,ys),
             ratio:(rare.length&&comm.length)?Math.exp(mean(rare)-mean(comm)):NaN,
             rare:rare.length?Math.exp(mean(rare)):NaN,
             comm:comm.length?Math.exp(mean(comm)):NaN,
+            // Where the fitted line passes 1.0: below this share the source goes with the
+            // position, above it against. The quantity the old "lopsidedness" column was
+            // accidentally measuring, now reported for itself.
+            cross:f.b?-f.a/f.b:NaN,
+            up:P.filter(q=>q.lo>1).length, dn:P.filter(q=>q.hi<1).length,
             mag:corr(xs.map(v=>Math.abs(v-50)), ys.map(Math.abs))};
   });
 
@@ -515,34 +529,36 @@ function drawTables(){
   t+=`</tbody>`;
   document.getElementById("gentab").innerHTML=t;
 
-  const e=[...rows].sort((a,b)=>b.mag-a.mag);
-  let u=`<thead><tr><th>Source</th><th>Size of the association vs<br>distance from an even split</th></tr></thead><tbody>`;
-  e.forEach(x=>{u+=`<tr class="${x.k===S.reg?"me":""}"><td>${esc(RLAB[x.k]||x.k)}</td>
+  const e=[...rows].sort((a,b)=>a.cross-b.cross);
+  let u=`<thead><tr><th>Source</th><th>Crossing</th><th>Clears 1.0<br>above</th><th>Clears 1.0<br>below</th><th>|log OR| vs<br>|p−50|</th></tr></thead><tbody>`;
+  e.forEach(x=>{
+    const cross=(isFinite(x.cross)&&x.cross>=0&&x.cross<=100)?x.cross.toFixed(0)+"%":"—";
+    u+=`<tr class="${x.k===S.reg?"me":""}"><td>${esc(RLAB[x.k]||x.k)}</td>
+     <td>${cross}</td><td>${x.up}</td><td>${x.dn}</td>
      <td>${x.mag>=0?"+":"−"}${Math.abs(x.mag).toFixed(2)}</td></tr>`;});
   u+=`</tbody>`;
   document.getElementById("extab").innerHTML=u;
 
   const me=rows.find(x=>x.k===S.reg);
-  const others=rows.filter(x=>x.k!==S.reg).map(x=>x.mag).sort((a,b)=>a-b);
-  const med=others.length%2?others[(others.length-1)/2]:(others[others.length/2-1]+others[others.length/2])/2;
+  const flips = me.up>=2 && me.dn>=2;
+  const crossTxt=(isFinite(me.cross)&&me.cross>=0&&me.cross<=100)
+    ? `crosses 1.0 at <b>${me.cross.toFixed(0)}%</b>` : `never crosses 1.0 inside the observed range`;
   document.getElementById("exnote").innerHTML=
-    `For <b>${esc(RLAB[S.reg]||S.reg)}</b> that correlation is
-     <b>${me.mag>=0?"+":"−"}${Math.abs(me.mag).toFixed(2)}</b>, against a median of
-     ${med>=0?"+":"−"}${Math.abs(med).toFixed(2)} for the other ${word(others.length)}. ` +
-    // Three cases, not two. The artifact story predicts a POSITIVE correlation -- big odds
-    // ratios at both ends -- so a negative one argues against it rather than for it, and the
-    // two-branch version said the opposite of the right thing for every negative value.
-    (me.mag>0.25
-      ? `Positive and large enough to matter, which is the shape the artifact predicts: part of
-         what the left-hand plot shows for this source may be the odds scale having more room on a
-         lopsided split rather than a claim about which positions the source goes with.`
-      : me.mag<-0.25
-      ? `Negative, which is the opposite of what the artifact predicts. This source's associations
-         are <i>smaller</i> where the split is lopsided, so the gradient on the left cannot be the
-         scale having more room to move.`
-      : `Near zero, so lopsidedness on its own does not account for this source: its odds ratios
-         are not uniformly large at both ends, they are <i>positive</i> at the rare end and
-         <i>negative</i> at the common end. The direction is the finding.`);
+    `<b>${esc(RLAB[S.reg]||S.reg)}</b> ${crossTxt}, with <b>${me.up}</b> outcomes clearing 1.0
+     above and <b>${me.dn}</b> below. ` +
+    (flips
+      ? `It changes sign, so a constant percentage-point effect cannot produce this and neither can
+         a constant odds effect. Whatever the gradient is, it is not the arithmetic.`
+      : `It does not change sign — ${me.up?"every interval that clears 1.0 clears it upward":"no interval clears 1.0 on both sides"} — so
+         a constant percentage-point effect remains a live alternative for this source, and the
+         slope on the left should not be read as a change in direction.`) +
+    `<br><br><b>The last column is weaker than it looks.</b> It correlates the size of the
+     association, ignoring sign, with distance from an even split, and a constant percentage-point
+     effect does drive it up. But so does a perfectly genuine gradient that happens to cross 1.0
+     near the middle: on these seventeen prevalences a noiseless straight line crossing at 50%
+     scores +1.00 by construction, and one crossing at 85% scores about +0.3. It measures where the
+     crossing sits at least as much as it measures the artifact, which is why the crossing is now
+     its own column. Read the sign change, not this number.`;
 }
 
 /* ---------- chrome ---------- */
@@ -561,14 +577,35 @@ function fillLede(){
   const P=points(S.reg,S.strat,S.ori);
   document.getElementById("ledeN").textContent=cap(word(P.length));
   document.getElementById("ledeK").textContent=word(REG.length);
-  // The private-messaging endpoints in the second paragraph are that source's, named in the
-  // sentence, and do not follow the chips -- the chips change the plot, not the finding the page
-  // is about. They do follow the subgroup and the orientation, because those change the finding.
-  const Q=points("PVT",S.strat,S.ori);
-  document.getElementById("ledeTop").textContent=Q.length?Q[0].or.toFixed(2):"—";
-  document.getElementById("ledeBot").textContent=Q.length?Q[Q.length-1].or.toFixed(2):"—";
-  document.getElementById("ledeR").textContent=(()=>{const x=corr(Q.map(p=>p.prev),
-    Q.map(p=>Math.log(p.or))); return (x>=0?"+":"−")+Math.abs(x).toFixed(2);})();
+  // The finding paragraph follows the chips. It used to be pinned to private messaging, which
+  // meant selecting another source redrew every dot and left the sentence describing a source
+  // that was no longer on screen. Each clause is derived, because the direction of the slope,
+  // whether the source changes sign and where it crosses all differ between sources -- Search
+  // Engine rises where Private Messaging falls, and Partisan Broadcast never crosses at all.
+  const Q=points(S.reg,S.strat,S.ori);
+  const name=RLAB[S.reg]||S.reg;
+  const qr=corr(Q.map(p=>p.prev),Q.map(p=>Math.log(p.or)));
+  const f=ols(Q.map(p=>p.prev),Q.map(p=>Math.log(p.or)));
+  const cross=f.b?-f.a/f.b:NaN;
+  const up=Q.filter(q=>q.lo>1).length, dn=Q.filter(q=>q.hi<1).length;
+  const fmtr=x=>(x>=0?"+":"−")+Math.abs(x).toFixed(2);
+  const dir = qr<=-0.3 ? "falls as the position becomes more common"
+            : qr>=0.3  ? "rises as the position becomes more common"
+            : "is flat against how common the position is";
+  const lead = qr<=-0.3 ? `<b>For ${esc(name.toLowerCase())} they trend anyway.</b>`
+             : qr>=0.3  ? `<b>${esc(name)} runs the other way.</b>`
+             : `<b>${esc(name)} shows no gradient at all.</b>`;
+  const crossOK = isFinite(cross) && cross>=0 && cross<=100;
+  const tail = (up>=2 && dn>=2 && crossOK)
+    ? ` It changes sign around <b>${cross.toFixed(0)}%</b>: ${up} outcomes sit clearly above 1.0
+        and ${dn} clearly below, so this is a change of direction and not a change of size.`
+    : ` It stays on one side of 1.0 across all ${Q.length} — ${up} clearly above, ${dn} clearly
+        below — so it is a difference of degree rather than of direction.`;
+  document.getElementById("ledeFind").innerHTML = Q.length
+    ? `${lead} The association ${dir} — <b>${Q[0].or.toFixed(2)}</b> on the rarest position against
+       <b>${Q[Q.length-1].or.toFixed(2)}</b> on the most widely held, a correlation of
+       <b>${fmtr(qr)}</b>.${tail}`
+    : "No estimates for this combination.";
   const slopes=REG.map(k=>{const R=points(k,S.strat,S.ori);
     return {k:k,r:corr(R.map(p=>p.prev),R.map(p=>Math.log(p.or)))};});
   document.getElementById("ledeUp").textContent=word(slopes.filter(x=>x.r>0).length);

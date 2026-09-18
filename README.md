@@ -76,20 +76,45 @@ live from the same payload and both changing with the source and subgroup chosen
   Engine (+0.53) and Big social platforms (+0.26) running the other way — which is what rules out
   the odds scale, since an artifact of the scale would bend all seven the same way. Private
   messaging is **not** the steepest here: podcasts are, at −0.89.
-- **The mechanical alternative.** An odds ratio has more room on a lopsided split, so a source
-  could show a gradient without meaning anything. That story predicts *large* odds ratios at both
-  ends, not a consistent decline in signed terms. Correlating |log OR| with distance from an even
-  split gives **+0.06 for private messaging** against **+0.55 for podcasts** and +0.53 for
-  interpersonal ties. This is the test that separates the two steepest slopes: podcasts are
-  steeper and largely explained by lopsidedness, private messaging shallower and not explained by
-  it at all. The quantity is invariant to reorientation — flipping `p → 100−p` leaves `|p−50|`
-  alone and `OR → 1/OR` leaves `|log OR|` alone — so it is the one number on the page that does
-  not move when the orientation button does.
+- **The mechanical alternative.** Be exact about which alternative this is. An odds ratio is
+  *already* the scale that stays put when prevalence changes and the underlying effect does not,
+  so the logistic scale is not the culprit. The live alternative is an effect constant in
+  **percentage points**: add six points to everyone and the odds ratio is enormous at 4% and near
+  1.0 at 50%, with no gradient in the underlying effect. **That story cannot change sign** — every
+  odds ratio stays on one side of 1.0. So the diagnostic is the sign change, and the page reports
+  the fitted **crossing point** plus a count of outcomes whose interval clears 1.0 on each side.
+
+  Sorting the seven by crossing point is itself informative: Journalistic Standard 18%, Big social
+  platforms 45%, podcasts 52%, Search Engine 67%, private messaging 86%, interpersonal ties 95%,
+  and Partisan Broadcast never (16 of 17 above 1.0). That is an ordering of how minoritarian a
+  position has to be before a source stops siding with it.
+
+  **A correction to an earlier version of this page.** It carried a column correlating |log OR|
+  with |p − 50| and read a high value as evidence the gradient was an artifact — concluding that
+  podcasts (+0.55) were "largely explained by lopsidedness" and private messaging (+0.06) was not.
+  That inference does not hold. The quantity is confounded with where the line crosses 1.0: on
+  these seventeen prevalences a **noiseless, perfectly genuine** straight line crossing at 50%
+  scores +1.00 by construction, one crossing at 85% scores about +0.3, and one crossing at 20%
+  scores −0.04. Podcasts cross at 52% and private messaging at 86%, which accounts for the gap
+  between them on their own. The column is still shown, because a constant percentage-point effect
+  does drive it up, but it is labelled as the weaker of the two and the crossing sits beside it.
+  Podcasts change sign — 9 outcomes clear 1.0 above and 8 below — so no constant-effect story
+  survives for them either.
 
 The gradient holds in most subgroups but not all: −0.80 among Democrats, −0.70 among Republicans,
 −0.88 among respondents with a high school education or less, and **+0.02 among graduate-degree
 holders**, where it disappears. That last cell is the honest limit of the claim and the page shows
 it without comment.
+
+**Podcasts are the stronger case of the same shape**, and every part of the page follows the
+selected source so they get the same treatment rather than a chip that redraws the dots under
+prose about something else. Podcasts run −0.89 against private messaging's −0.71, from 1.45 on
+wind turbines to 0.79 on trust in doctors, crossing 1.0 at 52% with 9 outcomes clearly above and 8
+clearly below — the cleanest sign change of the seven. They also survive every subgroup, including
+graduate degree at −0.96, where private messaging's gradient vanishes. Occupancy is 12.7% against
+7.7%. Private messaging remains the more surprising finding — it crosses at 86%, so it sides with
+the affirmative on nearly everything and only turns on near-consensus items — but podcasts are the
+cleaner demonstration that the gradient exists.
 
 ### Orientation
 
