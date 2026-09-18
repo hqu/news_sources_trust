@@ -24,6 +24,24 @@ RLAB = {r["key"]: r["label"] for r in d["meta"]["regimes"]}
 REGS = [r["key"] for r in d["meta"]["regimes"] if r["key"] not in HIDDEN_SOURCES]
 
 
+# A reversed outcome has to be renamed, not just re-signed: the number beside "Trust in Donald
+# Trump" here is 61.0%, the share who do NOT trust him, and the native label would state the
+# opposite of what the row plots. Same map and same fallback as gradient.html -- the two have to
+# agree, and a trust outcome that matches neither is labelled visibly broken rather than wrongly.
+ADVERSE_LABEL = {"vaccine": "Has not had a COVID-19 vaccine",
+                 "mmr": "Does not approve the childhood MMR mandate"}
+
+
+def adverse_label(o):
+    if o["direction"] != "trust":
+        return o["label"]
+    if o["key"] in ADVERSE_LABEL:
+        return ADVERSE_LABEL[o["key"]]
+    if o["label"].startswith("Trust in "):
+        return "Distrust of " + o["label"][len("Trust in "):]
+    return "[NOT REVERSED] " + o["label"]
+
+
 def points(reg):
     out = []
     for o in d["outcomes"]:
@@ -35,7 +53,7 @@ def points(reg):
             continue
         flip = o["direction"] == "trust"
         out.append(dict(
-            label=o["label"], n=b["n"], waves=len(b.get("waves") or []),
+            label=adverse_label(o), n=b["n"], waves=len(b.get("waves") or []),
             prev=100 - b["prevalence"] if flip else b["prevalence"],
             orr=1 / e["odds_ratio"] if flip else e["odds_ratio"],
             lo=1 / e["hi"] if flip else e["lo"],
@@ -56,7 +74,8 @@ r = corr([p["prev"] for p in P], [math.log(p["orr"]) for p in P])
 maxW = max(p["waves"] for p in P)
 maxp = max(p["prev"] for p in P)
 
-GUT, PNUM, PBAR, BARW, PX0, PXW, RH = 246, 292, 300, 66, 392, 352, 26
+# Gutter sized for the adverse labels, matching gradient.html -- see the note there.
+GUT, PNUM, PBAR, BARW, PX0, PXW, RH = 246, 312, 320, 66, 412, 352, 26
 lo = min([1.0] + [p["lo"] for p in P] + [1 / 1.2])
 hi = max([1.0] + [p["hi"] for p in P] + [1.2])
 pad = (math.log(hi) - math.log(lo)) * 0.04
@@ -110,7 +129,8 @@ s.append(f'<text x="{PX0 + PXW}" y="{yb}" fill="{MID}" font-size="10.4" font-wei
 cap = [
     "Survey-weighted logistic regression, one per outcome, adjusted for party, education, age, income,",
     "gender, wave and every other news source. Trust items are turned around to face the same way as",
-    "belief items, so “hold it” means believing the claim or distrusting the institution. † fewer than",
+    "belief items, and renamed with them: a trust question is named and counted here as distrust,",
+    "so 61.0% do not trust Donald Trump and 39.0% do. † fewer than",
     "half the waves of the best-covered outcome. Cross-sectional associations, confounded with selective",
     "exposure by construction: they fix the ordering of predictors, not transmission rates.",
 ]

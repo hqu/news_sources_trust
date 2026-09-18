@@ -61,7 +61,19 @@ live from the same payload and both changing with the source and subgroup chosen
 The gradient survives every subgroup: −0.84 among Democrats, −0.69 among Republicans, −0.85 among
 respondents with a high school education or less. The page defaults to the **adverse orientation**
 that `explorer.html` uses — believing the claim, or *dis*trusting the institution — because trust
-and belief items cannot share an axis otherwise, and *As the question was asked* undoes it. That
+and belief items cannot share an axis otherwise, and *As the question was asked* undoes it.
+
+**Reversing an outcome renames its row**, which is where this page differs from `explorer.html`.
+The explorer can keep the native name because its axis is labelled "% of the population in the
+adverse state"; a forest plot puts the name and the number on one line, so "Trust in Donald Trump
+— 61.0%" reads as 61% trusting him when 39% do. `labelFor()` turns `Trust in X` into `Distrust of
+X`, carries written-out labels for the two outcomes that are not trust-in-a-target (`vaccine`,
+`mmr`), and prefixes anything that matches neither with `[NOT REVERSED]` so a new trust outcome
+fails loudly rather than silently. `mmr` cannot be shortened to "Opposes the childhood MMR
+mandate": `vac_mmr >= 4` is approve or strongly approve, so its complement contains the neutral
+midpoint, and calling that opposition is the same error as scoring "neither agree nor disagree" as
+election denial. The left gutter is sized for that label, and `make_gradient_figure.py` carries the
+same map and the same fallback. That
 button is not decoration: the correlation falls from −0.83 to −0.71 when the trust items face their
 original way, so the orientation does part of the work and the page should let a reader see how
 much.

@@ -38,8 +38,8 @@ select{font:inherit;font-size:12.4px;padding:5px 8px;border:1px solid var(--hair
   border-radius:7px;background:var(--bg);color:var(--ink)}
 
 /* ---- two-column body ---- */
-.cols{display:grid;grid-template-columns:790px minmax(0,1fr);gap:22px;align-items:start}
-@media(max-width:1180px){.cols{grid-template-columns:1fr}}
+.cols{display:grid;grid-template-columns:830px minmax(0,1fr);gap:22px;align-items:start}
+@media(max-width:1220px){.cols{grid-template-columns:1fr}}
 
 table.diag{border-collapse:collapse;width:100%;font-size:12.2px;margin-top:4px}
 table.diag th,table.diag td{text-align:right;padding:5px 7px;border-bottom:1px solid var(--hair);white-space:nowrap}
@@ -198,8 +198,12 @@ window.__unlock=function(run){
     these outcomes are trust questions and six are belief questions, and they only share an axis
     once trust is turned around to face the same way as belief — so "the adverse side" means
     believing the claim, or <i>dis</i>trusting the institution. Turning an outcome around inverts
-    its odds ratio and replaces its prevalence with 100 minus itself; nothing else changes. The
-    <i>As the question was asked</i> button undoes it, and the gradient is worth checking there.<br><br>
+    its odds ratio, replaces its prevalence with 100 minus itself, and <b>renames the row</b> —
+    which is why a trust question appears here as <i>Distrust of the CDC</i>. Without the rename,
+    61.0% beside a row called "Trust in Donald Trump" would say the opposite of what it plots,
+    since 39.0% trust him. Hovering a reversed row gives the question as it was asked and the
+    share on that side. The <i>As the question was asked</i> button puts every outcome back the
+    way it was fielded, and the gradient is worth checking there.<br><br>
     <b>These are cross-sectional associations, confounded with selective exposure by
     construction.</b> They fix the ordering of predictors, not transmission rates. A person who
     already holds a rare position is freer to choose a messaging app than the app is to give them
@@ -253,6 +257,24 @@ function ols(xs,ys){
 }
 const esc=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
 
+/* When an outcome is turned around, its NAME has to turn around with it. In the adverse
+   orientation the number beside "Trust in Donald Trump" is 61.0% -- the share who do NOT trust
+   him, since 39.0% do -- and a row still called "Trust in Donald Trump" states the opposite of
+   what it plots. Two outcomes are not trust-in-a-target and cannot be negated by pattern, so
+   they are written out; anything else that fails both the map and the pattern gets a label that
+   is obviously broken rather than one that is quietly wrong. */
+const ADVERSE_LABEL={
+  vaccine:"Has not had a COVID-19 vaccine",
+  mmr:"Does not approve the childhood MMR mandate"
+};
+function labelFor(o,ori){
+  if(ori!=="adv" || o.direction!=="trust") return o.label;
+  if(ADVERSE_LABEL[o.key]) return ADVERSE_LABEL[o.key];
+  const m=/^Trust in (.+)$/.exec(o.label);
+  if(m) return "Distrust of "+m[1];
+  return "[NOT REVERSED] "+o.label;
+}
+
 /* ---------- pull the points for one source in one subgroup ----------
    Every number on this page comes out of here. `adv` flips a trust outcome to face the same
    way as a belief outcome: the prevalence becomes its complement and the odds ratio its
@@ -266,7 +288,8 @@ function points(regKey, stratKey, ori){
     const e=(b.estimates||[]).find(x=>x.key===regKey); if(!e) return;
     const flip = (ori==="adv" && o.direction==="trust");
     out.push({
-      key:o.key, label:o.label, group:o.group, direction:o.direction,
+      key:o.key, label:labelFor(o,ori), given:o.label, group:o.group, direction:o.direction,
+      flipped:flip,
       n:b.n, waves:(b.waves||[]).length, wdum:b.n_wave_dummies,
       occ:e.pct_occupying, p:e.p,
       prev: flip ? 100-b.prevalence : b.prevalence,
@@ -280,7 +303,13 @@ function points(regKey, stratKey, ori){
 }
 
 /* ---------- the forest plot ---------- */
-const GUT=246, PNUM=292, PBAR=300, BARW=66, PX0=392, PXW=352, RH=26;
+// The gutter is sized for the widest label in the ADVERSE orientation, not the native one:
+// "Does not approve the childhood MMR mandate" is 256px where the next widest is 198px. It
+// cannot be shortened to "Opposes the childhood MMR mandate" -- vac_mmr>=4 is approve or
+// strongly approve, so the complement includes the neutral midpoint, and naming that opposition
+// is the same error as scoring "neither agree nor disagree" as denial. The gutter is fixed
+// rather than measured so the plot does not reflow when the orientation button is pressed.
+const GUT=246, PNUM=312, PBAR=320, BARW=66, PX0=412, PXW=352, RH=26;
 function drawForest(){
   const P=points(S.reg,S.strat,S.ori);
   const host=document.getElementById("forest");
@@ -332,7 +361,8 @@ function drawForest(){
     // either would say a third time what the geometry says twice.
     s+=`<line x1="${sx(p.lo)}" y1="${y}" x2="${sx(p.hi)}" y2="${y}" stroke="${PAL.ink}" stroke-width="1.4"/>`;
     s+=`<circle cx="${sx(p.or)}" cy="${y}" r="4.2" fill="${PAL.ink}"/>`;
-    s+=`<title>${esc(p.label)} — ${p.prev.toFixed(1)}% hold it · OR ${p.or.toFixed(2)} [${p.lo.toFixed(2)}, ${p.hi.toFixed(2)}] · n=${p.n.toLocaleString()} over ${p.waves} wave${p.waves===1?"":"s"}</title>`;
+    s+=`<title>${esc(p.label)} — ${p.prev.toFixed(1)}% hold it · OR ${p.or.toFixed(2)} [${p.lo.toFixed(2)}, ${p.hi.toFixed(2)}] · n=${p.n.toLocaleString()} over ${p.waves} wave${p.waves===1?"":"s"}${
+      p.flipped?` · reversed from “${esc(p.given)}”, which ${(100-p.prev).toFixed(1)}% hold`:""}</title>`;
   });
 
   const yb=TOP+P.length*RH+38;
